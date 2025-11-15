@@ -228,6 +228,7 @@ export default function Home() {
       }).extend(publicActions);
       
       // wrap fetch with x402 payment handling
+      // @ts-ignore - viem type compatibility between x402-fetch and latest viem
       const fetchWithPayment = wrapFetchWithPayment(fetch, walletClient);
       
       // make the paid request
