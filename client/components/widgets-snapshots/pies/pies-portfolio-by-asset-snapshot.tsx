@@ -5,13 +5,15 @@ import { TPortfolio } from '@/types/portfolio';
 import { getAssetValueDictionary, getComparisonAssetValueDictionary } from '@/handlers/portfolio-handler';
 import TwoLevelPieChartComponent from '@/components/charts/pies';
 import { useWidgetDefaults } from '@/hooks/use-widget-defaults';
+import { useWidgetColors } from '@/hooks/use-widget-colors';
 
 export default function PiesPortfolioByAssetSnapshot() {
   const { defaults, isLoading: defaultsLoading } = useWidgetDefaults();
+  const widgetColors = useWidgetColors();
   const MAX_DATES = 4;
   // Get dates from config defaults
   const rawDates = defaults?.['pies-portfolio-by-asset']?.dates || ['2025-06-06', '2025-11-22', '2025-01-01'];
-  const targetAddress = defaults?.['pies-portfolio-by-asset']?.address || '0x3f5eddad52c665a4aa011cd11a21e1d5107d7862';
+  const targetAddress = defaults?.['pies-portfolio-by-asset']?.address || '0xc9c61194682a3a5f56bf9cd5b59ee63028ab6041';
   
   // Validate max 4 dates
   if (rawDates.length > MAX_DATES) {
@@ -92,6 +94,8 @@ export default function PiesPortfolioByAssetSnapshot() {
         <TwoLevelPieChartComponent
           comparisonData={comparisonDictionary}
           dates={dates}
+          innerColors={widgetColors}
+          outerColors={widgetColors}
           height={500}
           maxWidth={600}
         />

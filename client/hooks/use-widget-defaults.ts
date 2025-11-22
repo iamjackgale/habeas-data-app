@@ -22,6 +22,11 @@ interface WidgetDefaults {
     address: string;
     dates: string[];
   };
+  'bar-transactions-by-day'?: {
+    address: string;
+    startDate: string;
+    endDate: string;
+  };
 }
 
 export function useWidgetDefaults() {

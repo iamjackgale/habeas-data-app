@@ -5,6 +5,7 @@ import { TPortfolio } from '@/types/portfolio';
 import { getProtocolValueDictionary } from '@/handlers/portfolio-handler';
 import { processPieChartData } from '@/handlers/pie-chart-handler';
 import PieChartComponent from '@/components/charts/pie';
+import { useWidgetColors } from '@/hooks/use-widget-colors';
 
 interface PieHistoricalPortfolioByProtocolProps {
   address: string;
@@ -12,6 +13,9 @@ interface PieHistoricalPortfolioByProtocolProps {
 }
 
 export default function PieHistoricalPortfolioByProtocol({ address, date }: PieHistoricalPortfolioByProtocolProps) {
+  // Load colors from config
+  const widgetColors = useWidgetColors();
+  
   const { data, isLoading, error } = useGetHistorical({
     addresses: [address],
     date: date
@@ -68,6 +72,7 @@ export default function PieHistoricalPortfolioByProtocol({ address, date }: PieH
         <PieChartComponent
           data={pieChartData}
           totalValue={totalValue}
+          colors={widgetColors}
           labelThreshold={0.01} // 1% threshold for label visibility
           otherCategoryName="other"
           height={500}

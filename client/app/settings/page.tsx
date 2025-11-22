@@ -38,6 +38,11 @@ function CollapsibleSection({
   );
 }
 
+interface AddressEntry {
+  address: string;
+  label: string;
+}
+
 export default function SettingsPage() {
   const [widgetColors, setWidgetColors] = useState<string[]>([
     '#0088FE',
@@ -51,6 +56,7 @@ export default function SettingsPage() {
     '#9c88ff',
     '#ff8c94',
   ]);
+  const [proAddresses, setProAddresses] = useState<Record<string, AddressEntry>>({});
   const [isSaving, setIsSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
@@ -64,6 +70,15 @@ export default function SettingsPage() {
           if (config.settings?.visuals?.widgetColors) {
             setWidgetColors(config.settings.visuals.widgetColors);
           }
+          if (config.settings?.addresses) {
+            console.log('Loaded addresses from config:', config.settings.addresses);
+            console.log('Type of addresses:', typeof config.settings.addresses);
+            console.log('Is object:', typeof config.settings.addresses === 'object');
+            console.log('Keys:', Object.keys(config.settings.addresses));
+            setProAddresses(config.settings.addresses);
+          } else {
+            console.log('No addresses found in config. Config structure:', config);
+          }
         }
       } catch (error) {
         console.error('Error loading config:', error);
@@ -71,6 +86,12 @@ export default function SettingsPage() {
     };
     loadConfig();
   }, []);
+
+  // Debug: Log proAddresses when it changes
+  useEffect(() => {
+    console.log('proAddresses state updated:', proAddresses);
+    console.log('Number of addresses:', Object.keys(proAddresses).length);
+  }, [proAddresses]);
 
   const handleColorChange = (index: number, color: string) => {
     const newColors = [...widgetColors];
@@ -123,6 +144,50 @@ export default function SettingsPage() {
           <p className="text-foreground">Accessible when connected with a permitted admin account only</p>
         </div>
 
+        {/* Account Section */}
+        <CollapsibleSection title="Account">
+          <div className="flex flex-col gap-4">
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Pro Addresses</h3>
+              <p className="text-foreground mb-4">
+                List of configured addresses available for queries.
+              </p>
+            </div>
+            
+            {Object.keys(proAddresses).length > 0 ? (
+              <div className="border border-border rounded-lg overflow-hidden">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b border-border bg-accent/30">
+                      <th className="p-3 text-left font-semibold">Chain</th>
+                      <th className="p-3 text-left font-semibold">Label</th>
+                      <th className="p-3 text-left font-semibold">Address</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Object.entries(proAddresses).map(([chain, entry]) => {
+                      // Ensure entry is an object with address and label
+                      const addressEntry = entry as AddressEntry;
+                      return (
+                        <tr key={chain} className="border-b border-border hover:bg-accent/20 transition-colors">
+                          <td className="p-3 font-medium">{chain}</td>
+                          <td className="p-3">{addressEntry?.label || entry?.label || 'N/A'}</td>
+                          <td className="p-3 font-mono text-sm">{addressEntry?.address || entry?.address || 'N/A'}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="p-4 border border-border rounded-lg">
+                <p className="text-muted-foreground">No addresses configured</p>
+                <p className="text-xs text-muted-foreground mt-2">Debug: proAddresses keys: {Object.keys(proAddresses).length}</p>
+              </div>
+            )}
+          </div>
+        </CollapsibleSection>
+
         {/* Visuals Section */}
         <CollapsibleSection title="Visuals">
           <div className="flex flex-col gap-4">
@@ -146,6 +211,7 @@ export default function SettingsPage() {
             </div>
           </div>
         </CollapsibleSection>
+
 
         {/* Save Button */}
         <div className="flex items-center gap-4">

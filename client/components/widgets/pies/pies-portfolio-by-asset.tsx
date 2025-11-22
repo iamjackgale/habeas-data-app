@@ -4,6 +4,7 @@ import { useGetHistorical } from '@/services/octav/loader';
 import { TPortfolio } from '@/types/portfolio';
 import { getAssetValueDictionary, getComparisonAssetValueDictionary } from '@/handlers/portfolio-handler';
 import TwoLevelPieChartComponent from '@/components/charts/pies';
+import { useWidgetColors } from '@/hooks/use-widget-colors';
 
 interface PiesPortfolioByAssetProps {
   address: string;
@@ -11,6 +12,9 @@ interface PiesPortfolioByAssetProps {
 }
 
 export default function PiesPortfolioByAsset({ address, dates: rawDates }: PiesPortfolioByAssetProps) {
+  // Load colors from config
+  const widgetColors = useWidgetColors();
+  
   const MAX_DATES = 5;
   
   // Validate max 5 dates
@@ -92,6 +96,8 @@ export default function PiesPortfolioByAsset({ address, dates: rawDates }: PiesP
         <TwoLevelPieChartComponent
           comparisonData={comparisonDictionary}
           dates={dates}
+          innerColors={widgetColors}
+          outerColors={widgetColors}
           height={500}
           maxWidth={800}
         />

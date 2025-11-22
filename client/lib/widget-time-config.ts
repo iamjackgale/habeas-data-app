@@ -33,6 +33,7 @@ const MULTI_DATE_WIDGETS: string[] = [
   'bar-stacked-portfolio-by-asset', // MAX_DATES = 5
   'bar-stacked-portfolio-by-protocol', // MAX_DATES = 5
   'bar-portfolio-by-networth', // MAX_DATES = 5
+  'bar-transactions-by-day', // Needs startDate and endDate (2 dates, max 30 days range)
 ];
 
 /**
@@ -117,6 +118,7 @@ const WIDGET_CONFIG: Record<string, WidgetConfig> = {
   'bar-stacked-portfolio-by-asset': { timePeriodType: 'multi', selectionType: 'addresses', hasCategories: false },
   'bar-stacked-portfolio-by-protocol': { timePeriodType: 'multi', selectionType: 'addresses', hasCategories: false },
   'bar-portfolio-by-networth': { timePeriodType: 'multi', selectionType: 'addresses', hasCategories: false },
+  'bar-transactions-by-day': { timePeriodType: 'multi', selectionType: 'addresses', hasCategories: false },
 };
 
 /**
@@ -159,9 +161,26 @@ export function requiresAddresses(widgetKey: string | null): boolean {
 export function hasCategories(widgetKey: string | null, mode: 'portfolio' | 'transactions'): boolean {
   // Categories are only available for transactions mode
   if (mode === 'transactions') {
-    // Future: return getWidgetConfig(widgetKey).hasCategories when transactions widgets are added
-    return true; // Default to true for transactions mode
+    // Check the widget config to see if it has categories enabled
+    return getWidgetConfig(widgetKey).hasCategories;
   }
   return getWidgetConfig(widgetKey).hasCategories;
+}
+
+/**
+ * Check if a table has category options
+ */
+export function hasTableCategories(tableKey: string | null, mode: 'portfolio' | 'transactions'): boolean {
+  // Categories are only available for transactions mode
+  if (mode === 'transactions') {
+    // Transactions-by-day table does not require categories
+    if (tableKey === 'transactions-by-day') {
+      return false;
+    }
+    // Default to true for other transactions tables (can be extended later)
+    return true;
+  }
+  // Portfolio tables don't have categories
+  return false;
 }
 

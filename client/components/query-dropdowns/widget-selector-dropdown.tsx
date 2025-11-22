@@ -29,7 +29,11 @@ const PORTFOLIO_WIDGET_CATEGORIES = {
   ],
 };
 
-const TRANSACTIONS_WIDGET_CATEGORIES: Record<string, Array<{ key: string; label: string }>> = {};
+const TRANSACTIONS_WIDGET_CATEGORIES = {
+  'bar': [
+    { key: 'bar-transactions-by-day', label: 'Transactions by Day' },
+  ],
+};
 
 interface WidgetSelectorDropdownProps {
   mode?: Mode;

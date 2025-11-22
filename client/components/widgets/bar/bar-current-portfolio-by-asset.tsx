@@ -5,6 +5,7 @@ import { TPortfolio } from '@/types/portfolio';
 import { getAssetValueDictionary } from '@/handlers/portfolio-handler';
 import { processBarChartData } from '@/handlers/bar-chart-handler';
 import BarChartComponent from '@/components/charts/bar';
+import { useWidgetColors } from '@/hooks/use-widget-colors';
 
 interface BarCurrentPortfolioByAssetProps {
   address: string;
@@ -13,6 +14,9 @@ interface BarCurrentPortfolioByAssetProps {
 export default function BarCurrentPortfolioByAsset({ address }: BarCurrentPortfolioByAssetProps) {
   // Get current date for title
   const currentDate = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
+  
+  // Load colors from config
+  const widgetColors = useWidgetColors();
   
   const { data, isLoading, error } = useGetPortfolio({
     addresses: [address],
@@ -73,6 +77,7 @@ export default function BarCurrentPortfolioByAsset({ address }: BarCurrentPortfo
         <BarChartComponent
           data={barChartData}
           totalValue={totalValue}
+          colors={widgetColors}
           height={500}
           maxWidth={600}
         />

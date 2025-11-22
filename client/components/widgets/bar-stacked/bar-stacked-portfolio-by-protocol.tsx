@@ -5,6 +5,7 @@ import { TPortfolio } from '@/types/portfolio';
 import { getProtocolValueDictionary, getComparisonProtocolValueDictionary } from '@/handlers/portfolio-handler';
 import { BarStackedChartDataEntry } from '@/handlers/bar-chart-handler';
 import BarStackedChartComponent from '@/components/charts/bar-stacked';
+import { useWidgetColors } from '@/hooks/use-widget-colors';
 
 interface BarStackedPortfolioByProtocolProps {
   address: string;
@@ -12,6 +13,9 @@ interface BarStackedPortfolioByProtocolProps {
 }
 
 export default function BarStackedPortfolioByProtocol({ address, dates: rawDates }: BarStackedPortfolioByProtocolProps) {
+  // Load colors from config
+  const widgetColors = useWidgetColors();
+  
   const MAX_DATES = 12;
   
   // Validate max 12 dates
@@ -232,6 +236,7 @@ export default function BarStackedPortfolioByProtocol({ address, dates: rawDates
           data={finalStackedData}
           dataKeys={finalDataKeys}
           totalValue={totalValue}
+          colors={widgetColors}
           height={500}
           maxWidth={700}
         />

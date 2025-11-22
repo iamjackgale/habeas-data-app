@@ -1,3 +1,5 @@
+'use client';
+
 import { CSSProperties } from 'react';
 
 interface LoadingSpinnerProps {
@@ -13,7 +15,7 @@ export function LoadingSpinner({ progress}: LoadingSpinnerProps) {
     <div className="flex flex-col items-center justify-center gap-6 p-8 w-full h-full max-w-full max-h-full">
       <div className="relative w-20 h-20 max-w-[20vw] max-h-[20vh] shrink-0" style={spinStyle}>
         <img 
-          src="/logo.svg" 
+          src="/habeas-icon-transparent.png" 
           alt="Loading" 
           className="w-full h-full object-contain"
         />

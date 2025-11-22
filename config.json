@@ -58,25 +58,30 @@
     },
     "widgetDefaults": {
       "portfolio": {
-        "address": "0xc9c61194682a3a5f56bf9cd5b59ee63028ab6041"
+        "address": "0x4aba01fb8e1f6bfe80c56deb367f19f35df0f4ae"
       },
       "historic": {
-        "address": "0x3f5eddad52c665a4aa011cd11a21e1d5107d7862",
+        "address": "0x4aba01fb8e1f6bfe80c56deb367f19f35df0f4ae",
         "date": "2025-06-06"
       },
       "pie-current-portfolio-by-asset": {
-        "address": "0xc9c61194682a3a5f56bf9cd5b59ee63028ab6041"
+        "address": "0x4aba01fb8e1f6bfe80c56deb367f19f35df0f4ae"
       },
       "pies-portfolio-by-asset": {
-        "address": "0x3f5eddad52c665a4aa011cd11a21e1d5107d7862",
+        "address": "0x4aba01fb8e1f6bfe80c56deb367f19f35df0f4ae",
         "dates": ["2025-06-06", "2025-11-22", "2025-01-01"]
       },
       "bar-current-portfolio-by-asset": {
-        "address": "0xc9c61194682a3a5f56bf9cd5b59ee63028ab6041"
+        "address": "0x4aba01fb8e1f6bfe80c56deb367f19f35df0f4ae"
       },
       "bar-stacked-portfolio-by-asset": {
-        "address": "0x3f5eddad52c665a4aa011cd11a21e1d5107d7862",
-        "dates": ["2025-06-06", "2025-11-22", "2025-01-01", "2025-03-15", "2025-08-30"]
+        "address": "0x4aba01fb8e1f6bfe80c56deb367f19f35df0f4ae",
+        "dates": ["2025-06-06", "2025-11-22", "2025-01-01", "2025-03-15"]
+      },
+      "bar-transactions-by-day": {
+        "address": "0x10e13f11419165beb0f456ec8a230899e4013bbd",
+        "startDate": "2025-09-01",
+        "endDate": "2025-09-30"
       }
     }
   }

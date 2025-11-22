@@ -10,6 +10,7 @@ import React from 'react';
 // Import all table components
 import TablePortfolioByProtocol from '@/components/tables/table-portfolio-by-protocol';
 import TablePortfolioByAsset from '@/components/tables/table-portfolio-by-asset';
+import TableTransactionsByDay from '@/components/tables/table-transactions-by-day';
 import { TableComparison, ComparisonTableDataEntry } from '@/components/tables/table-comparison';
 import { useGetHistorical } from '@/services/octav/loader';
 import { TPortfolio } from '@/types/portfolio';
@@ -18,7 +19,6 @@ import { getAssetValueDictionary, getComparisonAssetValueDictionary } from '@/ha
 import { LoadingSpinner } from '@/components/loading-spinner';
 
 import { TableDataEntry } from '@/components/tables/table-base';
-import { ComparisonTableDataEntry } from '@/components/tables/table-comparison';
 
 export interface TableRenderParams {
   tableKey: string;
@@ -38,10 +38,10 @@ export interface TableRenderResult {
 }
 
 // Table component that handles historical data
-function TableHistoricalPortfolioByProtocol({ address, date }: { address: string; date: string }) {
+function TableHistoricalPortfolioByProtocol({ address, date: dateProp }: { address: string; date: string }) {
   const { data, isLoading, error } = useGetHistorical({
     addresses: [address],
-    date: date,
+    date: dateProp,
   });
 
   if (isLoading) return <LoadingSpinner />;
@@ -68,6 +68,10 @@ function TableHistoricalPortfolioByProtocol({ address, date }: { address: string
     );
   }
 
+  // Use the date prop that was passed to the Historical API call
+  // This ensures we display the actual date used in the query, not a default
+  const displayDate = dateProp;
+
   const protocolDictionary = getProtocolValueDictionary(portfolio);
   const tableData = Object.entries(protocolDictionary).map(([name, value]) => ({
     name,
@@ -86,7 +90,7 @@ function TableHistoricalPortfolioByProtocol({ address, date }: { address: string
   return (
     <div className="p-4 border border-border widget-bg rounded-md w-full">
       <h2 className="font-semibold widget-text mb-4 border-b border-border pb-2">
-        Portfolio Assets by Protocol ({date})
+        Portfolio Assets by Protocol ({displayDate})
       </h2>
       <div className="overflow-x-auto">
         <table className="w-full border-collapse">
@@ -119,10 +123,10 @@ function TableHistoricalPortfolioByProtocol({ address, date }: { address: string
 }
 
 // Table component that handles historical asset data
-function TableHistoricalPortfolioByAsset({ address, date }: { address: string; date: string }) {
+function TableHistoricalPortfolioByAsset({ address, date: dateProp }: { address: string; date: string }) {
   const { data, isLoading, error } = useGetHistorical({
-    addresses: address,
-    date: date,
+    addresses: [address],
+    date: dateProp,
   });
 
   if (isLoading) return <LoadingSpinner />;
@@ -149,6 +153,10 @@ function TableHistoricalPortfolioByAsset({ address, date }: { address: string; d
     );
   }
 
+  // Use the date prop that was passed to the Historical API call
+  // This ensures we display the actual date used in the query, not a default
+  const displayDate = dateProp;
+
   const assetDictionary = getAssetValueDictionary(portfolio);
   const tableData = Object.entries(assetDictionary).map(([name, value]) => ({
     name,
@@ -167,7 +175,7 @@ function TableHistoricalPortfolioByAsset({ address, date }: { address: string; d
   return (
     <div className="p-4 border border-border widget-bg rounded-md w-full">
       <h2 className="font-semibold widget-text mb-4 border-b border-border pb-2">
-        Portfolio Assets by Asset ({date})
+        Portfolio Assets by Asset ({displayDate})
       </h2>
       <div className="overflow-x-auto">
         <table className="w-full border-collapse">
@@ -501,6 +509,28 @@ export function renderTable(params: TableRenderParams): TableRenderResult {
         title: 'Portfolio Comparison by Asset',
         comparisonData: undefined, // Will be extracted from component
         dates: dates,
+      };
+
+    case 'transactions-by-day':
+      if (dates.length < 2) {
+        return {
+          component: (
+            <div className="p-4 border border-yellow-300 bg-yellow-50 rounded-md">
+              <p className="font-semibold text-yellow-800">Error</p>
+              <p className="text-yellow-600">Please select a date range (start and end date)</p>
+            </div>
+          ),
+          title: 'Error',
+        };
+      }
+      // Sort dates and use first as startDate, last as endDate
+      const sortedDates = [...dates].sort((a, b) => a.localeCompare(b));
+      const startDate = sortedDates[0];
+      const endDate = sortedDates[sortedDates.length - 1];
+      return {
+        component: <TableTransactionsByDay address={address} startDate={startDate} endDate={endDate} />,
+        title: `Transactions by Day (${startDate} to ${endDate})`,
+        data: undefined, // Will be extracted from component
       };
 
     default:

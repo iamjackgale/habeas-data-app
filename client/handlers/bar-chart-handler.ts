@@ -236,3 +236,57 @@ export function processBarStackedChartData(
   return { data: finalData, totalValue, dataKeys };
 }
 
+/**
+ * Process transactions into a dictionary of date:transaction_count
+ * Groups transactions by date (YYYY-MM-DD format) and counts them
+ * 
+ * @param transactions - Array of transactions with timestamp field
+ * @param startDate - Start date of the range (YYYY-MM-DD)
+ * @param endDate - End date of the range (YYYY-MM-DD)
+ * @returns Dictionary with date as key and transaction count as value
+ */
+export function processTransactionsByDate(
+  transactions: Array<{ timestamp: string }>,
+  startDate: string,
+  endDate: string
+): Record<string, number> {
+  // Initialize dictionary with all dates in range set to 0
+  const dateCounts: Record<string, number> = {};
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  
+  // Generate all dates in the range
+  const currentDate = new Date(start);
+  while (currentDate <= end) {
+    const dateStr = currentDate.toISOString().split('T')[0]; // YYYY-MM-DD
+    dateCounts[dateStr] = 0;
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+  
+  // Count transactions by date
+  transactions.forEach(transaction => {
+    if (transaction.timestamp) {
+      console.log('transaction.timestamp ' + transaction.timestamp);
+      const txDate = new Date(Number(transaction.timestamp) * 1000);
+      console.log('txDate ' + txDate);
+      console.log('isNaN(txDate.getTime()) ' + isNaN(txDate.getTime()));
+      
+      // Validate the date is valid before using it
+      if (isNaN(txDate.getTime())) {
+        console.log('NaN date');
+        // Invalid date, skip this transaction
+        return;
+      }
+      
+      const dateStr = txDate.toISOString().split('T')[0]; // YYYY-MM-DD
+      
+      // Only count if date is within range
+      if (dateStr >= startDate && dateStr <= endDate) {
+        dateCounts[dateStr] = (dateCounts[dateStr] || 0) + 1;
+      }
+    }
+  });
+  
+  return dateCounts;
+}
+

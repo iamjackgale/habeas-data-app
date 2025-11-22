@@ -1,27 +1,38 @@
 'use client';
 
-import { useGetHistorical, useGetHistoricalRange } from '@/services/octav/loader';
+import { useGetHistoricalRange } from '@/services/octav/loader';
 import { LoadingSpinner } from '@/components/loading-spinner';
 
-export default function HistoricalRange() {
-  const dates = ['2025-03-01', '2025-06-01', '2025-09-01'];
+interface HistoricalRangeProps {
+  address: string;
+  dates: string[];
+}
 
+export default function HistoricalRange({ address, dates }: HistoricalRangeProps) {
   const { data, isLoading, error } = useGetHistoricalRange({
-    addresses: ['0x3f5eddad52c665a4aa011cd11a21e1d5107d7862'],
-    dates
+    addresses: [address],
+    dates: dates
   });
 
-  if (isLoading) return <LoadingSpinner/>;
+  if (isLoading) return <LoadingSpinner />;
 
-  if (error || !data || !data?.data) {
+  if (error) {
     return (
       <div className="p-4 border border-red-300 bg-red-50 rounded-md">
         <p className="font-semibold text-red-800">Error</p>
-        {/* <p className="text-red-600">{error?.message}</p> */}
+        <p className="text-red-600">{error.message}</p>
       </div>
     );
   }
-  console.log(data);
+
+  if (!data || Object.keys(data).length === 0) {
+    return (
+      <div className="p-4 border border-yellow-300 bg-yellow-50 rounded-md">
+        <p className="font-semibold text-yellow-800">No Data</p>
+        <p className="text-yellow-600">No historical portfolio data available</p>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 border border-gray-300 widget-bg rounded-md">
@@ -29,7 +40,7 @@ export default function HistoricalRange() {
       <div className="space-y-2">
         {Object.entries(data.data).map(([date, portfolios]) => {
           const totalNetWorth = Object.values(portfolios).reduce(
-            (acc, portfolio) => acc + parseFloat(portfolio.networth),
+            (acc, portfolio: any) => acc + parseFloat(portfolio.networth || '0'),
             0
           );
           const formattedNetWorth = totalNetWorth.toLocaleString('en-US', {
