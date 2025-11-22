@@ -10,6 +10,7 @@ import BarStackedPortfolioByAssetSnapshot from '@/components/widgets-snapshots/b
 import { DashboardFooter } from '@/components/dashboard-footer';
 import Link from 'next/link';
 import { ChevronDown, ChevronUp } from 'lucide-react';
+import TransactionCountSnapshot from '@/components/widgets-snapshots/counter/transaction-snapshot';
 
 function CollapsibleSection({ 
   title, 
@@ -84,6 +85,10 @@ export default function Page() {
               <HistoricalSnapshot />
             </div>
           </div>
+          <div>
+            <TransactionCountSnapshot />
+          </div>
+          
         </CollapsibleSection>
 
         {/* Pie Section */}
