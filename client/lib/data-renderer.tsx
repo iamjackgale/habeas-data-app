@@ -6,8 +6,9 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { useGetPortfolio, useGetHistorical } from '@/services/octav/loader';
+import { useGetPortfolio, useGetHistorical, useGetTransactionsForDateRange } from '@/services/octav/loader';
 import { Portfolio } from '@/types/portfolio';
+import { Transaction } from '@/types/transaction';
 import { PortfolioDownload, convertToPortfolioDownload } from '@/types/portfolio-download';
 import { LoadingSpinner } from '@/components/loading-spinner';
 
@@ -30,11 +31,14 @@ export interface DataRenderParams {
   dates: string[];
   chains?: string[];
   categories?: string[];
+  mode?: 'portfolio' | 'transactions';
+  widgetKey?: string | null;
+  tableKey?: string | null;
 }
 
 export interface DataRenderResult {
   component: React.ReactNode;
-  data: PortfolioDownload[];
+  data: PortfolioDownload[] | Transaction[];
   title: string;
 }
 
@@ -275,14 +279,88 @@ function DataDisplayMultiple({
 }
 
 /**
- * Render portfolio data for download/display
- * This function determines which component to use based on the dates provided
+ * Component that fetches and displays transaction data for a date range
+ */
+function DataDisplayTransactions({ 
+  address, 
+  startDate,
+  endDate,
+  onDataReady 
+}: { 
+  address: string; 
+  startDate: string;
+  endDate: string;
+  onDataReady?: (data: Transaction[]) => void;
+}) {
+  const { dataByAddress, isLoading, error } = useGetTransactionsForDateRange(
+    [address],
+    startDate,
+    endDate,
+    {}
+  );
+
+  // Memoize transaction extraction
+  const transactions = useMemo(() => {
+    if (!dataByAddress || isLoading || error) return null;
+    return dataByAddress[address] || [];
+  }, [dataByAddress, isLoading, error, address]);
+
+  const jsonString = useMemo(() => {
+    if (!transactions) return '';
+    return JSON.stringify(transactions, null, 2);
+  }, [transactions]);
+
+  React.useEffect(() => {
+    if (transactions && transactions.length > 0 && onDataReady) {
+      onDataReady(transactions);
+    }
+  }, [transactions, onDataReady]);
+
+  if (isLoading) return <LoadingSpinner />;
+
+  if (error) {
+    return (
+      <div className="p-4 border border-red-300 bg-red-50 rounded-md">
+        <p className="font-semibold text-red-800">Error</p>
+        <p className="text-red-600">{error.message}</p>
+      </div>
+    );
+  }
+
+  if (!transactions || transactions.length === 0) {
+    return (
+      <div className="p-4 border border-yellow-300 bg-yellow-50 rounded-md">
+        <p className="font-semibold text-yellow-800">No Data</p>
+        <p className="text-yellow-600">No transaction data available for the selected date range</p>
+      </div>
+    );
+  }
+
+  const dateRange = `${startDate} to ${endDate}`;
+
+  return (
+    <div className="p-4 border border-border widget-bg rounded-md w-full">
+      <h2 className="font-semibold widget-text mb-4 border-b border-border pb-2">
+        Transaction Data ({dateRange})
+      </h2>
+      <div className="overflow-auto max-h-[600px]">
+        <pre className="text-xs widget-text font-mono whitespace-pre-wrap break-words">
+          {jsonString}
+        </pre>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Render portfolio or transaction data for download/display
+ * This function determines which component to use based on the mode and dates provided
  */
 export function renderData(
   params: DataRenderParams,
-  onDataReady?: (data: PortfolioDownload[]) => void
+  onDataReady?: (data: PortfolioDownload[] | Transaction[]) => void
 ): DataRenderResult {
-  const { addresses, dates } = params;
+  const { addresses, dates, mode, widgetKey, tableKey } = params;
   const address = addresses[0] || '';
 
   if (!address) {
@@ -298,6 +376,34 @@ export function renderData(
     };
   }
 
+  // Check if this is a transaction request
+  const isTransactionRequest = mode === 'transactions' || 
+    widgetKey === 'bar-transactions-by-day' || 
+    tableKey === 'transactions-by-day';
+
+  // Handle transaction data
+  if (isTransactionRequest && dates.length >= 2) {
+    // Sort dates and use first as startDate, last as endDate
+    const sortedDates = [...dates].sort((a, b) => a.localeCompare(b));
+    const startDate = sortedDates[0];
+    const endDate = sortedDates[sortedDates.length - 1];
+    const dateRange = `${startDate} to ${endDate}`;
+    
+    return {
+      component: (
+        <DataDisplayTransactions 
+          address={address} 
+          startDate={startDate} 
+          endDate={endDate}
+          onDataReady={onDataReady as ((data: Transaction[]) => void) | undefined}
+        />
+      ),
+      data: [], // Will be populated via onDataReady callback
+      title: `Transaction Data (${dateRange})`,
+    };
+  }
+
+  // Handle portfolio data (existing logic)
   // Determine which component to use based on dates
   let component: React.ReactNode;
   let title: string;
@@ -306,7 +412,7 @@ export function renderData(
   if (dates.length === 0) {
     // No dates - use current portfolio
     const currentDate = new Date().toISOString().split('T')[0];
-    component = <DataDisplaySingle address={address} date={currentDate} onDataReady={onDataReady} />;
+    component = <DataDisplaySingle address={address} date={currentDate} onDataReady={onDataReady as ((data: PortfolioDownload[]) => void) | undefined} />;
     title = `Portfolio Data (${currentDate})`;
   } else if (dates.length === 1) {
     // Single date - check if it's current or historical
@@ -314,14 +420,14 @@ export function renderData(
     const currentDate = new Date().toISOString().split('T')[0];
     
     if (date === currentDate) {
-      component = <DataDisplaySingle address={address} date={date} onDataReady={onDataReady} />;
+      component = <DataDisplaySingle address={address} date={date} onDataReady={onDataReady as ((data: PortfolioDownload[]) => void) | undefined} />;
     } else {
-      component = <DataDisplayHistorical address={address} date={date} onDataReady={onDataReady} />;
+      component = <DataDisplayHistorical address={address} date={date} onDataReady={onDataReady as ((data: PortfolioDownload[]) => void) | undefined} />;
     }
     title = `Portfolio Data (${date})`;
   } else {
     // Multiple dates - use comparison component
-    component = <DataDisplayMultiple address={address} dates={dates} onDataReady={onDataReady} />;
+    component = <DataDisplayMultiple address={address} dates={dates} onDataReady={onDataReady as ((data: PortfolioDownload[]) => void) | undefined} />;
     title = `Portfolio Comparison Data (${dates.length} dates)`;
   }
 

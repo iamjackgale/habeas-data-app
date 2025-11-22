@@ -57,6 +57,8 @@ export default function SettingsPage() {
     '#ff8c94',
   ]);
   const [proAddresses, setProAddresses] = useState<Record<string, AddressEntry>>({});
+  const [organizationName, setOrganizationName] = useState<string>('');
+  const [organizationDescription, setOrganizationDescription] = useState<string>('');
   const [isSaving, setIsSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
@@ -78,6 +80,12 @@ export default function SettingsPage() {
             setProAddresses(config.settings.addresses);
           } else {
             console.log('No addresses found in config. Config structure:', config);
+          }
+          if (config.settings?.organizationName) {
+            setOrganizationName(config.settings.organizationName);
+          }
+          if (config.settings?.organizationDescription) {
+            setOrganizationDescription(config.settings.organizationDescription);
           }
         }
       } catch (error) {
@@ -115,6 +123,8 @@ export default function SettingsPage() {
             visuals: {
               widgetColors,
             },
+            organizationName,
+            organizationDescription,
           },
         }),
       });
@@ -147,21 +157,57 @@ export default function SettingsPage() {
         {/* Account Section */}
         <CollapsibleSection title="Account">
           <div className="flex flex-col gap-4">
-            <div>
-              <h3 className="text-lg font-semibold mb-2">Pro Addresses</h3>
-              <p className="text-foreground mb-4">
-                List of configured addresses available for queries.
-              </p>
+            {/* Organization Name */}
+            <div className="flex flex-col gap-2">
+              <label htmlFor="organizationName" className="text-sm font-semibold">
+                Organization Name
+              </label>
+              <input
+                id="organizationName"
+                type="text"
+                value={organizationName}
+                onChange={(e) => {
+                  setOrganizationName(e.target.value);
+                  setSaveStatus('idle');
+                }}
+                placeholder="Enter organization name"
+                className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              />
             </div>
+
+            {/* Organization Description */}
+            <div className="flex flex-col gap-2">
+              <label htmlFor="organizationDescription" className="text-sm font-semibold">
+                Organization Description
+              </label>
+              <textarea
+                id="organizationDescription"
+                value={organizationDescription}
+                onChange={(e) => {
+                  setOrganizationDescription(e.target.value);
+                  setSaveStatus('idle');
+                }}
+                placeholder="Enter organization description"
+                rows={4}
+                className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary resize-y"
+              />
+            </div>
+
+            <div className="border-t border-border pt-4 mt-2">
+              <div>
+                <h3 className="text-lg font-semibold mb-2">Pro Addresses</h3>
+                <p className="text-foreground mb-4">
+                  List of configured addresses available for queries.
+                </p>
+              </div>
             
             {Object.keys(proAddresses).length > 0 ? (
               <div className="border border-border rounded-lg overflow-hidden">
                 <table className="w-full border-collapse">
                   <thead>
                     <tr className="border-b border-border bg-accent/30">
-                      <th className="p-3 text-left font-semibold">Chain</th>
-                      <th className="p-3 text-left font-semibold">Label</th>
                       <th className="p-3 text-left font-semibold">Address</th>
+                      <th className="p-3 text-left font-semibold">Label</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -170,9 +216,8 @@ export default function SettingsPage() {
                       const addressEntry = entry as AddressEntry;
                       return (
                         <tr key={chain} className="border-b border-border hover:bg-accent/20 transition-colors">
-                          <td className="p-3 font-medium">{chain}</td>
-                          <td className="p-3">{addressEntry?.label || entry?.label || 'N/A'}</td>
                           <td className="p-3 font-mono text-sm">{addressEntry?.address || entry?.address || 'N/A'}</td>
+                          <td className="p-3">{addressEntry?.label || entry?.label || 'N/A'}</td>
                         </tr>
                       );
                     })}

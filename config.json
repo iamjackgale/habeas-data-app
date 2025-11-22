@@ -1,5 +1,7 @@
 {
   "settings": {
+    "organizationName": "",
+    "organizationDescription": "",
     "visuals": {
       "widgetColors": [
         "#367d7d",

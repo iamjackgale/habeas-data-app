@@ -64,8 +64,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Read existing config to preserve other settings
+    let existingConfig: any = {};
+    try {
+      const fileContents = await fs.readFile(CONFIG_PATH, 'utf8');
+      existingConfig = JSON.parse(fileContents);
+    } catch (error) {
+      // If file doesn't exist, start with empty config
+      existingConfig = { settings: {} };
+    }
+
+    // Merge new settings with existing config
+    const mergedConfig = {
+      ...existingConfig,
+      settings: {
+        ...existingConfig.settings,
+        ...body.settings,
+        // Preserve addresses and widgetDefaults if they exist and weren't sent
+        addresses: body.settings.addresses !== undefined ? body.settings.addresses : (existingConfig.settings?.addresses || {}),
+        widgetDefaults: body.settings.widgetDefaults !== undefined ? body.settings.widgetDefaults : (existingConfig.settings?.widgetDefaults || {}),
+      },
+    };
+
     // Write to config file
-    await fs.writeFile(CONFIG_PATH, JSON.stringify(body, null, 2), 'utf8');
+    await fs.writeFile(CONFIG_PATH, JSON.stringify(mergedConfig, null, 2), 'utf8');
     
     return NextResponse.json({ success: true });
   } catch (error) {

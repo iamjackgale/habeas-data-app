@@ -21,6 +21,7 @@ import { getTableKeyFromWidgetKey } from '@/lib/widget-table-mapping';
 import { downloadWidgetAsPNG } from '@/lib/widget-download';
 import { TableSelectorDropdown } from '@/components/query-dropdowns/table-selector-dropdown';
 import { PortfolioDownload } from '@/types/portfolio-download';
+import { Transaction } from '@/types/transaction';
 import Link from 'next/link';
 
 type Mode = 'portfolio' | 'transactions';
@@ -95,11 +96,11 @@ export default function QueryPage() {
   const previousTableDataRef = useRef<TableRenderResult | null>(null);
   // State to track rendered data (for Data tab)
   const [renderedData, setRenderedData] = useState<React.ReactNode | null>(null);
-  const [dataDownload, setDataDownload] = useState<PortfolioDownload[] | null>(null);
+  const [dataDownload, setDataDownload] = useState<PortfolioDownload[] | Transaction[] | null>(null);
   const dataContainerRef = useRef<HTMLDivElement>(null);
   // Store the previous data to restore if error occurs
   const previousDataRef = useRef<React.ReactNode | null>(null);
-  const previousDataDownloadRef = useRef<PortfolioDownload[] | null>(null);
+  const previousDataDownloadRef = useRef<PortfolioDownload[] | Transaction[] | null>(null);
 
   // Load last rendered widget from localStorage on mount
   useEffect(() => {
@@ -226,6 +227,9 @@ export default function QueryPage() {
             dates: params.dates,
             chains: params.chains || [],
             categories: params.categories || [],
+            mode: 'portfolio', // Stored data is from portfolio mode
+            widgetKey: null,
+            tableKey: null,
           };
           const dataResult = renderData(dataParams, (downloadData) => {
             setDataDownload(downloadData);
@@ -439,6 +443,9 @@ export default function QueryPage() {
       dates: dates,
       chains: chains,
       categories: categories,
+      mode: mode,
+      widgetKey: selectedWidget,
+      tableKey: null,
     };
     const dataResult = renderData(dataParams, (downloadData) => {
       setDataDownload(downloadData);
@@ -652,6 +659,9 @@ export default function QueryPage() {
       dates: dates,
       chains: chains,
       categories: categories,
+      mode: mode,
+      widgetKey: null,
+      tableKey: null,
     };
 
     // Store current data as previous before rendering new one
@@ -841,6 +851,9 @@ export default function QueryPage() {
                   dates: dts,
                   chains: chns,
                   categories: cats,
+                  mode: mode,
+                  widgetKey: null,
+                  tableKey: tableKey,
                 };
                 const dataResult = renderData(dataParams, (downloadData) => {
                   setDataDownload(downloadData);
@@ -955,7 +968,12 @@ export default function QueryPage() {
       const link = document.createElement('a');
       link.href = url;
       const timestamp = new Date().toISOString().split('T')[0];
-      link.download = `portfolio-data-${timestamp}.json`;
+      // Determine filename based on data type
+      const isTransactionData = dataDownload.length > 0 && 'hash' in dataDownload[0];
+      const filename = isTransactionData 
+        ? `transaction-data-${timestamp}.json`
+        : `portfolio-data-${timestamp}.json`;
+      link.download = filename;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -1219,13 +1237,10 @@ export default function QueryPage() {
                   <TimePeriodDropdown value={timePeriod} onChange={setTimePeriod} />
                 </div>
                 
-                {/* Show addresses for portfolio mode */}
-                {mode === 'portfolio' && (
-                  <div className="w-full max-w-md">
-                    <AddressDropdown value={selectedAddresses} onChange={setSelectedAddresses} />
-                  </div>
-                )}
-                
+                {/* Address dropdown - shown for both portfolio and transactions mode */}
+                <div className="w-full max-w-md">
+                  <AddressDropdown value={selectedAddresses} onChange={setSelectedAddresses} />
+                </div>
                 
                 {/* Categories only shown for transactions mode */}
                 {mode === 'transactions' && (
