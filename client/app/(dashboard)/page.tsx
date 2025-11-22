@@ -4,6 +4,7 @@ import PieCurrentPortfolioByAsset from '@/components/widgets/pie/pie-current-por
 import PieHistoricalPortfolioByProtocol from '@/components/widgets/pie/pie-historical-portfolio-by-protocol';
 import PieHistoricalPortfolioByAsset from '@/components/widgets/pie/pie-historical-portfolio-by-asset';
 import PiesCurrentPortfolioByProtocol from '@/components/widgets/pies/pies-current-portfolio-by-protocol';
+import PiesCurrentPortfolioByAsset from '@/components/widgets/pies/pies-current-portfolio-by-asset';
 import { generateMetadata } from '@/lib/metadata';
 import Historical from '@/components/widgets/historic';
 
@@ -44,10 +45,13 @@ export default function Page() {
             <PieHistoricalPortfolioByAsset />
           </div>
         </div>
-        {/* Fourth row: Two-level comparison pie chart */}
-        <div className="grid grid-cols-1 gap-6">
+        {/* Fourth row: Two-level comparison pie charts side by side */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div>
             <PiesCurrentPortfolioByProtocol />
+          </div>
+          <div>
+            <PiesCurrentPortfolioByAsset />
           </div>
         </div>
       </div>

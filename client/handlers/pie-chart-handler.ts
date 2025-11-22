@@ -63,15 +63,24 @@ export function processPieChartData(
   // Sort main slices by value descending (largest to smallest)
   const sortedMainSlices = [...mainSlices].sort((a, b) => b.value - a.value);
 
-  // Build final array: sorted main slices first, then "other" always at the end
-  const pieChartData: PieChartDataEntry[] = [...sortedMainSlices];
+  // Limit to maximum 6 slices: 5 largest + 1 "Other"
+  const MAX_VISIBLE_SLICES = 5;
+  const visibleSlices = sortedMainSlices.slice(0, MAX_VISIBLE_SLICES);
+  const remainingSlices = sortedMainSlices.slice(MAX_VISIBLE_SLICES);
+  
+  // Calculate the "other" value from both small slices and remaining large slices
+  const remainingLargeValue = remainingSlices.reduce((sum, item) => sum + item.value, 0);
+  const totalOtherValue = otherValue + remainingLargeValue;
+
+  // Build final array: top 5 slices first, then "other" always at the end
+  const pieChartData: PieChartDataEntry[] = [...visibleSlices];
 
   // Only show "other" in legend if it's >= otherLegendThreshold of total
-  const otherPercentage = totalValue > 0 ? (otherValue / totalValue) : 0;
-  if (otherValue > 0 && otherPercentage >= otherLegendThreshold) {
+  const otherPercentage = totalValue > 0 ? (totalOtherValue / totalValue) : 0;
+  if (totalOtherValue > 0 && otherPercentage >= otherLegendThreshold) {
     pieChartData.push({
       name: otherCategoryName,
-      value: otherValue,
+      value: totalOtherValue,
     });
   }
 

@@ -62,13 +62,12 @@ export default function PieChartComponent({
             data={data}
             cx="50%"
             cy="50%"
-            innerRadius="72%"
+            innerRadius="68%"
             outerRadius="90%"
-            cornerRadius="50%"
-            paddingAngle={5}
             fill="#8884d8"
             dataKey="value"
-            startAngle={0}
+            startAngle={90}
+            endAngle={-270} 
             isAnimationActive={isAnimationActive}
           >
             {data.map((entry, index) => (
@@ -94,7 +93,7 @@ export default function PieChartComponent({
             }}
             formatter={(value) => {
               const dataItem = data.find((item) => item.name === value);
-              const percent = dataItem ? ((dataItem.value / totalValue) * 100).toFixed(2) : '0';
+              const percent = dataItem ? ((dataItem.value / totalValue) * 100).toFixed(1) : '0';
               return `${value} (${percent}%)`;
             }}
           />

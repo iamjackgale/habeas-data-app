@@ -1,6 +1,6 @@
 'use client';
 
-import { Cell, Legend, Pie, PieChart, ResponsiveContainer } from 'recharts';
+import { Cell, Pie, PieChart, ResponsiveContainer } from 'recharts';
 import { PieChartDataEntry } from '@/handlers/pie-chart-handler';
 
 export interface TwoLevelPieChartComponentProps {
@@ -63,14 +63,50 @@ export default function TwoLevelPieChartComponent({
   let processedOuterData: PieChartDataEntry[] = outerData || [];
 
   if (comparisonData) {
-    processedInnerData = Object.entries(comparisonData).map(([name, [value]]) => ({
+    // Process comparison data to limit to 6 slices (5 largest + 1 "Other")
+    const MAX_VISIBLE_SLICES = 5;
+    const otherCategoryName = 'other';
+
+    // Calculate total value for each key (sum of inner + outer values)
+    const entries = Object.entries(comparisonData).map(([name, [innerVal, outerVal]]) => ({
       name,
-      value,
+      innerValue: innerVal || 0,
+      outerValue: outerVal || 0,
+      totalValue: (innerVal || 0) + (outerVal || 0),
     }));
-    processedOuterData = Object.entries(comparisonData).map(([name, [, value]]) => ({
-      name,
-      value,
+
+    // Sort by total value descending (largest to smallest)
+    const sortedEntries = [...entries].sort((a, b) => b.totalValue - a.totalValue);
+
+    // Take top 5 and combine the rest into "Other"
+    const visibleEntries = sortedEntries.slice(0, MAX_VISIBLE_SLICES);
+    const remainingEntries = sortedEntries.slice(MAX_VISIBLE_SLICES);
+
+    // Calculate "Other" values
+    const otherInnerValue = remainingEntries.reduce((sum, entry) => sum + entry.innerValue, 0);
+    const otherOuterValue = remainingEntries.reduce((sum, entry) => sum + entry.outerValue, 0);
+
+    // Build final arrays: top 5 first, then "Other" always at the end
+    processedInnerData = visibleEntries.map((entry) => ({
+      name: entry.name,
+      value: entry.innerValue,
     }));
+    processedOuterData = visibleEntries.map((entry) => ({
+      name: entry.name,
+      value: entry.outerValue,
+    }));
+
+    // Add "Other" if it has any value
+    if (otherInnerValue > 0 || otherOuterValue > 0) {
+      processedInnerData.push({
+        name: otherCategoryName,
+        value: otherInnerValue,
+      });
+      processedOuterData.push({
+        name: otherCategoryName,
+        value: otherOuterValue,
+      });
+    }
   }
 
   // Calculate totals if not provided
@@ -87,9 +123,11 @@ export default function TwoLevelPieChartComponent({
             dataKey="value"
             cx="50%"
             cy="50%"
+            innerRadius="30%"
             outerRadius="50%"
             fill="#8884d8"
-            startAngle={0}
+            startAngle={90}
+            endAngle={-270} 
             isAnimationActive={isAnimationActive}
           >
             {processedInnerData.map((entry, index) => (
@@ -108,8 +146,8 @@ export default function TwoLevelPieChartComponent({
             innerRadius="60%"
             outerRadius="80%"
             fill="#82ca9d"
-            label={showOuterLabels}
-            startAngle={0}
+            startAngle={90}
+            endAngle={-270} 
             isAnimationActive={isAnimationActive}
           >
             {processedOuterData.map((entry, index) => (
@@ -119,27 +157,51 @@ export default function TwoLevelPieChartComponent({
               />
             ))}
           </Pie>
-          <Legend
-            verticalAlign="bottom"
-            height={36}
-            formatter={(value) => {
-              // Check if it's an inner data item
-              const innerItem = processedInnerData.find((item) => item.name === value);
-              if (innerItem) {
-                const percent = innerTotal > 0 ? ((innerItem.value / innerTotal) * 100).toFixed(2) : '0';
-                return `${value} (${percent}%)`;
-              }
-              // Check if it's an outer data item
-              const outerItem = processedOuterData.find((item) => item.name === value);
-              if (outerItem) {
-                const percent = outerTotal > 0 ? ((outerItem.value / outerTotal) * 100).toFixed(2) : '0';
-                return `${value} (${percent}%)`;
-              }
-              return value;
-            }}
-          />
         </PieChart>
       </ResponsiveContainer>
+      {/* Comparison table */}
+      <div className="mt-4 w-full overflow-x-auto">
+        <table className="w-full border-collapse">
+          <tbody>
+            {processedInnerData
+              .map((entry, index) => {
+                const innerPercent = innerTotal > 0 ? ((entry.value / innerTotal) * 100).toFixed(1) : '0';
+                const outerEntry = processedOuterData.find((item) => item.name === entry.name);
+                const outerPercent = outerEntry && outerTotal > 0 ? ((outerEntry.value / outerTotal) * 100).toFixed(1) : '0';
+                const color = innerColors[index % innerColors.length];
+                
+                return {
+                  entry,
+                  innerPercent,
+                  outerPercent,
+                  color,
+                  isOther: entry.name.toLowerCase() === 'other',
+                };
+              })
+              .sort((a, b) => {
+                // Sort so "other" always appears last (bottom of table)
+                if (a.isOther && !b.isOther) return 1;
+                if (!a.isOther && b.isOther) return -1;
+                return 0; // Maintain original order for non-"other" items
+              })
+              .map(({ entry, innerPercent, outerPercent, color }) => (
+                <tr key={entry.name} className="border-b border-gray-300">
+                  <td className="p-2 widget-text">
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-3 h-3 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: color }}
+                      />
+                      <span>{entry.name}</span>
+                    </div>
+                  </td>
+                  <td className="text-right p-2 widget-text">{innerPercent}%</td>
+                  <td className="text-right p-2 widget-text">{outerPercent}%</td>
+                </tr>
+              ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
