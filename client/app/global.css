@@ -84,7 +84,7 @@
   --color-chart-5-light: rgba(116, 97, 120, 1);
   --color-chart-6-light: rgba(148, 180, 159, 1);
   --color-sidebar-foreground-light: var(--octav-color-gray-light-900);
-  --color-sidebar-background-light: var(--octav-color-gray-light-100);
+  --color-sidebar-background-light: #FCFCFE;
   --color-sidebar-primary-light: var(--octav-color-teal-500);
   --color-sidebar-primary-foreground-light: var(--octav-color-gray-light-50);
   --color-sidebar-accent-light: var(--octav-color-gray-light-200);
@@ -223,7 +223,7 @@
   --typography-typography-components-table-letter-spacing: var(--font-letter-spacing-normal);
   --color-sidebar-foreground-light: var(--octav-color-gray-light-900);
 
-  --color-sidebar-background-light: var(--octav-color-gray-light-100);
+  --color-sidebar-background-light: #FCFCFE;
 
   --color-sidebar-primary-light: var(--octav-color-teal-500);
 
@@ -240,6 +240,8 @@
   --color-theme-switch: var(--color-theme-switch);
   --color-theme-switch-light: rgba(255, 236, 200, 1);
   --color-theme-switch-dark: rgba(105, 125, 170, 1);
+  --widget-background-light: #FCFCFE;
+  --widget-text-color-light: #FFFFFF;
 }
 
 :root {
@@ -364,10 +366,10 @@
   --sidebar-border: var(--color-sidebar-border-light);
   --sidebar-ring: var(--color-sidebar-ring-light);
   --color-theme-switch: var(--color-theme-switch-light);
-  --background: oklch(1 0 0);
+  --background: #F8F8FB;
   --foreground: oklch(0.145 0 0);
-  --widget-background: #1C1F25;
-  --widget-text-color: #ECEEF3;
+  --widget-background: var(--widget-background-light);
+  --widget-text-color: var(--widget-text-color-light);
 }
 
 .dark {

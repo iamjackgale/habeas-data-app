@@ -2,11 +2,11 @@
 
 import { useGetHistorical } from '@/services/octav/loader';
 import { Portfolio } from '@/types/portfolio';
-import { getAssetValueDictionary, getComparisonAssetValueDictionary } from '@/handlers/portfolio-handler';
+import { getProtocolValueDictionary, getComparisonProtocolValueDictionary } from '@/handlers/portfolio-handler';
 import { BarStackedChartDataEntry } from '@/handlers/bar-chart-handler';
 import BarStackedChartComponent from '@/components/charts/bar-stacked';
 
-export default function BarStackedPortfolioByAsset() {
+export default function BarStackedPortfolioByProtocol() {
   const targetAddress = '0x3f5eddad52c665a4aa011cd11a21e1d5107d7862';
   const MAX_DATES = 5;
   // Define dates as an array - can add any number of dates (max 5)
@@ -90,21 +90,21 @@ export default function BarStackedPortfolioByAsset() {
     );
   }
 
-  // Get asset dictionaries for all dates (portfolios are guaranteed to be non-null at this point)
-  const assetDictionaries = portfolios
+  // Get protocol dictionaries for all dates (portfolios are guaranteed to be non-null at this point)
+  const protocolDictionaries = portfolios
     .filter((portfolio): portfolio is Portfolio => portfolio !== undefined)
-    .map(portfolio => getAssetValueDictionary(portfolio));
+    .map(portfolio => getProtocolValueDictionary(portfolio));
 
   // Create comparison dictionary with all dictionaries
-  // Format: Record<string, number[]> where key is asset name, value is array of values per date
-  const comparisonDictionary = getComparisonAssetValueDictionary(...assetDictionaries);
+  // Format: Record<string, number[]> where key is protocol name, value is array of values per date
+  const comparisonDictionary = getComparisonProtocolValueDictionary(...protocolDictionaries);
 
   // Check if comparison data is empty
   if (Object.keys(comparisonDictionary).length === 0) {
     return (
       <div className="p-4 border border-yellow-300 bg-yellow-50 rounded-md">
-        <p className="font-semibold text-yellow-800">No Asset Data</p>
-        <p className="text-yellow-600">No asset data available to display in comparison chart</p>
+        <p className="font-semibold text-yellow-800">No Protocol Data</p>
+        <p className="text-yellow-600">No protocol data available to display in comparison chart</p>
       </div>
     );
   }
@@ -115,15 +115,15 @@ export default function BarStackedPortfolioByAsset() {
   const stackedData: BarStackedChartDataEntry[] = dates.map((date, dateIndex) => {
     const entry: BarStackedChartDataEntry = { name: date };
     
-    // For each asset, get its value for this date
-    Object.entries(comparisonDictionary).forEach(([assetName, values]) => {
-      entry[assetName] = values[dateIndex] || 0;
+    // For each protocol, get its value for this date
+    Object.entries(comparisonDictionary).forEach(([protocolName, values]) => {
+      entry[protocolName] = values[dateIndex] || 0;
     });
     
     return entry;
   });
 
-  // Calculate total value across all dates and assets
+  // Calculate total value across all dates and protocols
   const totalValue = stackedData.reduce((sum: number, entry) => {
     const entryTotal = Object.values(entry).reduce((entrySum: number, value) => {
       const numValue = typeof value === 'number' ? value : (typeof value === 'string' ? parseFloat(value) || 0 : 0);
@@ -132,43 +132,43 @@ export default function BarStackedPortfolioByAsset() {
     return sum + entryTotal;
   }, 0);
 
-  // Get all asset names (dataKeys for the stacks)
+  // Get all protocol names (dataKeys for the stacks)
   const dataKeys = Object.keys(comparisonDictionary);
 
-  // Limit to top 5 assets + "Other" (similar to other charts)
-  const MAX_VISIBLE_ASSETS = 5;
+  // Limit to top 5 protocols + "Other" (similar to other charts)
+  const MAX_VISIBLE_PROTOCOLS = 5;
   const otherCategoryName = 'other';
   
-  // Calculate total value per asset across all dates
-  const assetTotals = dataKeys.map(assetName => {
+  // Calculate total value per protocol across all dates
+  const protocolTotals = dataKeys.map(protocolName => {
     const total = stackedData.reduce((sum, entry) => {
-      const value = entry[assetName];
+      const value = entry[protocolName];
       return sum + (typeof value === 'number' ? value : 0);
     }, 0);
-    return { assetName, total };
+    return { protocolName, total };
   });
 
   // Sort by total descending
-  const sortedAssets = [...assetTotals].sort((a, b) => b.total - a.total);
+  const sortedProtocols = [...protocolTotals].sort((a, b) => b.total - a.total);
 
-  // Take top 5 assets
-  const visibleAssets = sortedAssets.slice(0, MAX_VISIBLE_ASSETS);
-  const remainingAssets = sortedAssets.slice(MAX_VISIBLE_ASSETS);
+  // Take top 5 protocols
+  const visibleProtocols = sortedProtocols.slice(0, MAX_VISIBLE_PROTOCOLS);
+  const remainingProtocols = sortedProtocols.slice(MAX_VISIBLE_PROTOCOLS);
 
-  // Build final stacked data with only visible assets
+  // Build final stacked data with only visible protocols
   const finalStackedData: BarStackedChartDataEntry[] = stackedData.map(entry => {
     const newEntry: BarStackedChartDataEntry = { name: entry.name };
-    visibleAssets.forEach(({ assetName }) => {
-      const value = entry[assetName];
-      newEntry[assetName] = typeof value === 'number' ? value : (typeof value === 'string' ? parseFloat(value) || 0 : 0);
+    visibleProtocols.forEach(({ protocolName }) => {
+      const value = entry[protocolName];
+      newEntry[protocolName] = typeof value === 'number' ? value : (typeof value === 'string' ? parseFloat(value) || 0 : 0);
     });
     return newEntry;
   });
 
   // Calculate "Other" for each date
-  const otherTotal = remainingAssets.reduce((sum, { assetName }) => {
+  const otherTotal = remainingProtocols.reduce((sum, { protocolName }) => {
     return sum + stackedData.reduce((dateSum, entry) => {
-      const value = entry[assetName];
+      const value = entry[protocolName];
       return dateSum + (typeof value === 'number' ? value : 0);
     }, 0);
   }, 0);
@@ -179,24 +179,24 @@ export default function BarStackedPortfolioByAsset() {
   
   if (otherTotal > 0 && otherPercentage >= OTHER_THRESHOLD) {
     finalStackedData.forEach(entry => {
-      const otherValue = remainingAssets.reduce((sum, { assetName }) => {
+      const otherValue = remainingProtocols.reduce((sum, { protocolName }) => {
         const originalEntry = stackedData.find(e => e.name === entry.name);
-        const value = originalEntry?.[assetName];
+        const value = originalEntry?.[protocolName];
         return sum + (typeof value === 'number' ? value : 0);
       }, 0);
       entry[otherCategoryName] = otherValue;
     });
   }
 
-  // Final data keys (visible assets + "Other" if applicable)
-  const finalDataKeys = visibleAssets.map(({ assetName }) => assetName);
+  // Final data keys (visible protocols + "Other" if applicable)
+  const finalDataKeys = visibleProtocols.map(({ protocolName }) => protocolName);
   if (otherTotal > 0 && otherPercentage >= OTHER_THRESHOLD) {
     finalDataKeys.push(otherCategoryName);
   }
 
   return (
     <div className="p-4 border border-gray-300 widget-bg rounded-md w-full max-w-full">
-      <p className="font-semibold widget-text mb-4">Portfolio Comparison by Asset</p>
+      <p className="font-semibold widget-text mb-4">Portfolio Comparison by Protocol</p>
       <div className="w-full mx-auto">
         <BarStackedChartComponent
           data={finalStackedData}
@@ -209,3 +209,4 @@ export default function BarStackedPortfolioByAsset() {
     </div>
   );
 }
+

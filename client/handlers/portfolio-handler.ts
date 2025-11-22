@@ -158,3 +158,34 @@ export function getComparisonAssetValueDictionary(
   return comparisonDict;
 }
 
+/**
+ * Create a dictionary mapping dates to net worth values from portfolio data
+ * @param dates - Array of date strings (e.g., ['2025-01-01', '2025-06-06'])
+ * @param portfolios - Array of Portfolio objects corresponding to each date
+ * @returns Record mapping date keys to net worth values as numbers
+ */
+export function getComparisonNetWorthDictionary(
+  dates: string[],
+  portfolios: (Portfolio | undefined)[]
+): Record<string, number> {
+  const netWorthDict: Record<string, number> = {};
+  
+  // Ensure dates and portfolios arrays have the same length
+  if (dates.length !== portfolios.length) {
+    console.warn(`getComparisonNetWorthDictionary: dates (${dates.length}) and portfolios (${portfolios.length}) arrays have different lengths`);
+  }
+  
+  // Map each date to its corresponding net worth
+  dates.forEach((date, index) => {
+    const portfolio = portfolios[index];
+    if (portfolio) {
+      const networth = parseFloat(portfolio.networth || '0') || 0;
+      netWorthDict[date] = networth;
+    } else {
+      // If portfolio is undefined, set net worth to 0
+      netWorthDict[date] = 0;
+    }
+  });
+  
+  return netWorthDict;
+}

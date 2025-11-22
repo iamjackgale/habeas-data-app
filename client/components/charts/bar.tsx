@@ -1,6 +1,6 @@
 'use client';
 
-import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { BarChartDataEntry } from '@/handlers/bar-chart-handler';
 
 export interface BarChartComponentProps {
@@ -81,7 +81,6 @@ export default function BarChartComponent({
       <div className="w-full mx-auto bar-chart-wrapper" style={{ maxWidth: `${maxWidth}px` }}>
         <ResponsiveContainer width="100%" height={height}>
           <BarChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="name" />
             <YAxis tickFormatter={formatYAxis} />
             <Tooltip 
@@ -111,7 +110,6 @@ export default function BarChartComponent({
         }}
         margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
       >
-        <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="name" />
         <YAxis tickFormatter={formatYAxis} />
         <Tooltip 

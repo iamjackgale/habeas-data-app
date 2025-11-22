@@ -1,6 +1,6 @@
 'use client';
 
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
 import { BarStackedChartDataEntry } from '@/handlers/bar-chart-handler';
 
 export interface BarStackedChartComponentProps {
@@ -101,7 +101,6 @@ export default function BarStackedChartComponent({
               bottom: 5,
             }}
           >
-            <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="name" />
             <YAxis width="auto" tickFormatter={formatYAxis} />
             <Tooltip
@@ -146,7 +145,6 @@ export default function BarStackedChartComponent({
           bottom: 5,
         }}
       >
-        <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="name" />
         <YAxis width="auto" tickFormatter={formatYAxis} />
         <Tooltip
