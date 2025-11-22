@@ -1,7 +1,7 @@
 import { useQueries, useQuery, UseQueryOptions } from '@tanstack/react-query';
 import { getPortfolio, GetPortfolioParams } from './portfolio';
 import { Portfolio } from '@/types/portfolio';
-import { getHistorical, GetHistoricalParams } from './historical';
+import { getHistorical, GetHistoricalParams, GetHistoricalRangeParams } from './historical';
 
 const PORTFOLIO_ADDRESSES = [
   // "0x3f5eddad52c665a4aa011cd11a21e1d5107d7862",
@@ -63,7 +63,62 @@ export function useGetHistorical(
         }, {} as Record<string, Portfolio>),
         isLoading: results.some(result => result.isLoading),
         error: results.find(result => result.error)?.error || null,
+        progress: {
+          loaded: results.filter(r => r.isSuccess).length,
+          total: results.length,
+          percentage: Math.round(
+            (results.filter(r => r.isSuccess).length / results.length) * 100
+          ),
+        },
       };
     }
   })
+}
+
+export function useGetHistoricalRange(
+  params: GetHistoricalRangeParams,
+  options?: Omit<UseQueryOptions<Record<string, Portfolio>, Error>, 'queryKey' | 'queryFn'>
+) {
+  return useQueries({
+    queries: params.dates.map(date => ({
+      queryKey: ['portfolio-batch', date],
+      queryFn: async () => {
+        // Fetch all addresses for this date in parallel
+        const results = await Promise.all(
+          PORTFOLIO_ADDRESSES.map(address =>
+            getHistorical({ date, address })
+          )
+        );
+        
+        // Return as object keyed by address
+        return results.reduce((acc, portfolio) => {
+          acc[portfolio.address] = portfolio;
+          return acc;
+        }, {} as Record<string, Portfolio>);
+      },
+      ...options,
+    })),
+    combine: (results) => {
+      const dataByDate = results.reduce((acc, result, index) => {
+        if (result.data) {
+          acc[params.dates[index]] = result.data;
+        }
+        return acc;
+      }, {} as Record<string, Record<string, Portfolio>>);
+
+      return {
+        data: dataByDate,
+        isLoading: results.some(result => result.isLoading),
+        error: results.find(result => result.error)?.error || null,
+        // Helpful for progress indicators
+        progress: {
+          loaded: results.filter(r => r.isSuccess).length,
+          total: results.length,
+          percentage: Math.round(
+            (results.filter(r => r.isSuccess).length / results.length) * 100
+          ),
+        },
+      };
+    }
+  });
 }

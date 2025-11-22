@@ -3,6 +3,15 @@
 @plugin 'tailwindcss-animate';
 @import 'tw-animate-css';
 
+@keyframes spin-triple {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(1080deg);
+  }
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {

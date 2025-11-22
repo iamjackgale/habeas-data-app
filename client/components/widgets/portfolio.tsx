@@ -2,6 +2,7 @@
 
 import { useGetPortfolio } from '@/services/octav/loader';
 import { Portfolio } from '@/types/portfolio';
+import { LoadingSpinner } from '../loading-spinner';
 
 export default function Portfolio() {
   const targetAddress = '0xc9c61194682a3a5f56bf9cd5b59ee63028ab6041';
@@ -29,7 +30,7 @@ export default function Portfolio() {
 
   if (isLoading) {
     console.log('Rendering: Loading state');
-    return <p>Loading...</p>;
+    return <LoadingSpinner/>;
   }
 
   if (error) {

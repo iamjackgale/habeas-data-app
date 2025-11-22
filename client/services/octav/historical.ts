@@ -6,6 +6,11 @@ export interface GetHistoricalParams {
   date: string;
 }
 
+export interface GetHistoricalRangeParams {
+  address: string;
+  dates: string[]
+}
+
 export interface ApiErrorResponse {
   error: string;
   message?: string;

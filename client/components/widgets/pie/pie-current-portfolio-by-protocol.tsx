@@ -5,6 +5,7 @@ import { Portfolio } from '@/types/portfolio';
 import { getProtocolValueDictionary } from '@/handlers/portfolio-handler';
 import { processPieChartData } from '@/handlers/pie-chart-handler';
 import PieChartComponent from '@/components/charts/pie';
+import { LoadingSpinner } from '../loading-spinner';
 
 export default function PieCurrentPortfolioByProtocol() {
   const targetAddress = '0xc9c61194682a3a5f56bf9cd5b59ee63028ab6041';
@@ -19,7 +20,7 @@ export default function PieCurrentPortfolioByProtocol() {
     waitForSync: true,
   });
 
-  if (isLoading) return <p>Loading...</p>;
+  if (isLoading) return <LoadingSpinner/>;
 
   if (error) {
     return (

@@ -1,15 +1,16 @@
 'use client';
 
 import { useGetHistorical } from '@/services/octav/loader';
+import { LoadingSpinner } from '../loading-spinner';
 
 export default function Historical() {
   const date = '2025-06-06';
-  const { data, isLoading, error } = useGetHistorical({
+  const { data, isLoading, error, progress } = useGetHistorical({
     address: '0x3f5eddad52c665a4aa011cd11a21e1d5107d7862',
     date
   });
 
-  if (isLoading) return <p>Loading...</p>;
+  if (isLoading) return <LoadingSpinner/>;
 
   if (error) {
     return (
