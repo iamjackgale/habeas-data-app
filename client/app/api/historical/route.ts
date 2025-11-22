@@ -1,4 +1,4 @@
-import { Portfolio } from '@/types/portfolio';
+import { TPortfolio } from '@/types/portfolio';
 import { NextRequest, NextResponse } from 'next/server';
 
 const OCTAV_API_BASE_URL = 'https://api.octav.fi/v1';
@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const data: Portfolio[] = await response.json();
+    const data: TPortfolio[] = await response.json();
 
     return NextResponse.json(data);
   } catch (error) {

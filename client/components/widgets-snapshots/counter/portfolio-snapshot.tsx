@@ -1,7 +1,7 @@
 'use client';
 
 import { useGetPortfolio } from '@/services/octav/loader';
-import { Portfolio } from '@/types/portfolio';
+import { TPortfolio } from '@/types/portfolio';
 import { useWidgetDefaults } from '@/hooks/use-widget-defaults';
 
 export default function PortfolioSnapshot() {
@@ -9,10 +9,10 @@ export default function PortfolioSnapshot() {
   const targetAddress = defaults?.portfolio?.address || '0xc9c61194682a3a5f56bf9cd5b59ee63028ab6041';
   
   const { data, isLoading, error } = useGetPortfolio({
-    address: targetAddress,
+    addresses: [targetAddress],
     includeImages: true,
     includeExplorerUrls: true,
-    waitForSync: true,
+    waitForSync: false,
   });
 
   if (defaultsLoading || isLoading) {
@@ -29,8 +29,8 @@ export default function PortfolioSnapshot() {
   }
 
   // Extract portfolio from Record structure (data is Record<string, Portfolio>)
-  const dataRecord = data as Record<string, Portfolio> | undefined;
-  const portfolioEntries = dataRecord ? Object.entries(dataRecord) as [string, Portfolio][] : [];
+  const dataRecord = data as Record<string, TPortfolio> | undefined;
+  const portfolioEntries = dataRecord ? Object.entries(dataRecord) as [string, TPortfolio][] : [];
   const firstPortfolio = portfolioEntries.length > 0 ? portfolioEntries[0][1] : null;
 
   if (!dataRecord || portfolioEntries.length === 0) {

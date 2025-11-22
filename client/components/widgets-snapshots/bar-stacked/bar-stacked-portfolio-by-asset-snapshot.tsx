@@ -1,7 +1,7 @@
 'use client';
 
 import { useGetHistorical } from '@/services/octav/loader';
-import { Portfolio } from '@/types/portfolio';
+import { TPortfolio } from '@/types/portfolio';
 import { getAssetValueDictionary, getComparisonAssetValueDictionary } from '@/handlers/portfolio-handler';
 import { BarStackedChartDataEntry } from '@/handlers/bar-chart-handler';
 import BarStackedChartComponent from '@/components/charts/bar-stacked';
@@ -37,23 +37,23 @@ export default function BarStackedPortfolioByAssetSnapshot() {
   
   // Call hooks individually (always call MAX_DATES hooks in same order)
   const hook1 = useGetHistorical({
-    address: targetAddress,
+    addresses: [targetAddress],
     date: dates[0] || DUMMY_DATE,
   });
   const hook2 = useGetHistorical({
-    address: targetAddress,
+    addresses: [targetAddress],
     date: dates[1] || DUMMY_DATE,
   });
   const hook3 = useGetHistorical({
-    address: targetAddress,
+    addresses: [targetAddress],
     date: dates[2] || DUMMY_DATE,
   });
   const hook4 = useGetHistorical({
-    address: targetAddress,
+    addresses: [targetAddress],
     date: dates[3] || DUMMY_DATE,
   });
   const hook5 = useGetHistorical({
-    address: targetAddress,
+    addresses: [targetAddress],
     date: dates[4] || DUMMY_DATE,
   });
 
@@ -77,8 +77,8 @@ export default function BarStackedPortfolioByAssetSnapshot() {
 
   // Extract portfolios from Record structure for all dates
   const portfolios = historicalData.map((result, index) => {
-    const dataRecord = result.data as Record<string, Portfolio> | undefined;
-    const portfolioEntries = dataRecord ? Object.entries(dataRecord) as [string, Portfolio][] : [];
+    const dataRecord = result.data as Record<string, TPortfolio> | undefined;
+    const portfolioEntries = dataRecord ? Object.entries(dataRecord) as [string, TPortfolio][] : [];
     return dataRecord?.[targetAddress] || (portfolioEntries.length > 0 ? portfolioEntries[0][1] : undefined);
   });
 
@@ -94,7 +94,7 @@ export default function BarStackedPortfolioByAssetSnapshot() {
 
   // Get asset dictionaries for all dates (portfolios are guaranteed to be non-null at this point)
   const assetDictionaries = portfolios
-    .filter((portfolio): portfolio is Portfolio => portfolio !== undefined)
+    .filter((portfolio): portfolio is TPortfolio => portfolio !== undefined)
     .map(portfolio => getAssetValueDictionary(portfolio));
 
   // Create comparison dictionary with all dictionaries

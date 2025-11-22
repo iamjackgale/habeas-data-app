@@ -12,7 +12,7 @@ import TablePortfolioByProtocol from '@/components/tables/table-portfolio-by-pro
 import TablePortfolioByAsset from '@/components/tables/table-portfolio-by-asset';
 import { TableComparison, ComparisonTableDataEntry } from '@/components/tables/table-comparison';
 import { useGetHistorical } from '@/services/octav/loader';
-import { Portfolio } from '@/types/portfolio';
+import { TPortfolio } from '@/types/portfolio';
 import { getProtocolValueDictionary, getComparisonProtocolValueDictionary } from '@/handlers/portfolio-handler';
 import { getAssetValueDictionary, getComparisonAssetValueDictionary } from '@/handlers/portfolio-handler';
 import { LoadingSpinner } from '@/components/loading-spinner';
@@ -40,7 +40,7 @@ export interface TableRenderResult {
 // Table component that handles historical data
 function TableHistoricalPortfolioByProtocol({ address, date }: { address: string; date: string }) {
   const { data, isLoading, error } = useGetHistorical({
-    address: address,
+    addresses: [address],
     date: date,
   });
 
@@ -55,8 +55,8 @@ function TableHistoricalPortfolioByProtocol({ address, date }: { address: string
     );
   }
 
-  const dataRecord = data as Record<string, Portfolio> | undefined;
-  const portfolioEntries = dataRecord ? Object.entries(dataRecord) as [string, Portfolio][] : [];
+  const dataRecord = data as Record<string, TPortfolio> | undefined;
+  const portfolioEntries = dataRecord ? Object.entries(dataRecord) as [string, TPortfolio][] : [];
   const portfolio = dataRecord?.[address] || (portfolioEntries.length > 0 ? portfolioEntries[0][1] : null);
 
   if (!portfolio) {
@@ -121,7 +121,7 @@ function TableHistoricalPortfolioByProtocol({ address, date }: { address: string
 // Table component that handles historical asset data
 function TableHistoricalPortfolioByAsset({ address, date }: { address: string; date: string }) {
   const { data, isLoading, error } = useGetHistorical({
-    address: address,
+    addresses: address,
     date: date,
   });
 
@@ -136,8 +136,8 @@ function TableHistoricalPortfolioByAsset({ address, date }: { address: string; d
     );
   }
 
-  const dataRecord = data as Record<string, Portfolio> | undefined;
-  const portfolioEntries = dataRecord ? Object.entries(dataRecord) as [string, Portfolio][] : [];
+  const dataRecord = data as Record<string, TPortfolio> | undefined;
+  const portfolioEntries = dataRecord ? Object.entries(dataRecord) as [string, TPortfolio][] : [];
   const portfolio = dataRecord?.[address] || (portfolioEntries.length > 0 ? portfolioEntries[0][1] : null);
 
   if (!portfolio) {
@@ -217,18 +217,18 @@ function TableComparisonPortfolioByProtocol({ address, dates }: { address: strin
 
   // Always call exactly MAX_DATES hooks (12) in the same order for React's rules
   const DUMMY_DATE = '2025-01-01';
-  const hook1 = useGetHistorical({ address, date: sortedDates[0] || DUMMY_DATE });
-  const hook2 = useGetHistorical({ address, date: sortedDates[1] || DUMMY_DATE });
-  const hook3 = useGetHistorical({ address, date: sortedDates[2] || DUMMY_DATE });
-  const hook4 = useGetHistorical({ address, date: sortedDates[3] || DUMMY_DATE });
-  const hook5 = useGetHistorical({ address, date: sortedDates[4] || DUMMY_DATE });
-  const hook6 = useGetHistorical({ address, date: sortedDates[5] || DUMMY_DATE });
-  const hook7 = useGetHistorical({ address, date: sortedDates[6] || DUMMY_DATE });
-  const hook8 = useGetHistorical({ address, date: sortedDates[7] || DUMMY_DATE });
-  const hook9 = useGetHistorical({ address, date: sortedDates[8] || DUMMY_DATE });
-  const hook10 = useGetHistorical({ address, date: sortedDates[9] || DUMMY_DATE });
-  const hook11 = useGetHistorical({ address, date: sortedDates[10] || DUMMY_DATE });
-  const hook12 = useGetHistorical({ address, date: sortedDates[11] || DUMMY_DATE });
+  const hook1 = useGetHistorical({ addresses: [address], date: sortedDates[0] || DUMMY_DATE });
+  const hook2 = useGetHistorical({ addresses: [address], date: sortedDates[1] || DUMMY_DATE });
+  const hook3 = useGetHistorical({ addresses: [address], date: sortedDates[2] || DUMMY_DATE });
+  const hook4 = useGetHistorical({ addresses: [address], date: sortedDates[3] || DUMMY_DATE });
+  const hook5 = useGetHistorical({ addresses: [address], date: sortedDates[4] || DUMMY_DATE });
+  const hook6 = useGetHistorical({ addresses: [address], date: sortedDates[5] || DUMMY_DATE });
+  const hook7 = useGetHistorical({ addresses: [address], date: sortedDates[6] || DUMMY_DATE });
+  const hook8 = useGetHistorical({ addresses: [address], date: sortedDates[7] || DUMMY_DATE });
+  const hook9 = useGetHistorical({ addresses: [address], date: sortedDates[8] || DUMMY_DATE });
+  const hook10 = useGetHistorical({ addresses: [address], date: sortedDates[9] || DUMMY_DATE });
+  const hook11 = useGetHistorical({ addresses: [address], date: sortedDates[10] || DUMMY_DATE });
+  const hook12 = useGetHistorical({ addresses: [address], date: sortedDates[11] || DUMMY_DATE });
 
   const allHookResults = [hook1, hook2, hook3, hook4, hook5, hook6, hook7, hook8, hook9, hook10, hook11, hook12];
   const historicalData = allHookResults.slice(0, sortedDates.length);
@@ -248,8 +248,8 @@ function TableComparisonPortfolioByProtocol({ address, dates }: { address: strin
   }
 
   const portfolios = historicalData.map((result) => {
-    const dataRecord = result.data as Record<string, Portfolio> | undefined;
-    const portfolioEntries = dataRecord ? Object.entries(dataRecord) as [string, Portfolio][] : [];
+    const dataRecord = result.data as Record<string, TPortfolio> | undefined;
+    const portfolioEntries = dataRecord ? Object.entries(dataRecord) as [string, TPortfolio][] : [];
     return dataRecord?.[address] || (portfolioEntries.length > 0 ? portfolioEntries[0][1] : undefined);
   });
 
@@ -263,7 +263,7 @@ function TableComparisonPortfolioByProtocol({ address, dates }: { address: strin
   }
 
   const protocolDictionaries = portfolios
-    .filter((portfolio): portfolio is Portfolio => portfolio !== undefined)
+    .filter((portfolio): portfolio is TPortfolio => portfolio !== undefined)
     .map(portfolio => getProtocolValueDictionary(portfolio));
 
   const comparisonDictionary = getComparisonProtocolValueDictionary(...protocolDictionaries);
@@ -310,18 +310,18 @@ function TableComparisonPortfolioByAsset({ address, dates }: { address: string; 
 
   // Always call exactly MAX_DATES hooks (12) in the same order for React's rules
   const DUMMY_DATE = '2025-01-01';
-  const hook1 = useGetHistorical({ address, date: sortedDates[0] || DUMMY_DATE });
-  const hook2 = useGetHistorical({ address, date: sortedDates[1] || DUMMY_DATE });
-  const hook3 = useGetHistorical({ address, date: sortedDates[2] || DUMMY_DATE });
-  const hook4 = useGetHistorical({ address, date: sortedDates[3] || DUMMY_DATE });
-  const hook5 = useGetHistorical({ address, date: sortedDates[4] || DUMMY_DATE });
-  const hook6 = useGetHistorical({ address, date: sortedDates[5] || DUMMY_DATE });
-  const hook7 = useGetHistorical({ address, date: sortedDates[6] || DUMMY_DATE });
-  const hook8 = useGetHistorical({ address, date: sortedDates[7] || DUMMY_DATE });
-  const hook9 = useGetHistorical({ address, date: sortedDates[8] || DUMMY_DATE });
-  const hook10 = useGetHistorical({ address, date: sortedDates[9] || DUMMY_DATE });
-  const hook11 = useGetHistorical({ address, date: sortedDates[10] || DUMMY_DATE });
-  const hook12 = useGetHistorical({ address, date: sortedDates[11] || DUMMY_DATE });
+  const hook1 = useGetHistorical({ addresses: [address], date: sortedDates[0] || DUMMY_DATE });
+  const hook2 = useGetHistorical({ addresses: [address], date: sortedDates[1] || DUMMY_DATE });
+  const hook3 = useGetHistorical({ addresses: [address], date: sortedDates[2] || DUMMY_DATE });
+  const hook4 = useGetHistorical({ addresses: [address], date: sortedDates[3] || DUMMY_DATE });
+  const hook5 = useGetHistorical({ addresses: [address], date: sortedDates[4] || DUMMY_DATE });
+  const hook6 = useGetHistorical({ addresses: [address], date: sortedDates[5] || DUMMY_DATE });
+  const hook7 = useGetHistorical({ addresses: [address], date: sortedDates[6] || DUMMY_DATE });
+  const hook8 = useGetHistorical({ addresses: [address], date: sortedDates[7] || DUMMY_DATE });
+  const hook9 = useGetHistorical({ addresses: [address], date: sortedDates[8] || DUMMY_DATE });
+  const hook10 = useGetHistorical({ addresses: [address], date: sortedDates[9] || DUMMY_DATE });
+  const hook11 = useGetHistorical({ addresses: [address], date: sortedDates[10] || DUMMY_DATE });
+  const hook12 = useGetHistorical({ addresses: [address], date: sortedDates[11] || DUMMY_DATE });
 
   const allHookResults = [hook1, hook2, hook3, hook4, hook5, hook6, hook7, hook8, hook9, hook10, hook11, hook12];
   const historicalData = allHookResults.slice(0, sortedDates.length);
@@ -341,8 +341,8 @@ function TableComparisonPortfolioByAsset({ address, dates }: { address: string; 
   }
 
   const portfolios = historicalData.map((result) => {
-    const dataRecord = result.data as Record<string, Portfolio> | undefined;
-    const portfolioEntries = dataRecord ? Object.entries(dataRecord) as [string, Portfolio][] : [];
+    const dataRecord = result.data as Record<string, TPortfolio> | undefined;
+    const portfolioEntries = dataRecord ? Object.entries(dataRecord) as [string, TPortfolio][] : [];
     return dataRecord?.[address] || (portfolioEntries.length > 0 ? portfolioEntries[0][1] : undefined);
   });
 
@@ -356,7 +356,7 @@ function TableComparisonPortfolioByAsset({ address, dates }: { address: string; 
   }
 
   const assetDictionaries = portfolios
-    .filter((portfolio): portfolio is Portfolio => portfolio !== undefined)
+    .filter((portfolio): portfolio is TPortfolio => portfolio !== undefined)
     .map(portfolio => getAssetValueDictionary(portfolio));
 
   const comparisonDictionary = getComparisonAssetValueDictionary(...assetDictionaries);

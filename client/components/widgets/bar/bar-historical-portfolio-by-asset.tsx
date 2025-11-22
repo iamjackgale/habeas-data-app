@@ -1,7 +1,7 @@
 'use client';
 
 import { useGetHistorical } from '@/services/octav/loader';
-import { Portfolio } from '@/types/portfolio';
+import { TPortfolio } from '@/types/portfolio';
 import { getAssetValueDictionary } from '@/handlers/portfolio-handler';
 import { processBarChartData } from '@/handlers/bar-chart-handler';
 import BarChartComponent from '@/components/charts/bar';
@@ -13,7 +13,7 @@ interface BarHistoricalPortfolioByAssetProps {
 
 export default function BarHistoricalPortfolioByAsset({ address, date }: BarHistoricalPortfolioByAssetProps) {
   const { data, isLoading, error } = useGetHistorical({
-    address: address,
+    addresses: [address],
     date: date
   });
 
@@ -29,8 +29,8 @@ export default function BarHistoricalPortfolioByAsset({ address, date }: BarHist
   }
 
   // Extract portfolio from Record structure (data is Record<string, Portfolio>)
-  const dataRecord = data as Record<string, Portfolio> | undefined;
-  const portfolioEntries = dataRecord ? Object.entries(dataRecord) as [string, Portfolio][] : [];
+  const dataRecord = data as Record<string, TPortfolio> | undefined;
+  const portfolioEntries = dataRecord ? Object.entries(dataRecord) as [string, TPortfolio][] : [];
   const portfolio = dataRecord?.[address] || (portfolioEntries.length > 0 ? portfolioEntries[0][1] : null);
 
   if (!portfolio) {

@@ -2,7 +2,7 @@
  * Main Portfolio response from Octav API
  * @see https://api-docs.octav.fi/api-models/portfolio
  */
-export interface Portfolio {
+export interface TPortfolio {
   address: string;
   cashBalance: string;
   closedPnl: string | 'N/A';

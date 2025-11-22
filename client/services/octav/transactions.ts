@@ -1,25 +1,32 @@
-import { TransactionsResponse, TransactionType } from "@/types/transaction";
+import { Transaction, TransactionsResponse, TransactionType } from "@/types/transaction";
 import axios, { AxiosError } from "axios";
 
-const PAGE_SIZE = 250;
-export interface getTransactionParams {
-  addresses: string;
-  limit: number;
-  offset: number;
-
+export interface GetTransactionsParams {
+  addresses: string[];
+  startDate: string;
+  endDate: string;
   initialSearchText?: string;
   interactingAddresses?: string[];
   networks?: string[];
   txTypes?: TransactionType[];
   protocols?: string[];
   hideSpam?: boolean;
-
   sort?: 'ASC' | 'DESC';
-
-  startDate?: string;
-  endDate?: string;
-
   nftTokenId?: number;
+}
+
+export interface CombinedTransactionsResponse {
+  data: Transaction[];
+  dataByAddress: Record<string, Transaction[]>;
+  progress: {
+    completed: number;
+    total: number;
+    percentage: number;
+  };
+  errors?: Array<{
+    address: string;
+    error: string;
+  }>;
 }
 
 interface ApiErrorResponse {
@@ -27,15 +34,29 @@ interface ApiErrorResponse {
   message?: string;
 }
 
-export const getTransactions = async (params: getTransactionParams): Promise<TransactionsResponse> => {
-  const { addresses, limit, offset, initialSearchText, interactingAddresses,
-    networks, txTypes, protocols, hideSpam, sort, startDate, endDate, nftTokenId
+/**
+ * Get transactions from server endpoint
+ * Server handles pagination automatically
+ */
+export const getTransactions = async (params: GetTransactionsParams): Promise<CombinedTransactionsResponse> => {
+  const { 
+    addresses, 
+    startDate, 
+    endDate,
+    initialSearchText,
+    interactingAddresses,
+    networks,
+    txTypes,
+    protocols,
+    hideSpam,
+    sort,
+    nftTokenId 
   } = params;
-  
+
   const queryParams = new URLSearchParams({
-    addresses: addresses,
-    limit: limit.toString(),
-    offset: (offset * PAGE_SIZE).toString(),
+    addresses: addresses.join(','),
+    startDate: new Date(startDate).toISOString(),
+    endDate: new Date(endDate).toISOString(),
   });
 
   if (initialSearchText) {
@@ -66,26 +87,17 @@ export const getTransactions = async (params: getTransactionParams): Promise<Tra
     queryParams.append('sort', sort);
   }
 
-  // also validate date strings
-  if (startDate && !isNaN(Date.parse(startDate))) {
-    //convert date to End date in ISO 8601 format
-    const isoStartDate = new Date(startDate).toISOString();
-    queryParams.append('startDate', isoStartDate);
-  }
-
-  if (endDate && !isNaN(Date.parse(endDate))) {
-    const isoEndDate = new Date(endDate).toISOString();
-    queryParams.append('endDate', isoEndDate);
-  }
-
   if (nftTokenId !== undefined) {
     queryParams.append('tokenId', nftTokenId.toString());
   }
 
   try {
-    const response = await axios.get<TransactionsResponse>(`/api/transactions?${queryParams.toString()}`, {
-      withCredentials: true,
-    });
+    const response = await axios.get<CombinedTransactionsResponse>(
+      `http://localhost:3001/api/octav/transactions?${queryParams.toString()}`,
+      {
+        withCredentials: false,
+      }
+    );
     return response.data;
   } catch (error) {
     // Handle axios errors and extract API error message
@@ -94,7 +106,7 @@ export const getTransactions = async (params: getTransactionParams): Promise<Tra
 
       if (axiosError.response?.data) {
         const apiError = axiosError.response.data;
-        const errorMessage = apiError.message || apiError.error || 'Failed to fetch portfolio data';
+        const errorMessage = apiError.message || apiError.error || 'Failed to fetch transactions';
         throw new Error(errorMessage);
       }
 

@@ -1,14 +1,14 @@
 import axios, { AxiosError } from 'axios';
-import { Portfolio } from '@/types/portfolio';
+import { TPortfolio } from '@/types/portfolio';
 
 export interface GetHistoricalParams {
-  address: string;
+  addresses: string[];
   date: string;
 }
 
 export interface GetHistoricalRangeParams {
-  address: string;
-  dates: string[]
+  addresses: string[];
+  dates: string[];
 }
 
 export interface ApiErrorResponse {
@@ -16,26 +16,57 @@ export interface ApiErrorResponse {
   message?: string;
 }
 
+export interface CombinedHistoricalResponse {
+  data: Record<string, TPortfolio>;
+  errors?: Array<{
+    address: string;
+    error: string;
+  }>;
+}
+
+export interface CombinedHistoricalRangeResponse {
+  data: Record<string, Record<string, TPortfolio>>;
+  progress: {
+    loaded: number;
+    total: number;
+    percentage: number;
+  };
+  errors?: Array<{
+    date: string;
+    address?: string;
+    error: string;
+  }>;
+}
+
 /**
- * Get portfolio data from NextJS API endpoint
- * @param params - Portfolio query parameters
- * @returns {Promise<PortfolioResponse>} Portfolio data
- * @throws {Error} Error with message from API response
+ * Get historical portfolio data from server endpoint
+ * @param params - Historical portfolio query parameters
+ * @returns {Promise<Record<string, TPortfolio>>} Portfolio data keyed by address
+ * @throws {Error} Error with message from API response or from response errors array
  */
-export const getHistorical = async (params: GetHistoricalParams): Promise<Portfolio> => {
-  const { address, date } = params;
+export const getHistorical = async (params: GetHistoricalParams): Promise<Record<string, TPortfolio>> => {
+  const { addresses, date } = params;
 
   const queryParams = new URLSearchParams({
-    addresses: address,
-    date: date
+    addresses: addresses.join(','),
+    date: date,
   });
 
   try {
-    const response = await axios.get<Portfolio[]>(`/api/historical?${queryParams.toString()}`, {
-      withCredentials: true,
-    });
+    const response = await axios.get<CombinedHistoricalResponse>(
+      `http://localhost:3001/api/octav/historical?${queryParams.toString()}`,
+      {
+        withCredentials: false,
+      }
+    );
 
-    return response.data[0];
+    // Check for errors in the response
+    if (response.data.errors && response.data.errors.length > 0) {
+      const firstError = response.data.errors[0];
+      throw new Error(firstError.error || `Error fetching data for address ${firstError.address}`);
+    }
+
+    return response.data.data;
   } catch (error) {
     // Handle axios errors and extract API error message
     if (axios.isAxiosError(error)) {
@@ -43,7 +74,50 @@ export const getHistorical = async (params: GetHistoricalParams): Promise<Portfo
 
       if (axiosError.response?.data) {
         const apiError = axiosError.response.data;
-        const errorMessage = apiError.message || apiError.error || 'Failed to fetch portfolio data';
+        const errorMessage = apiError.message || apiError.error || 'Failed to fetch historical portfolio data';
+        throw new Error(errorMessage);
+      }
+
+      // Network or other axios errors
+      throw new Error(axiosError.message || 'Network error occurred');
+    }
+
+    // Unknown error
+    throw error instanceof Error ? error : new Error('Unknown error occurred');
+  }
+};
+
+/**
+ * Get historical portfolio data across multiple dates from server endpoint
+ * @param params - Historical range query parameters
+ * @returns {Promise<CombinedHistoricalRangeResponse>} Combined historical range data
+ * @throws {Error} Error with message from API response
+ */
+export const getHistoricalRange = async (params: GetHistoricalRangeParams): Promise<CombinedHistoricalRangeResponse> => {
+  const { addresses, dates } = params;
+
+  const queryParams = new URLSearchParams({
+    addresses: addresses.join(','),
+    dates: dates.join(','),
+  });
+
+  try {
+    const response = await axios.get<CombinedHistoricalRangeResponse>(
+      `http://localhost:3001/api/octav/historical/range?${queryParams.toString()}`,
+      {
+        withCredentials: false,
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    // Handle axios errors and extract API error message
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError<ApiErrorResponse>;
+
+      if (axiosError.response?.data) {
+        const apiError = axiosError.response.data;
+        const errorMessage = apiError.message || apiError.error || 'Failed to fetch historical range data';
         throw new Error(errorMessage);
       }
 

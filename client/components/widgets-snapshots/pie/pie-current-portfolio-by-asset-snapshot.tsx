@@ -1,7 +1,7 @@
 'use client';
 
 import { useGetPortfolio } from '@/services/octav/loader';
-import { Portfolio } from '@/types/portfolio';
+import { TPortfolio } from '@/types/portfolio';
 import { getAssetValueDictionary } from '@/handlers/portfolio-handler';
 import { processPieChartData } from '@/handlers/pie-chart-handler';
 import PieChartComponent from '@/components/charts/pie';
@@ -15,7 +15,7 @@ export default function PieCurrentPortfolioByAssetSnapshot() {
   const currentDate = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
   
   const { data, isLoading, error } = useGetPortfolio({
-    address: targetAddress,
+    addresses: [targetAddress],
     includeImages: true,
     includeExplorerUrls: true,
     waitForSync: true,
@@ -33,8 +33,8 @@ export default function PieCurrentPortfolioByAssetSnapshot() {
   }
 
   // Extract portfolio from Record structure (data is Record<string, Portfolio>)
-  const dataRecord = data as Record<string, Portfolio> | undefined;
-  const portfolioEntries = dataRecord ? Object.entries(dataRecord) as [string, Portfolio][] : [];
+  const dataRecord = data as Record<string, TPortfolio> | undefined;
+  const portfolioEntries = dataRecord ? Object.entries(dataRecord) as [string, TPortfolio][] : [];
   const portfolio = dataRecord?.[targetAddress] || (portfolioEntries.length > 0 ? portfolioEntries[0][1] : null);
 
   if (!portfolio) {

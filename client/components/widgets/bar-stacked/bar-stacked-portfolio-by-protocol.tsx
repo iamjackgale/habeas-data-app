@@ -1,7 +1,7 @@
 'use client';
 
 import { useGetHistorical } from '@/services/octav/loader';
-import { Portfolio } from '@/types/portfolio';
+import { TPortfolio } from '@/types/portfolio';
 import { getProtocolValueDictionary, getComparisonProtocolValueDictionary } from '@/handlers/portfolio-handler';
 import { BarStackedChartDataEntry } from '@/handlers/bar-chart-handler';
 import BarStackedChartComponent from '@/components/charts/bar-stacked';
@@ -37,51 +37,51 @@ export default function BarStackedPortfolioByProtocol({ address, dates: rawDates
   
   // Call hooks individually (always call MAX_DATES hooks in same order)
   const hook1 = useGetHistorical({
-    address: address,
+    addresses: [address],
     date: dates[0] || DUMMY_DATE,
   });
   const hook2 = useGetHistorical({
-    address: address,
+    addresses: [address]  ,
     date: dates[1] || DUMMY_DATE,
   });
   const hook3 = useGetHistorical({
-    address: address,
+    addresses: [address],
     date: dates[2] || DUMMY_DATE,
   });
   const hook4 = useGetHistorical({
-    address: address,
+    addresses: [address],
     date: dates[3] || DUMMY_DATE,
   });
   const hook5 = useGetHistorical({
-    address: address,
+    addresses: [address],
     date: dates[4] || DUMMY_DATE,
   });
   const hook6 = useGetHistorical({
-    address: address,
+    addresses: [address],
     date: dates[5] || DUMMY_DATE,
   });
   const hook7 = useGetHistorical({
-    address: address,
+    addresses: [address],
     date: dates[6] || DUMMY_DATE,
   });
   const hook8 = useGetHistorical({
-    address: address,
+    addresses: [address],
     date: dates[7] || DUMMY_DATE,
   });
   const hook9 = useGetHistorical({
-    address: address,
+    addresses: [address],
     date: dates[8] || DUMMY_DATE,
   });
   const hook10 = useGetHistorical({
-    address: address,
+    addresses: [address],
     date: dates[9] || DUMMY_DATE,
   });
   const hook11 = useGetHistorical({
-    address: address,
+    addresses: [address],
     date: dates[10] || DUMMY_DATE,
   });
   const hook12 = useGetHistorical({
-    address: address,
+    addresses: [address],
     date: dates[11] || DUMMY_DATE,
   });
 
@@ -105,8 +105,8 @@ export default function BarStackedPortfolioByProtocol({ address, dates: rawDates
 
   // Extract portfolios from Record structure for all dates
   const portfolios = historicalData.map((result, index) => {
-    const dataRecord = result.data as Record<string, Portfolio> | undefined;
-    const portfolioEntries = dataRecord ? Object.entries(dataRecord) as [string, Portfolio][] : [];
+    const dataRecord = result.data as Record<string, TPortfolio> | undefined;
+    const portfolioEntries = dataRecord ? Object.entries(dataRecord) as [string, TPortfolio][] : [];
     return dataRecord?.[address] || (portfolioEntries.length > 0 ? portfolioEntries[0][1] : undefined);
   });
 
@@ -122,7 +122,7 @@ export default function BarStackedPortfolioByProtocol({ address, dates: rawDates
 
   // Get protocol dictionaries for all dates (portfolios are guaranteed to be non-null at this point)
   const protocolDictionaries = portfolios
-    .filter((portfolio): portfolio is Portfolio => portfolio !== undefined)
+    .filter((portfolio): portfolio is TPortfolio => portfolio !== undefined)
     .map(portfolio => getProtocolValueDictionary(portfolio));
 
   // Create comparison dictionary with all dictionaries

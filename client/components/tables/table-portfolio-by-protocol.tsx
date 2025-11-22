@@ -1,7 +1,7 @@
 'use client';
 
 import { useGetPortfolio } from '@/services/octav/loader';
-import { Portfolio } from '@/types/portfolio';
+import { TPortfolio } from '@/types/portfolio';
 import { getProtocolValueDictionary } from '@/handlers/portfolio-handler';
 import { TableBase, TableDataEntry } from './table-base';
 import { LoadingSpinner } from '@/components/loading-spinner';
@@ -14,7 +14,7 @@ export default function TablePortfolioByProtocol({ address }: TablePortfolioByPr
   const currentDate = new Date().toISOString().split('T')[0];
   
   const { data, isLoading, error } = useGetPortfolio({
-    address: address,
+    addresses: [address],
     includeImages: true,
     includeExplorerUrls: true,
     waitForSync: true,
@@ -32,8 +32,8 @@ export default function TablePortfolioByProtocol({ address }: TablePortfolioByPr
   }
 
   // Extract portfolio from Record structure
-  const dataRecord = data as Record<string, Portfolio> | undefined;
-  const portfolioEntries = dataRecord ? Object.entries(dataRecord) as [string, Portfolio][] : [];
+  const dataRecord = data as Record<string, TPortfolio> | undefined;
+  const portfolioEntries = dataRecord ? Object.entries(dataRecord) as [string, TPortfolio][] : [];
   const portfolio = dataRecord?.[address] || (portfolioEntries.length > 0 ? portfolioEntries[0][1] : null);
 
   if (!portfolio) {
