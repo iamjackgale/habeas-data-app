@@ -20,6 +20,10 @@ export interface BarChartComponentProps {
   isAnimationActive?: boolean;
   /** Whether to show responsive container (default: true) */
   responsive?: boolean;
+  /** Custom Y axis formatter (default: dollar amounts) */
+  formatYAxis?: (value: number) => string;
+  /** Custom tooltip formatter (default: dollar amounts with percentage) */
+  formatTooltip?: (value: number, name: string) => [string, string];
 }
 
 const DEFAULT_COLORS = [
@@ -50,26 +54,32 @@ export default function BarChartComponent({
   maxWidth = 600,
   isAnimationActive = true,
   responsive = true,
+  formatYAxis: customFormatYAxis,
+  formatTooltip: customFormatTooltip,
 }: BarChartComponentProps) {
-  // Format Y axis tick to show dollar amounts with commas and no decimal places
-  const formatYAxis = (value: number) => {
+  // Format Y axis tick - default to dollar amounts, allow custom formatter
+  const formatYAxis = customFormatYAxis || ((value: number) => {
     return `$${value.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
-  };
+  });
 
   // Get color for each bar: use predefined colors first, then random colors
+  // If only one color provided, use it for all bars
   const getBarColor = (index: number) => {
+    if (colors.length === 1) {
+      return colors[0];
+    }
     if (index < colors.length) {
       return colors[index];
     }
     return getRandomColor();
   };
 
-  // Format tooltip to show comma-separated dollar values with protocol name as label
-  const formatTooltip = (value: number, name: string) => {
+  // Format tooltip - default to dollar values with percentage, allow custom formatter
+  const formatTooltip = customFormatTooltip || ((value: number, name: string) => {
     const percent = totalValue > 0 ? ((value / totalValue) * 100).toFixed(1) : '0';
     const dollarValue = `$${value.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
     return [`${dollarValue} (${percent}%)`, 'Value'];
-  };
+  });
 
   // Custom tooltip label to show protocol name
   const renderTooltipLabel = (label: string) => {

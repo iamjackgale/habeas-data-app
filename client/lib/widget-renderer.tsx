@@ -19,6 +19,7 @@ import BarCurrentPortfolioByProtocol from '@/components/widgets/bar/bar-current-
 import BarHistoricalPortfolioByAsset from '@/components/widgets/bar/bar-historical-portfolio-by-asset';
 import BarHistoricalPortfolioByProtocol from '@/components/widgets/bar/bar-historical-portfolio-by-protocol';
 import BarPortfolioByNetWorth from '@/components/widgets/bar/bar-portfolio-by-networth';
+import BarTransactionsByDay from '@/components/widgets/bar/bar-transactions-by-day';
 import BarStackedPortfolioByAsset from '@/components/widgets/bar-stacked/bar-stacked-portfolio-by-asset';
 import BarStackedPortfolioByProtocol from '@/components/widgets/bar-stacked/bar-stacked-portfolio-by-protocol';
 
@@ -200,6 +201,21 @@ export function renderWidget(params: WidgetRenderParams): React.ReactNode {
         );
       }
       return <BarPortfolioByNetWorth address={address} dates={dates} />;
+
+    case 'bar-transactions-by-day':
+      if (dates.length < 2) {
+        return (
+          <div className="p-4 border border-yellow-300 bg-yellow-50 rounded-md">
+            <p className="font-semibold text-yellow-800">Error</p>
+            <p className="text-yellow-600">Please select a date range (start and end date)</p>
+          </div>
+        );
+      }
+      // Sort dates and use first as startDate, last as endDate
+      const sortedDates = [...dates].sort((a, b) => a.localeCompare(b));
+      const startDate = sortedDates[0];
+      const endDate = sortedDates[sortedDates.length - 1];
+      return <BarTransactionsByDay address={address} startDate={startDate} endDate={endDate} />;
 
     case 'bar-stacked-portfolio-by-asset':
       if (dates.length === 0) {

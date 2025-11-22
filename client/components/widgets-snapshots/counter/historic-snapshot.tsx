@@ -6,7 +6,7 @@ import { useWidgetDefaults } from '@/hooks/use-widget-defaults';
 export default function HistoricalSnapshot() {
   const { defaults, isLoading: defaultsLoading } = useWidgetDefaults();
   const date = defaults?.historic?.date || '2025-06-06';
-  const targetAddress = defaults?.historic?.address || '0x3f5eddad52c665a4aa011cd11a21e1d5107d7862';
+  const targetAddress = defaults?.historic?.address || '0xc9c61194682a3a5f56bf9cd5b59ee63028ab6041';
   
   const { data, isLoading, error } = useGetHistorical({
     address: targetAddress,

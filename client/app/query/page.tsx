@@ -10,7 +10,7 @@ import { PayButton } from '@/components/query-dropdowns/pay-button';
 import { WidgetSelectorDropdown } from '@/components/query-dropdowns/widget-selector-dropdown';
 import { PortfolioTransactionsToggle } from '@/components/query-dropdowns/portfolio-transactions-toggle';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { getWidgetTimePeriodType, requiresAddresses, hasCategories } from '@/lib/widget-time-config';
+import { getWidgetTimePeriodType, requiresAddresses, hasCategories, hasTableCategories } from '@/lib/widget-time-config';
 import { AddressDropdown } from '@/components/query-dropdowns/address-dropdown';
 import { renderWidget, WidgetRenderParams } from '@/lib/widget-renderer';
 import { renderTable, TableRenderParams, TableRenderResult } from '@/lib/table-renderer';
@@ -248,14 +248,17 @@ export default function QueryPage() {
   const showCategories = hasCategories(selectedWidget, mode);
 
   // Determine table time type based on selected table
-  const getTableTimeType = (tableKey: string | null): 'single' | 'multi' => {
+  const getTableTimeType = (tableKey: string | null, currentMode: Mode): 'single' | 'multi' | 'timescale' => {
     if (!tableKey) return 'single';
+    // Transactions tables use date range (timescale)
+    if (currentMode === 'transactions' && tableKey === 'transactions-by-day') return 'timescale';
     if (tableKey.startsWith('comparison-')) return 'multi';
     if (tableKey.startsWith('historical-')) return 'single';
     return 'single'; // Current portfolio tables use current date
   };
 
-  const tableTimeType = getTableTimeType(selectedTable);
+  const tableTimeType = getTableTimeType(selectedTable, mode);
+  const showTableCategories = hasTableCategories(selectedTable, mode);
 
   // Handle Pay button click - render the widget
   const handlePay = () => {
@@ -300,33 +303,51 @@ export default function QueryPage() {
         console.warn('Historical widget selected but no date provided. Widget:', selectedWidget);
       }
     } else if (widgetTimeType === 'multi') {
-      if (multiDate.mode === 'list') {
-        // Format dates array to ISO strings
-        multiDate.dates.forEach(date => {
+      // For transactions widgets, use timePeriod (date range)
+      if (mode === 'transactions' && timePeriod.startDate && timePeriod.endDate) {
+        const start = new Date(timePeriod.startDate);
+        const end = new Date(timePeriod.endDate);
+        
+        // Format start and end dates
+        const formatDate = (date: Date) => {
           const year = date.getFullYear();
           const month = String(date.getMonth() + 1).padStart(2, '0');
           const day = String(date.getDate()).padStart(2, '0');
-          dates.push(`${year}-${month}-${day}`);
-        });
-      } else if (multiDate.mode === 'interval' && multiDate.startDate) {
-        // Generate dates based on interval
-        const start = new Date(multiDate.startDate);
-        const count = Math.min(multiDate.intervalCount || 12, 12);
-        const type = multiDate.intervalType || 'daily';
+          return `${year}-${month}-${day}`;
+        };
+        
+        dates.push(formatDate(start));
+        dates.push(formatDate(end));
+      } else if (mode === 'portfolio') {
+        // For portfolio multi-date widgets, use multiDate
+        if (multiDate.mode === 'list') {
+          // Format dates array to ISO strings
+          multiDate.dates.forEach(date => {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            dates.push(`${year}-${month}-${day}`);
+          });
+        } else if (multiDate.mode === 'interval' && multiDate.startDate) {
+          // Generate dates based on interval
+          const start = new Date(multiDate.startDate);
+          const count = Math.min(multiDate.intervalCount || 12, 12);
+          const type = multiDate.intervalType || 'daily';
 
-        for (let i = 0; i < count; i++) {
-          const date = new Date(start);
-          if (type === 'daily') {
-            date.setDate(date.getDate() + i);
-          } else if (type === 'weekly') {
-            date.setDate(date.getDate() + (i * 7));
-          } else if (type === 'monthly') {
-            date.setMonth(date.getMonth() + i);
+          for (let i = 0; i < count; i++) {
+            const date = new Date(start);
+            if (type === 'daily') {
+              date.setDate(date.getDate() + i);
+            } else if (type === 'weekly') {
+              date.setDate(date.getDate() + (i * 7));
+            } else if (type === 'monthly') {
+              date.setMonth(date.getMonth() + i);
+            }
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            dates.push(`${year}-${month}-${day}`);
           }
-          const year = date.getFullYear();
-          const month = String(date.getMonth() + 1).padStart(2, '0');
-          const day = String(date.getDate()).padStart(2, '0');
-          dates.push(`${year}-${month}-${day}`);
         }
       }
     }
@@ -340,7 +361,17 @@ export default function QueryPage() {
 
     // For multi date widgets, ensure we have dates
     if (widgetTimeType === 'multi' && dates.length === 0) {
-      alert('Please select at least one date');
+      if (mode === 'transactions') {
+        alert('Please select a date range (start and end date)');
+      } else {
+        alert('Please select at least one date');
+      }
+      return;
+    }
+    
+    // For transactions widgets with date range, ensure we have both start and end dates
+    if (widgetTimeType === 'multi' && mode === 'transactions' && dates.length < 2) {
+      alert('Please select both start and end dates');
       return;
     }
 
@@ -674,7 +705,25 @@ export default function QueryPage() {
         const day = String(singleDate.getDate()).padStart(2, '0');
         dates.push(`${year}-${month}-${day}`);
       }
+    } else if (tableTimeType === 'timescale') {
+      // For transactions tables, use timePeriod (date range)
+      if (timePeriod.startDate && timePeriod.endDate) {
+        const start = new Date(timePeriod.startDate);
+        const end = new Date(timePeriod.endDate);
+        
+        // Format start and end dates
+        const formatDate = (date: Date) => {
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          return `${year}-${month}-${day}`;
+        };
+        
+        dates.push(formatDate(start));
+        dates.push(formatDate(end));
+      }
     } else if (tableTimeType === 'multi') {
+      // For portfolio multi-date tables, use multiDate
       if (multiDate.mode === 'list') {
         multiDate.dates.forEach(date => {
           const year = date.getFullYear();
@@ -706,6 +755,11 @@ export default function QueryPage() {
     
     if (tableTimeType === 'single' && !selectedTable.startsWith('portfolio-by-') && dates.length === 0) {
       alert('Please select a date');
+      return;
+    }
+
+    if (tableTimeType === 'timescale' && dates.length < 2) {
+      alert('Please select both start and end dates');
       return;
     }
 
@@ -998,7 +1052,15 @@ export default function QueryPage() {
                   </div>
                 )}
                 
-                {selectedWidget && widgetTimeType === 'multi' && (
+                {/* For transactions widgets, use TimePeriodDropdown (date range) */}
+                {selectedWidget && widgetTimeType === 'multi' && mode === 'transactions' && (
+                  <div className="w-full max-w-md">
+                    <TimePeriodDropdown value={timePeriod} onChange={setTimePeriod} />
+                  </div>
+                )}
+                
+                {/* For portfolio multi-date widgets, use MultiDateTimeDropdown */}
+                {selectedWidget && widgetTimeType === 'multi' && mode === 'portfolio' && (
                   <div className="w-full max-w-md">
                     <MultiDateTimeDropdown value={multiDate} onChange={setMultiDate} />
                   </div>
@@ -1016,8 +1078,8 @@ export default function QueryPage() {
                   </div>
                 )}
                 
-                {/* Show address selection for widgets - always show for portfolio mode */}
-                {mode === 'portfolio' && (
+                {/* Show address selection for widgets - show for both portfolio and transactions mode */}
+                {(mode === 'portfolio' || (mode === 'transactions' && showAddresses)) && (
                   <div className="w-full max-w-md">
                     <AddressDropdown value={selectedAddresses} onChange={setSelectedAddresses} />
                   </div>
@@ -1077,12 +1139,19 @@ export default function QueryPage() {
                   </div>
                 )}
                 
-                {selectedTable && tableTimeType === 'multi' && (
+                {/* For transactions tables, use TimePeriodDropdown (date range) */}
+                {selectedTable && tableTimeType === 'timescale' && (
+                  <div className="w-full max-w-md">
+                    <TimePeriodDropdown value={timePeriod} onChange={setTimePeriod} />
+                  </div>
+                )}
+                
+                {/* For portfolio multi-date tables, use MultiDateTimeDropdown */}
+                {selectedTable && tableTimeType === 'multi' && mode === 'portfolio' && (
                   <div className="w-full max-w-md">
                     <MultiDateTimeDropdown value={multiDate} onChange={setMultiDate} />
                   </div>
                 )}
-                
                 
                 {!selectedTable && (
                   <div className="w-full max-w-md">
@@ -1097,8 +1166,15 @@ export default function QueryPage() {
                   </div>
                 )}
                 
-                {/* Categories only shown for transactions mode */}
-                {mode === 'transactions' && (
+                {/* Show addresses for transactions mode if table requires them */}
+                {mode === 'transactions' && requiresAddresses(selectedTable) && (
+                  <div className="w-full max-w-md">
+                    <AddressDropdown value={selectedAddresses} onChange={setSelectedAddresses} />
+                  </div>
+                )}
+                
+                {/* Categories only shown for transactions mode and if table supports categories */}
+                {mode === 'transactions' && showTableCategories && (
                   <div className="w-full max-w-md">
                     <CategoryDropdown value={selectedCategories} onChange={setSelectedCategories} />
                   </div>

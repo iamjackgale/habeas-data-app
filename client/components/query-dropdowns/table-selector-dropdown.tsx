@@ -20,7 +20,11 @@ const PORTFOLIO_TABLE_CATEGORIES: Record<string, Array<{ key: string; label: str
   ],
 };
 
-const TRANSACTIONS_TABLE_CATEGORIES: Record<string, Array<{ key: string; label: string }>> = {};
+const TRANSACTIONS_TABLE_CATEGORIES: Record<string, Array<{ key: string; label: string }>> = {
+  'Transactions': [
+    { key: 'transactions-by-day', label: 'Transactions by Day' },
+  ],
+};
 
 interface TableSelectorDropdownProps {
   mode?: Mode;

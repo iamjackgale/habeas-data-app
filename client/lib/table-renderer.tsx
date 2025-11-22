@@ -10,6 +10,7 @@ import React from 'react';
 // Import all table components
 import TablePortfolioByProtocol from '@/components/tables/table-portfolio-by-protocol';
 import TablePortfolioByAsset from '@/components/tables/table-portfolio-by-asset';
+import TableTransactionsByDay from '@/components/tables/table-transactions-by-day';
 import { TableComparison, ComparisonTableDataEntry } from '@/components/tables/table-comparison';
 import { useGetHistorical } from '@/services/octav/loader';
 import { Portfolio } from '@/types/portfolio';
@@ -509,6 +510,28 @@ export function renderTable(params: TableRenderParams): TableRenderResult {
         title: 'Portfolio Comparison by Asset',
         comparisonData: undefined, // Will be extracted from component
         dates: dates,
+      };
+
+    case 'transactions-by-day':
+      if (dates.length < 2) {
+        return {
+          component: (
+            <div className="p-4 border border-yellow-300 bg-yellow-50 rounded-md">
+              <p className="font-semibold text-yellow-800">Error</p>
+              <p className="text-yellow-600">Please select a date range (start and end date)</p>
+            </div>
+          ),
+          title: 'Error',
+        };
+      }
+      // Sort dates and use first as startDate, last as endDate
+      const sortedDates = [...dates].sort((a, b) => a.localeCompare(b));
+      const startDate = sortedDates[0];
+      const endDate = sortedDates[sortedDates.length - 1];
+      return {
+        component: <TableTransactionsByDay address={address} startDate={startDate} endDate={endDate} />,
+        title: `Transactions by Day (${startDate} to ${endDate})`,
+        data: undefined, // Will be extracted from component
       };
 
     default:

@@ -25,6 +25,9 @@ export function getTableKeyFromWidgetKey(widgetKey: string): string | null {
     'bar-stacked-portfolio-by-asset': 'comparison-portfolio-by-asset',
     'bar-stacked-portfolio-by-protocol': 'comparison-portfolio-by-protocol',
     'bar-portfolio-by-networth': null, // No direct table equivalent (net worth is different)
+    
+    // Transactions widgets -> transactions tables
+    'bar-transactions-by-day': 'transactions-by-day',
   };
 
   return mapping[widgetKey] || null;

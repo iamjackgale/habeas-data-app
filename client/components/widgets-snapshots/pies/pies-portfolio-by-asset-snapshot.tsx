@@ -13,7 +13,7 @@ export default function PiesPortfolioByAssetSnapshot() {
   const MAX_DATES = 4;
   // Get dates from config defaults
   const rawDates = defaults?.['pies-portfolio-by-asset']?.dates || ['2025-06-06', '2025-11-22', '2025-01-01'];
-  const targetAddress = defaults?.['pies-portfolio-by-asset']?.address || '0x3f5eddad52c665a4aa011cd11a21e1d5107d7862';
+  const targetAddress = defaults?.['pies-portfolio-by-asset']?.address || '0xc9c61194682a3a5f56bf9cd5b59ee63028ab6041';
   
   // Validate max 4 dates
   if (rawDates.length > MAX_DATES) {
