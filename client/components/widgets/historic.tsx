@@ -30,7 +30,7 @@ export default function Historical() {
 
   return (
     <div className="p-4 border border-gray-300 widget-bg rounded-md">
-      <p className="font-semibold widget-text">Portfolio Net Worth on {date}</p>
+      <p className="font-semibold widget-text">Portfolio Net Worth ({date})</p>
       <p className="widget-text">${formattedNetWorth}</p>
     </div>
   );

@@ -53,13 +53,13 @@ export default function RootLayout({
       >
         <Suspense fallback={<p>Loading...</p>}>
           <QueryClientProvider client={queryClient}>
-            <SidebarProvider className="relative">
+            <SidebarProvider className="relative h-svh flex">
               <AppSidebar className="hidden lg:block" />
               <div className="block lg:hidden">
                 <Header />
               </div>
 
-              <SidebarInset>
+              <SidebarInset className="overflow-y-auto h-full">
                 <SidebarTrigger className="absolute text-sidebar-foreground z-10 mt-[26px] hidden lg:block " />
                 <div className="flex flex-1 flex-col gap-4 p-2 lg:p-6 pt-0 mt-16 lg:mt-0">{children}</div>
               </SidebarInset>

@@ -1,19 +1,18 @@
 'use client';
 
-import { useGetPortfolio } from '@/services/octav/loader';
+import { useGetHistorical } from '@/services/octav/loader';
 import { Portfolio } from '@/types/portfolio';
-import { getProtocolValueDictionary } from '@/handlers/portfolio-handler';
+import { getAssetValueDictionary } from '@/handlers/portfolio-handler';
 import { processPieChartData } from '@/handlers/pie-chart-handler';
 import PieChartComponent from '@/components/charts/pie';
 
-export default function PiePortfolioByProtocol() {
-  const targetAddress = '0xc9c61194682a3a5f56bf9cd5b59ee63028ab6041';
+export default function PieHistoricalPortfolioByAsset() {
+  const date = '2025-06-06';
+  const targetAddress = '0x3f5eddad52c665a4aa011cd11a21e1d5107d7862';
   
-  const { data, isLoading, error } = useGetPortfolio({
+  const { data, isLoading, error } = useGetHistorical({
     address: targetAddress,
-    includeImages: true,
-    includeExplorerUrls: true,
-    waitForSync: true,
+    date
   });
 
   if (isLoading) return <p>Loading...</p>;
@@ -32,39 +31,39 @@ export default function PiePortfolioByProtocol() {
   const portfolioEntries = dataRecord ? Object.entries(dataRecord) as [string, Portfolio][] : [];
   const portfolio = dataRecord?.[targetAddress] || (portfolioEntries.length > 0 ? portfolioEntries[0][1] : null);
 
-  console.log('PieChart - Portfolio data:', portfolio);
+  console.log('PieChart - Historical Portfolio data:', portfolio);
 
   if (!portfolio) {
     return (
       <div className="p-4 border border-yellow-300 bg-yellow-50 rounded-md">
         <p className="font-semibold text-yellow-800">No Data</p>
-        <p className="text-yellow-600">No portfolio data available for pie chart</p>
+        <p className="text-yellow-600">No historical portfolio data available for pie chart</p>
       </div>
     );
   }
 
-  const protocolDictionary = getProtocolValueDictionary(portfolio);
+  const assetDictionary = getAssetValueDictionary(portfolio);
 
-  // Process protocol dictionary into pie chart data using generic handler
-  const { data: pieChartData, totalValue } = processPieChartData(protocolDictionary, {
+  // Process asset dictionary into pie chart data using generic handler
+  const { data: pieChartData, totalValue } = processPieChartData(assetDictionary, {
     aggregationThreshold: 0.005, // 0.5% threshold
     otherLegendThreshold: 0.00005, // 0.005% threshold
     otherCategoryName: 'other',
   });
 
-  // Show message if no protocol data
+  // Show message if no asset data
   if (pieChartData.length === 0) {
     return (
       <div className="p-4 border border-yellow-300 bg-yellow-50 rounded-md">
-        <p className="font-semibold text-yellow-800">No Protocol Data</p>
-        <p className="text-yellow-600">No protocol data available to display in pie chart</p>
+        <p className="font-semibold text-yellow-800">No Asset Data</p>
+        <p className="text-yellow-600">No asset data available to display in pie chart</p>
       </div>
     );
   }
 
   return (
     <div className="p-4 border border-gray-300 widget-bg rounded-md w-full max-w-full">
-      <p className="font-semibold widget-text mb-4">Portfolio Assets by Protocol</p>
+      <p className="font-semibold widget-text mb-4">Portfolio Assets by Asset ({date})</p>
       <div className="w-full mx-auto">
         <PieChartComponent
           data={pieChartData}

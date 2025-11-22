@@ -81,7 +81,7 @@ export default function Portfolio() {
 
   return (
     <div className="p-4 border border-gray-300 widget-bg rounded-md">
-      <p className="font-semibold widget-text">Portfolio Net Worth on {currentDate}</p>
+      <p className="font-semibold widget-text">Portfolio Net Worth ({currentDate})</p>
       <p className="widget-text">${formattedNetworth}</p>
     </div>
   );
