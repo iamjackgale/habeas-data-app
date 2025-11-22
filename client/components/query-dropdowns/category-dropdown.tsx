@@ -38,12 +38,28 @@ const COST_OPTIONS: CategoryOption[] = [
   { value: 'Treasury Gas Costs', label: 'Treasury Gas Costs' },
 ];
 
-export function CategoryDropdown() {
+interface CategoryDropdownProps {
+  value?: Set<string>;
+  onChange?: (value: Set<string>) => void;
+}
+
+export function CategoryDropdown({ value, onChange }: CategoryDropdownProps = {}) {
   const [isOpen, setIsOpen] = useState(false);
   const [revenuesOpen, setRevenuesOpen] = useState(false);
   const [costsOpen, setCostsOpen] = useState(false);
-  const [selectedCategories, setSelectedCategories] = useState<Set<string>>(new Set());
+  const [internalCategories, setInternalCategories] = useState<Set<string>>(new Set());
   const dropdownRef = useRef<HTMLDivElement>(null);
+  
+  // Use controlled value if provided, otherwise use internal state
+  const selectedCategories = value !== undefined ? value : internalCategories;
+  
+  const updateCategories = (newCategories: Set<string>) => {
+    if (onChange) {
+      onChange(newCategories);
+    } else {
+      setInternalCategories(newCategories);
+    }
+  };
 
   const allRevenuesSelected = REVENUE_OPTIONS.every(opt => selectedCategories.has(opt.value));
   const allCostsSelected = COST_OPTIONS.every(opt => selectedCategories.has(opt.value));
@@ -66,7 +82,7 @@ export function CategoryDropdown() {
     } else {
       REVENUE_OPTIONS.forEach(opt => newSelected.delete(opt.value));
     }
-    setSelectedCategories(newSelected);
+    updateCategories(newSelected);
   };
 
   const handleAllCostsChange = (checked: boolean) => {
@@ -76,7 +92,7 @@ export function CategoryDropdown() {
     } else {
       COST_OPTIONS.forEach(opt => newSelected.delete(opt.value));
     }
-    setSelectedCategories(newSelected);
+    updateCategories(newSelected);
   };
 
   const handleCategoryChange = (value: string, checked: boolean) => {
@@ -86,7 +102,7 @@ export function CategoryDropdown() {
     } else {
       newSelected.delete(value);
     }
-    setSelectedCategories(newSelected);
+    updateCategories(newSelected);
   };
 
   const displayText = selectedCategories.size > 0

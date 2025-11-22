@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 type Mode = 'portfolio' | 'transactions';
 
@@ -15,10 +15,19 @@ export function PortfolioTransactionsToggle({
 }: PortfolioTransactionsToggleProps) {
   const [mode, setMode] = useState<Mode>(defaultMode);
 
+  // Update internal state when defaultMode prop changes (controlled component)
+  useEffect(() => {
+    if (defaultMode !== undefined) {
+      setMode(defaultMode);
+    }
+  }, [defaultMode]);
+
   const handleToggle = () => {
     const newMode = mode === 'portfolio' ? 'transactions' : 'portfolio';
     setMode(newMode);
-    onChange?.(newMode);
+    if (onChange) {
+      onChange(newMode);
+    }
   };
 
   const isPortfolio = mode === 'portfolio';

@@ -3,7 +3,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { ChevronDown, ChevronUp, ChevronRight } from 'lucide-react';
 
-const WIDGET_CATEGORIES = {
+type Mode = 'portfolio' | 'transactions';
+
+const PORTFOLIO_WIDGET_CATEGORIES = {
   'pie': [
     { key: 'pie-current-portfolio-by-asset', label: 'Portfolio Assets by Asset' },
     { key: 'pie-current-portfolio-by-protocol', label: 'Portfolio Assets by Protocol' },
@@ -27,11 +29,30 @@ const WIDGET_CATEGORIES = {
   ],
 };
 
-export function WidgetSelectorDropdown() {
+const TRANSACTIONS_WIDGET_CATEGORIES: Record<string, Array<{ key: string; label: string }>> = {};
+
+interface WidgetSelectorDropdownProps {
+  mode?: Mode;
+  value?: string | null;
+  onChange?: (value: string | null) => void;
+}
+
+export function WidgetSelectorDropdown({ mode = 'portfolio', value, onChange }: WidgetSelectorDropdownProps = {}) {
   const [isOpen, setIsOpen] = useState(false);
   const [openCategory, setOpenCategory] = useState<string | null>(null);
-  const [selectedWidget, setSelectedWidget] = useState<string | null>(null);
+  const [internalWidget, setInternalWidget] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  
+  // Use controlled value if provided, otherwise use internal state
+  const selectedWidget = value !== undefined ? value : internalWidget;
+  
+  const updateWidget = (widget: string | null) => {
+    if (onChange) {
+      onChange(widget);
+    } else {
+      setInternalWidget(widget);
+    }
+  };
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -45,16 +66,25 @@ export function WidgetSelectorDropdown() {
   }, []);
 
   const handleWidgetSelect = (widgetKey: string) => {
-    setSelectedWidget(widgetKey);
+    updateWidget(widgetKey);
     setIsOpen(false);
     setOpenCategory(null);
   };
+
+  // Reset selected widget when mode changes
+  useEffect(() => {
+    updateWidget(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode]);
+
+  // Get widgets based on mode
+  const widgetCategories = mode === 'portfolio' ? PORTFOLIO_WIDGET_CATEGORIES : TRANSACTIONS_WIDGET_CATEGORIES;
 
   // Find the display label for the selected widget
   const getSelectedWidgetLabel = () => {
     if (!selectedWidget) return 'Select widget...';
     
-    for (const widgets of Object.values(WIDGET_CATEGORIES)) {
+    for (const widgets of Object.values(widgetCategories)) {
       const widget = widgets.find((w) => w.key === selectedWidget);
       if (widget) return widget.label;
     }
@@ -62,23 +92,28 @@ export function WidgetSelectorDropdown() {
   };
 
   const displayText = getSelectedWidgetLabel();
+  const hasWidgets = Object.keys(widgetCategories).length > 0;
 
   return (
     <div className="relative inline-block w-full max-w-md" ref={dropdownRef}>
       <div
-        onClick={() => setIsOpen(!isOpen)}
-        className="border border-border px-4 py-2.5 bg-background text-foreground cursor-pointer rounded-xl flex justify-between items-center hover:bg-accent transition-colors"
+        onClick={() => hasWidgets && setIsOpen(!isOpen)}
+        className={`border border-border px-4 py-2.5 bg-background text-foreground rounded-xl flex justify-between items-center transition-colors ${
+          hasWidgets ? 'cursor-pointer hover:bg-accent' : 'cursor-not-allowed opacity-50'
+        }`}
       >
         <span className="flex-1 text-left truncate">{displayText}</span>
-        {isOpen ? (
-          <ChevronUp className="h-5 w-5 ml-2 flex-shrink-0" />
-        ) : (
-          <ChevronDown className="h-5 w-5 ml-2 flex-shrink-0" />
+        {hasWidgets && (
+          isOpen ? (
+            <ChevronUp className="h-5 w-5 ml-2 flex-shrink-0" />
+          ) : (
+            <ChevronDown className="h-5 w-5 ml-2 flex-shrink-0" />
+          )
         )}
       </div>
-      {isOpen && (
+      {isOpen && hasWidgets && (
         <div className="absolute top-full left-0 right-0 mt-1 border border-border bg-background text-foreground rounded-xl max-h-[400px] overflow-y-auto z-50 shadow-lg">
-          {Object.entries(WIDGET_CATEGORIES).map(([category, widgets]) => (
+          {Object.entries(widgetCategories).map(([category, widgets]) => (
             <div key={category}>
               <div
                 onClick={() => setOpenCategory(openCategory === category ? null : category)}

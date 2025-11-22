@@ -20,14 +20,46 @@ const PAST_OPTIONS = [
 
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-export function TimePeriodDropdown() {
+export interface TimePeriodValue {
+  startDate: Date | null;
+  endDate: Date | null;
+  granularity: Granularity;
+}
+
+interface TimePeriodDropdownProps {
+  value?: TimePeriodValue;
+  onChange?: (value: TimePeriodValue) => void;
+}
+
+export function TimePeriodDropdown({ value, onChange }: TimePeriodDropdownProps = {}) {
   const [isOpen, setIsOpen] = useState(false);
-  const [granularity, setGranularity] = useState<Granularity>('date');
+  const [internalGranularity, setInternalGranularity] = useState<Granularity>('date');
   const [currentView, setCurrentView] = useState({ year: new Date().getFullYear(), month: new Date().getMonth() });
-  const [startDate, setStartDate] = useState<Date | null>(null);
-  const [endDate, setEndDate] = useState<Date | null>(null);
+  const [internalStartDate, setInternalStartDate] = useState<Date | null>(null);
+  const [internalEndDate, setInternalEndDate] = useState<Date | null>(null);
   const [selectingStart, setSelectingStart] = useState(true);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  
+  // Use controlled values if provided, otherwise use internal state
+  const granularity = value?.granularity !== undefined ? value.granularity : internalGranularity;
+  const startDate = value?.startDate !== undefined ? value.startDate : internalStartDate;
+  const endDate = value?.endDate !== undefined ? value.endDate : internalEndDate;
+  
+  const updateTimePeriod = (updates: Partial<TimePeriodValue>) => {
+    const newValue: TimePeriodValue = {
+      granularity: updates.granularity ?? granularity,
+      startDate: updates.startDate ?? startDate,
+      endDate: updates.endDate ?? endDate,
+    };
+    
+    if (onChange) {
+      onChange(newValue);
+    } else {
+      if (updates.granularity !== undefined) setInternalGranularity(updates.granularity);
+      if (updates.startDate !== undefined) setInternalStartDate(updates.startDate);
+      if (updates.endDate !== undefined) setInternalEndDate(updates.endDate);
+    }
+  };
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -65,22 +97,20 @@ export function TimePeriodDropdown() {
 
   const handleDateClick = (date: Date) => {
     if (selectingStart || !startDate || date < startDate) {
-      setStartDate(date);
-      setEndDate(null);
+      updateTimePeriod({ startDate: date, endDate: null });
       setSelectingStart(false);
     } else {
-      setEndDate(date);
+      updateTimePeriod({ endDate: date });
       setSelectingStart(true);
     }
   };
 
   const handleWeekClick = (weekStart: Date, weekEnd: Date) => {
     if (selectingStart || !startDate || weekStart < startDate) {
-      setStartDate(weekStart);
-      setEndDate(null);
+      updateTimePeriod({ startDate: weekStart, endDate: null });
       setSelectingStart(false);
     } else {
-      setEndDate(weekEnd);
+      updateTimePeriod({ endDate: weekEnd });
       setSelectingStart(true);
     }
   };
@@ -97,8 +127,7 @@ export function TimePeriodDropdown() {
       start.setDate(now.getDate() - days);
     }
     start.setHours(0, 0, 0, 0);
-    setStartDate(start);
-    setEndDate(end);
+    updateTimePeriod({ startDate: start, endDate: end });
     setSelectingStart(true);
   };
 
@@ -325,11 +354,10 @@ export function TimePeriodDropdown() {
                 onClick={() => {
                   const date = new Date(year, idx, 1);
                   if (selectingStart || !startDate || date < startDate) {
-                    setStartDate(date);
-                    setEndDate(null);
+                    updateTimePeriod({ startDate: date, endDate: null });
                     setSelectingStart(false);
                   } else {
-                    setEndDate(new Date(year, idx + 1, 0));
+                    updateTimePeriod({ endDate: new Date(year, idx + 1, 0) });
                     setSelectingStart(true);
                   }
                 }}
@@ -381,11 +409,10 @@ export function TimePeriodDropdown() {
                   const startMonth = idx * 3;
                   const date = new Date(year, startMonth, 1);
                   if (selectingStart || !startDate || date < startDate) {
-                    setStartDate(date);
-                    setEndDate(null);
+                    updateTimePeriod({ startDate: date, endDate: null });
                     setSelectingStart(false);
                   } else {
-                    setEndDate(new Date(year, startMonth + 3, 0));
+                    updateTimePeriod({ endDate: new Date(year, startMonth + 3, 0) });
                     setSelectingStart(true);
                   }
                 }}
@@ -435,11 +462,10 @@ export function TimePeriodDropdown() {
                 onClick={() => {
                   const date = new Date(y, 0, 1);
                   if (selectingStart || !startDate || date < startDate) {
-                    setStartDate(date);
-                    setEndDate(null);
+                    updateTimePeriod({ startDate: date, endDate: null });
                     setSelectingStart(false);
                   } else {
-                    setEndDate(new Date(y, 11, 31));
+                    updateTimePeriod({ endDate: new Date(y, 11, 31) });
                     setSelectingStart(true);
                   }
                 }}
@@ -524,7 +550,7 @@ export function TimePeriodDropdown() {
               {GRANULARITY_OPTIONS.map((gran) => (
                 <div
                   key={gran}
-                  onClick={() => setGranularity(gran)}
+                  onClick={() => updateTimePeriod({ granularity: gran })}
                   className={`py-2.5 cursor-pointer border-b border-border hover:bg-accent ${
                     granularity === gran ? 'border-b-2 border-primary text-primary' : ''
                   }`}

@@ -16,10 +16,26 @@ const CHAIN_OPTIONS = [
   'Sonic',
 ];
 
-export function ChainDropdown() {
+interface ChainDropdownProps {
+  value?: Set<string>;
+  onChange?: (value: Set<string>) => void;
+}
+
+export function ChainDropdown({ value, onChange }: ChainDropdownProps = {}) {
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedChains, setSelectedChains] = useState<Set<string>>(new Set());
+  const [internalChains, setInternalChains] = useState<Set<string>>(new Set());
   const dropdownRef = useRef<HTMLDivElement>(null);
+  
+  // Use controlled value if provided, otherwise use internal state
+  const selectedChains = value !== undefined ? value : internalChains;
+  
+  const updateChains = (newChains: Set<string>) => {
+    if (onChange) {
+      onChange(newChains);
+    } else {
+      setInternalChains(newChains);
+    }
+  };
 
   const allChainsSelected = CHAIN_OPTIONS.every(chain => selectedChains.has(chain));
 
@@ -35,9 +51,9 @@ export function ChainDropdown() {
 
   const handleAllChainsChange = (checked: boolean) => {
     if (checked) {
-      setSelectedChains(new Set(CHAIN_OPTIONS));
+      updateChains(new Set(CHAIN_OPTIONS));
     } else {
-      setSelectedChains(new Set());
+      updateChains(new Set());
     }
   };
 
@@ -48,7 +64,7 @@ export function ChainDropdown() {
     } else {
       newSelected.delete(chain);
     }
-    setSelectedChains(newSelected);
+    updateChains(newSelected);
   };
 
   const displayText = selectedChains.size > 0

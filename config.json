@@ -1,0 +1,83 @@
+{
+  "settings": {
+    "visuals": {
+      "widgetColors": [
+        "#367d7d",
+        "#00C49F",
+        "#FFBB28",
+        "#FF8042",
+        "#8884d8",
+        "#d92929",
+        "#ffc658",
+        "#ff7300",
+        "#9c88ff",
+        "#ff8c94"
+      ]
+    },
+    "addresses": {
+      "Arbitrum": {
+        "address": "0x3f5eddad52c665a4aa011cd11a21e1d5107d7862",
+        "label": "Arbitrum Treasury"
+      },
+      "Avalanche": {
+        "address": "0x26de4ebffbe8d3d632a292c972e3594efc2eceed",
+        "label": "Avalanche Treasury"
+      },
+      "Base": {
+        "address": "0x1a07dceefeebba3d1873e2b92bef190d2f11c3cb",
+        "label": "Base Treasury"
+      },
+      "BNB Chain": {
+        "address": "0x7c780b8a63ee9b7d0f985e8a922be38a1f7b2141",
+        "label": "BNB Treasury"
+      },
+      "Ethereum": {
+        "address": "0xc9c61194682a3a5f56bf9cd5b59ee63028ab6041",
+        "label": "Ethereum Treasury"
+      },
+      "Gnosis": {
+        "address": "0x37ed06d71dffb97b6e89469ebf29552da46e52fa",
+        "label": "Gnosis Treasury"
+      },
+      "Linea": {
+        "address": "0x008f84b4f7b625636dd3e75045704b077d8db445",
+        "label": "Linea Treasury"
+      },
+      "OP Mainnet": {
+        "address": "0x4aba01fb8e1f6bfe80c56deb367f19f35df0f4ae",
+        "label": "OP Treasury"
+      },
+      "Polygon": {
+        "address": "0xe37dd9a535c1d3c9fc33e3295b7e08bd1c42218d",
+        "label": "Polygon Treasury"
+      },
+      "Sonic": {
+        "address": "0x10e13f11419165beb0f456ec8a230899e4013bbd",
+        "label": "Multichain Treasury"
+      }
+    },
+    "widgetDefaults": {
+      "portfolio": {
+        "address": "0xc9c61194682a3a5f56bf9cd5b59ee63028ab6041"
+      },
+      "historic": {
+        "address": "0x3f5eddad52c665a4aa011cd11a21e1d5107d7862",
+        "date": "2025-06-06"
+      },
+      "pie-current-portfolio-by-asset": {
+        "address": "0xc9c61194682a3a5f56bf9cd5b59ee63028ab6041"
+      },
+      "pies-portfolio-by-asset": {
+        "address": "0x3f5eddad52c665a4aa011cd11a21e1d5107d7862",
+        "dates": ["2025-06-06", "2025-11-22", "2025-01-01"]
+      },
+      "bar-current-portfolio-by-asset": {
+        "address": "0xc9c61194682a3a5f56bf9cd5b59ee63028ab6041"
+      },
+      "bar-stacked-portfolio-by-asset": {
+        "address": "0x3f5eddad52c665a4aa011cd11a21e1d5107d7862",
+        "dates": ["2025-06-06", "2025-11-22", "2025-01-01", "2025-03-15", "2025-08-30"]
+      }
+    }
+  }
+}

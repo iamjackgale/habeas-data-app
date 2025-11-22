@@ -1,20 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import Portfolio from '@/components/widgets/portfolio';
-import PieCurrentPortfolioByProtocol from '@/components/widgets/pie/pie-current-portfolio-by-protocol';
-import PieCurrentPortfolioByAsset from '@/components/widgets/pie/pie-current-portfolio-by-asset';
-import PieHistoricalPortfolioByProtocol from '@/components/widgets/pie/pie-historical-portfolio-by-protocol';
-import PieHistoricalPortfolioByAsset from '@/components/widgets/pie/pie-historical-portfolio-by-asset';
-import PiesPortfolioByProtocol from '@/components/widgets/pies/pies-portfolio-by-protocol';
-import PiesPortfolioByAsset from '@/components/widgets/pies/pies-portfolio-by-asset';
-import BarCurrentPortfolioByProtocol from '@/components/widgets/bar/bar-current-portfolio-by-protocol';
-import BarCurrentPortfolioByAsset from '@/components/widgets/bar/bar-current-portfolio-by-asset';
-import BarHistoricalPortfolioByProtocol from '@/components/widgets/bar/bar-historical-portfolio-by-protocol';
-import BarHistoricalPortfolioByAsset from '@/components/widgets/bar/bar-historical-portfolio-by-asset';
-import BarStackedPortfolioByAsset from '@/components/widgets/bar-stacked/bar-stacked-portfolio-by-asset';
-import BarStackedPortfolioByProtocol from '@/components/widgets/bar-stacked/bar-stacked-portfolio-by-protocol';
-import Historical from '@/components/widgets/historic';
+import PortfolioSnapshot from '@/components/widgets-snapshots/counter/portfolio-snapshot';
+import HistoricalSnapshot from '@/components/widgets-snapshots/counter/historic-snapshot';
+import PieCurrentPortfolioByAssetSnapshot from '@/components/widgets-snapshots/pie/pie-current-portfolio-by-asset-snapshot';
+import PiesPortfolioByAssetSnapshot from '@/components/widgets-snapshots/pies/pies-portfolio-by-asset-snapshot';
+import BarCurrentPortfolioByAssetSnapshot from '@/components/widgets-snapshots/bar/bar-current-portfolio-by-asset-snapshot';
+import BarStackedPortfolioByAssetSnapshot from '@/components/widgets-snapshots/bar-stacked/bar-stacked-portfolio-by-asset-snapshot';
 import { DashboardFooter } from '@/components/dashboard-footer';
 import Link from 'next/link';
 import { ChevronDown, ChevronUp } from 'lucide-react';
@@ -53,9 +45,21 @@ function CollapsibleSection({
 }
 
 export default function Page() {
+  const handleUpdate = () => {
+    // TODO: Implement update functionality
+  };
+
   return (
     <div className="flex flex-col gap-6 p-4">
-      <h1 className="text-2xl font-bold">Widget Library</h1>
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">Widget Library</h1>
+        <button
+          onClick={handleUpdate}
+          className="px-6 py-2.5 rounded-xl font-semibold transition-all bg-[#347745] hover:bg-[#2a5f37] text-foreground"
+        >
+          Update
+        </button>
+      </div>
       <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-2">
           <p className="text-foreground">
@@ -74,72 +78,46 @@ export default function Page() {
         <CollapsibleSection title="Counter">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div>
-              <Portfolio />
+              <PortfolioSnapshot />
             </div>
             <div>
-              <Historical />
+              <HistoricalSnapshot />
             </div>
           </div>
         </CollapsibleSection>
 
         {/* Pie Section */}
         <CollapsibleSection title="Pie">
-          {/* Current pie charts */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div>
-              <PieCurrentPortfolioByProtocol />
-            </div>
-            <div>
-              <PieCurrentPortfolioByAsset />
+              <PieCurrentPortfolioByAssetSnapshot />
             </div>
           </div>
-          {/* Historical pie charts */}
+        </CollapsibleSection>
+
+        {/* Pies Section */}
+        <CollapsibleSection title="Pie-in-Pie">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div>
-              <PieHistoricalPortfolioByProtocol />
-            </div>
-            <div>
-              <PieHistoricalPortfolioByAsset />
-            </div>
-          </div>
-          {/* Comparison pie charts */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div>
-              <PiesPortfolioByProtocol />
-            </div>
-            <div>
-              <PiesPortfolioByAsset />
+              <PiesPortfolioByAssetSnapshot />
             </div>
           </div>
         </CollapsibleSection>
 
         {/* Bar Section */}
         <CollapsibleSection title="Bar">
-          {/* Current bar charts */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div>
-              <BarCurrentPortfolioByProtocol />
-            </div>
-            <div>
-              <BarCurrentPortfolioByAsset />
+              <BarCurrentPortfolioByAssetSnapshot />
             </div>
           </div>
-          {/* Historical bar charts */}
+        </CollapsibleSection>
+
+        {/* Bar Stacked Section */}
+        <CollapsibleSection title="Bar Stacked">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div>
-              <BarHistoricalPortfolioByProtocol />
-            </div>
-            <div>
-              <BarHistoricalPortfolioByAsset />
-            </div>
-          </div>
-          {/* Stacked bar charts */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div>
-              <BarStackedPortfolioByProtocol />
-            </div>
-            <div>
-              <BarStackedPortfolioByAsset />
+              <BarStackedPortfolioByAssetSnapshot />
             </div>
           </div>
         </CollapsibleSection>
