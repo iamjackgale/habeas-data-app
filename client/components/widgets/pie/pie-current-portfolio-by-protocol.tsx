@@ -6,6 +6,7 @@ import { getProtocolValueDictionary } from '@/handlers/portfolio-handler';
 import { processPieChartData } from '@/handlers/pie-chart-handler';
 import PieChartComponent from '@/components/charts/pie';
 import { LoadingSpinner } from '@/components/loading-spinner';
+import { useWidgetColors } from '@/hooks/use-widget-colors';
 
 interface PieCurrentPortfolioByProtocolProps {
   address: string;
@@ -14,6 +15,9 @@ interface PieCurrentPortfolioByProtocolProps {
 export default function PieCurrentPortfolioByProtocol({ address }: PieCurrentPortfolioByProtocolProps) {
   // Get current date for title
   const currentDate = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
+  
+  // Load colors from config
+  const widgetColors = useWidgetColors();
   
   const { data, isLoading, error } = useGetPortfolio({
     address: address,
@@ -73,6 +77,7 @@ export default function PieCurrentPortfolioByProtocol({ address }: PieCurrentPor
         <PieChartComponent
           data={pieChartData}
           totalValue={totalValue}
+          colors={widgetColors}
           labelThreshold={0.01} // 1% threshold for label visibility
           otherCategoryName="other"
           height={500}

@@ -5,9 +5,11 @@ import { Portfolio } from '@/types/portfolio';
 import { getAssetValueDictionary, getComparisonAssetValueDictionary } from '@/handlers/portfolio-handler';
 import TwoLevelPieChartComponent from '@/components/charts/pies';
 import { useWidgetDefaults } from '@/hooks/use-widget-defaults';
+import { useWidgetColors } from '@/hooks/use-widget-colors';
 
 export default function PiesPortfolioByAssetSnapshot() {
   const { defaults, isLoading: defaultsLoading } = useWidgetDefaults();
+  const widgetColors = useWidgetColors();
   const MAX_DATES = 4;
   // Get dates from config defaults
   const rawDates = defaults?.['pies-portfolio-by-asset']?.dates || ['2025-06-06', '2025-11-22', '2025-01-01'];
@@ -92,6 +94,8 @@ export default function PiesPortfolioByAssetSnapshot() {
         <TwoLevelPieChartComponent
           comparisonData={comparisonDictionary}
           dates={dates}
+          innerColors={widgetColors}
+          outerColors={widgetColors}
           height={500}
           maxWidth={600}
         />

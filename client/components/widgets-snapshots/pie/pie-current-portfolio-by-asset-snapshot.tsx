@@ -6,9 +6,11 @@ import { getAssetValueDictionary } from '@/handlers/portfolio-handler';
 import { processPieChartData } from '@/handlers/pie-chart-handler';
 import PieChartComponent from '@/components/charts/pie';
 import { useWidgetDefaults } from '@/hooks/use-widget-defaults';
+import { useWidgetColors } from '@/hooks/use-widget-colors';
 
 export default function PieCurrentPortfolioByAssetSnapshot() {
   const { defaults, isLoading: defaultsLoading } = useWidgetDefaults();
+  const widgetColors = useWidgetColors();
   const targetAddress = defaults?.['pie-current-portfolio-by-asset']?.address || '0xc9c61194682a3a5f56bf9cd5b59ee63028ab6041';
   
   // Get current date for title
@@ -72,6 +74,7 @@ export default function PieCurrentPortfolioByAssetSnapshot() {
         <PieChartComponent
           data={pieChartData}
           totalValue={totalValue}
+          colors={widgetColors}
           labelThreshold={0.01} // 1% threshold for label visibility
           otherCategoryName="other"
           height={500}

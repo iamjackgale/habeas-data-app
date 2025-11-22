@@ -80,7 +80,13 @@ export function renderWidget(params: WidgetRenderParams): React.ReactNode {
           </div>
         );
       }
-      return <Historical address={address} date={dates[0]} />;
+      const date5 = dates[0];
+      const today5 = new Date().toISOString().split('T')[0];
+      if (date5 === today5) {
+        console.warn('WARNING: Historical widget received today\'s date:', date5, '- This might be incorrect!');
+      }
+      console.log('Historical - date prop:', date5);
+      return <Historical address={address} date={date5} />;
 
     case 'pie-current-portfolio-by-asset':
       return <PieCurrentPortfolioByAsset address={address} />;
@@ -97,7 +103,13 @@ export function renderWidget(params: WidgetRenderParams): React.ReactNode {
           </div>
         );
       }
-      return <PieHistoricalPortfolioByAsset address={address} date={dates[0]} />;
+      const date1 = dates[0];
+      const today = new Date().toISOString().split('T')[0];
+      if (date1 === today) {
+        console.warn('WARNING: PieHistoricalPortfolioByAsset received today\'s date:', date1, '- This might be incorrect!');
+      }
+      console.log('PieHistoricalPortfolioByAsset - date prop:', date1);
+      return <PieHistoricalPortfolioByAsset address={address} date={date1} />;
 
     case 'pie-historical-portfolio-by-protocol':
       if (!dates[0]) {
@@ -108,7 +120,13 @@ export function renderWidget(params: WidgetRenderParams): React.ReactNode {
           </div>
         );
       }
-      return <PieHistoricalPortfolioByProtocol address={address} date={dates[0]} />;
+      const date2 = dates[0];
+      const today2 = new Date().toISOString().split('T')[0];
+      if (date2 === today2) {
+        console.warn('WARNING: PieHistoricalPortfolioByProtocol received today\'s date:', date2, '- This might be incorrect!');
+      }
+      console.log('PieHistoricalPortfolioByProtocol - date prop:', date2);
+      return <PieHistoricalPortfolioByProtocol address={address} date={date2} />;
 
     case 'pies-portfolio-by-asset':
       if (dates.length === 0) {
@@ -147,7 +165,13 @@ export function renderWidget(params: WidgetRenderParams): React.ReactNode {
           </div>
         );
       }
-      return <BarHistoricalPortfolioByAsset address={address} date={dates[0]} />;
+      const date3 = dates[0];
+      const today3 = new Date().toISOString().split('T')[0];
+      if (date3 === today3) {
+        console.warn('WARNING: BarHistoricalPortfolioByAsset received today\'s date:', date3, '- This might be incorrect!');
+      }
+      console.log('BarHistoricalPortfolioByAsset - date prop:', date3);
+      return <BarHistoricalPortfolioByAsset address={address} date={date3} />;
 
     case 'bar-historical-portfolio-by-protocol':
       if (!dates[0]) {
@@ -158,7 +182,13 @@ export function renderWidget(params: WidgetRenderParams): React.ReactNode {
           </div>
         );
       }
-      return <BarHistoricalPortfolioByProtocol address={address} date={dates[0]} />;
+      const date4 = dates[0];
+      const today4 = new Date().toISOString().split('T')[0];
+      if (date4 === today4) {
+        console.warn('WARNING: BarHistoricalPortfolioByProtocol received today\'s date:', date4, '- This might be incorrect!');
+      }
+      console.log('BarHistoricalPortfolioByProtocol - date prop:', date4);
+      return <BarHistoricalPortfolioByProtocol address={address} date={date4} />;
 
     case 'bar-portfolio-by-networth':
       if (dates.length === 0) {

@@ -6,9 +6,11 @@ import { getAssetValueDictionary } from '@/handlers/portfolio-handler';
 import { processBarChartData } from '@/handlers/bar-chart-handler';
 import BarChartComponent from '@/components/charts/bar';
 import { useWidgetDefaults } from '@/hooks/use-widget-defaults';
+import { useWidgetColors } from '@/hooks/use-widget-colors';
 
 export default function BarCurrentPortfolioByAssetSnapshot() {
   const { defaults, isLoading: defaultsLoading } = useWidgetDefaults();
+  const widgetColors = useWidgetColors();
   const targetAddress = defaults?.['bar-current-portfolio-by-asset']?.address || '0xc9c61194682a3a5f56bf9cd5b59ee63028ab6041';
   
   // Get current date for title
@@ -73,6 +75,7 @@ export default function BarCurrentPortfolioByAssetSnapshot() {
         <BarChartComponent
           data={barChartData}
           totalValue={totalValue}
+          colors={widgetColors}
           height={500}
           maxWidth={600}
         />

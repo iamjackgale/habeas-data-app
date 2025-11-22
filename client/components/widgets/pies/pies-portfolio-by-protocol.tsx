@@ -4,6 +4,7 @@ import { useGetHistorical } from '@/services/octav/loader';
 import { Portfolio } from '@/types/portfolio';
 import { getProtocolValueDictionary, getComparisonProtocolValueDictionary } from '@/handlers/portfolio-handler';
 import TwoLevelPieChartComponent from '@/components/charts/pies';
+import { useWidgetColors } from '@/hooks/use-widget-colors';
 
 interface PiesPortfolioByProtocolProps {
   address: string;
@@ -11,6 +12,9 @@ interface PiesPortfolioByProtocolProps {
 }
 
 export default function PiesPortfolioByProtocol({ address, dates: rawDates }: PiesPortfolioByProtocolProps) {
+  // Load colors from config
+  const widgetColors = useWidgetColors();
+  
   const MAX_DATES = 5;
   
   // Validate max 5 dates
@@ -92,6 +96,8 @@ export default function PiesPortfolioByProtocol({ address, dates: rawDates }: Pi
         <TwoLevelPieChartComponent
           comparisonData={comparisonDictionary}
           dates={dates}
+          innerColors={widgetColors}
+          outerColors={widgetColors}
           height={500}
           maxWidth={800}
         />

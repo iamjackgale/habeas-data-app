@@ -5,6 +5,7 @@ import { Portfolio } from '@/types/portfolio';
 import { getComparisonNetWorthDictionary } from '@/handlers/portfolio-handler';
 import { BarChartDataEntry } from '@/handlers/bar-chart-handler';
 import BarChartComponent from '@/components/charts/bar';
+import { useWidgetColors } from '@/hooks/use-widget-colors';
 
 interface BarPortfolioByNetWorthProps {
   address: string;
@@ -12,6 +13,9 @@ interface BarPortfolioByNetWorthProps {
 }
 
 export default function BarPortfolioByNetWorth({ address, dates: rawDates }: BarPortfolioByNetWorthProps) {
+  // Load colors from config
+  const widgetColors = useWidgetColors();
+  
   const MAX_DATES = 5;
   
   // Validate max 5 dates
@@ -122,6 +126,7 @@ export default function BarPortfolioByNetWorth({ address, dates: rawDates }: Bar
         <BarChartComponent
           data={barChartData}
           totalValue={totalValue}
+          colors={widgetColors}
           height={500}
           maxWidth={600}
         />

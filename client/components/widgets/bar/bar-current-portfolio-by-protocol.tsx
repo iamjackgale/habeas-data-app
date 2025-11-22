@@ -5,6 +5,7 @@ import { Portfolio } from '@/types/portfolio';
 import { getProtocolValueDictionary } from '@/handlers/portfolio-handler';
 import { processBarChartData } from '@/handlers/bar-chart-handler';
 import BarChartComponent from '@/components/charts/bar';
+import { useWidgetColors } from '@/hooks/use-widget-colors';
 
 interface BarCurrentPortfolioByProtocolProps {
   address: string;
@@ -13,6 +14,9 @@ interface BarCurrentPortfolioByProtocolProps {
 export default function BarCurrentPortfolioByProtocol({ address }: BarCurrentPortfolioByProtocolProps) {
   // Get current date for title
   const currentDate = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
+  
+  // Load colors from config
+  const widgetColors = useWidgetColors();
   
   const { data, isLoading, error } = useGetPortfolio({
     address: address,
@@ -73,6 +77,7 @@ export default function BarCurrentPortfolioByProtocol({ address }: BarCurrentPor
         <BarChartComponent
           data={barChartData}
           totalValue={totalValue}
+          colors={widgetColors}
           height={500}
           maxWidth={600}
         />

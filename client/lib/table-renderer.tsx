@@ -38,10 +38,10 @@ export interface TableRenderResult {
 }
 
 // Table component that handles historical data
-function TableHistoricalPortfolioByProtocol({ address, date }: { address: string; date: string }) {
+function TableHistoricalPortfolioByProtocol({ address, date: dateProp }: { address: string; date: string }) {
   const { data, isLoading, error } = useGetHistorical({
     address: address,
-    date: date,
+    date: dateProp,
   });
 
   if (isLoading) return <LoadingSpinner />;
@@ -68,6 +68,10 @@ function TableHistoricalPortfolioByProtocol({ address, date }: { address: string
     );
   }
 
+  // Use the date prop that was passed to the Historical API call
+  // This ensures we display the actual date used in the query, not a default
+  const displayDate = dateProp;
+
   const protocolDictionary = getProtocolValueDictionary(portfolio);
   const tableData = Object.entries(protocolDictionary).map(([name, value]) => ({
     name,
@@ -86,7 +90,7 @@ function TableHistoricalPortfolioByProtocol({ address, date }: { address: string
   return (
     <div className="p-4 border border-border widget-bg rounded-md w-full">
       <h2 className="font-semibold widget-text mb-4 border-b border-border pb-2">
-        Portfolio Assets by Protocol ({date})
+        Portfolio Assets by Protocol ({displayDate})
       </h2>
       <div className="overflow-x-auto">
         <table className="w-full border-collapse">
@@ -119,10 +123,10 @@ function TableHistoricalPortfolioByProtocol({ address, date }: { address: string
 }
 
 // Table component that handles historical asset data
-function TableHistoricalPortfolioByAsset({ address, date }: { address: string; date: string }) {
+function TableHistoricalPortfolioByAsset({ address, date: dateProp }: { address: string; date: string }) {
   const { data, isLoading, error } = useGetHistorical({
     address: address,
-    date: date,
+    date: dateProp,
   });
 
   if (isLoading) return <LoadingSpinner />;
@@ -149,6 +153,10 @@ function TableHistoricalPortfolioByAsset({ address, date }: { address: string; d
     );
   }
 
+  // Use the date prop that was passed to the Historical API call
+  // This ensures we display the actual date used in the query, not a default
+  const displayDate = dateProp;
+
   const assetDictionary = getAssetValueDictionary(portfolio);
   const tableData = Object.entries(assetDictionary).map(([name, value]) => ({
     name,
@@ -167,7 +175,7 @@ function TableHistoricalPortfolioByAsset({ address, date }: { address: string; d
   return (
     <div className="p-4 border border-border widget-bg rounded-md w-full">
       <h2 className="font-semibold widget-text mb-4 border-b border-border pb-2">
-        Portfolio Assets by Asset ({date})
+        Portfolio Assets by Asset ({displayDate})
       </h2>
       <div className="overflow-x-auto">
         <table className="w-full border-collapse">

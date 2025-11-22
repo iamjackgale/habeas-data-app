@@ -6,9 +6,11 @@ import { getAssetValueDictionary, getComparisonAssetValueDictionary } from '@/ha
 import { BarStackedChartDataEntry } from '@/handlers/bar-chart-handler';
 import BarStackedChartComponent from '@/components/charts/bar-stacked';
 import { useWidgetDefaults } from '@/hooks/use-widget-defaults';
+import { useWidgetColors } from '@/hooks/use-widget-colors';
 
 export default function BarStackedPortfolioByAssetSnapshot() {
   const { defaults, isLoading: defaultsLoading } = useWidgetDefaults();
+  const widgetColors = useWidgetColors();
   const MAX_DATES = 5;
   // Get dates from config defaults
   const rawDates = defaults?.['bar-stacked-portfolio-by-asset']?.dates || ['2025-06-06', '2025-11-22', '2025-01-01', '2025-03-15', '2025-08-30'];
@@ -204,6 +206,7 @@ export default function BarStackedPortfolioByAssetSnapshot() {
           data={finalStackedData}
           dataKeys={finalDataKeys}
           totalValue={totalValue}
+          colors={widgetColors}
           height={500}
           maxWidth={700}
         />

@@ -5,6 +5,7 @@ import { Portfolio } from '@/types/portfolio';
 import { getAssetValueDictionary } from '@/handlers/portfolio-handler';
 import { processBarChartData } from '@/handlers/bar-chart-handler';
 import BarChartComponent from '@/components/charts/bar';
+import { useWidgetColors } from '@/hooks/use-widget-colors';
 
 interface BarHistoricalPortfolioByAssetProps {
   address: string;
@@ -12,6 +13,9 @@ interface BarHistoricalPortfolioByAssetProps {
 }
 
 export default function BarHistoricalPortfolioByAsset({ address, date }: BarHistoricalPortfolioByAssetProps) {
+  // Load colors from config
+  const widgetColors = useWidgetColors();
+  
   const { data, isLoading, error } = useGetHistorical({
     address: address,
     date: date
@@ -69,6 +73,7 @@ export default function BarHistoricalPortfolioByAsset({ address, date }: BarHist
         <BarChartComponent
           data={barChartData}
           totalValue={totalValue}
+          colors={widgetColors}
           height={500}
           maxWidth={600}
         />

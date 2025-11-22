@@ -6,16 +6,24 @@ import { Transaction, TransactionType } from '@/types/transaction';
 import { getTransactions } from './transactions';
 
 interface UseGetPortfolioParams extends Omit<GetPortfolioParams, 'address'> {
-  addresses: string[];
+  address?: string;
+  addresses?: string[];
 }
 
 export function useGetPortfolio(
   params: UseGetPortfolioParams,
   options?: Omit<UseQueryOptions<Portfolio, Error, Portfolio, (string | boolean | undefined)[]>, 'queryKey' | 'queryFn'>
 ) {
+  // Handle both single address and addresses array
+  const addresses = params.addresses || (params.address ? [params.address] : []);
+  
+  if (addresses.length === 0) {
+    throw new Error('useGetPortfolio requires either address or addresses parameter');
+  }
+  
   return useQueries({
     queries: 
-      params.addresses.map(address => ({
+      addresses.map(address => ({
         queryKey: ['portfolio', address, params.includeImages, params.includeExplorerUrls, params.waitForSync],
         queryFn: () => getPortfolio({ ...params, address: address }),
         ...options,
@@ -35,18 +43,26 @@ export function useGetPortfolio(
   })
 }
 
-// params for useGetHistorical should be GetHistoricalParams without address and with addresses instead
+// params for useGetHistorical can accept either a single address or addresses array
 interface UseGetHistoricalParams extends Omit<GetHistoricalParams, 'address'> {
-  addresses: string[];
+  address?: string;
+  addresses?: string[];
 }
 
 export function useGetHistorical(
   params: UseGetHistoricalParams,
   options?: Omit<UseQueryOptions<Portfolio, Error, Portfolio, (string | boolean | undefined)[]>, 'queryKey' | 'queryFn'>
 ) {
-    return useQueries({
+  // Handle both single address and addresses array
+  const addresses = params.addresses || (params.address ? [params.address] : []);
+  
+  if (addresses.length === 0) {
+    throw new Error('useGetHistorical requires either address or addresses parameter');
+  }
+  
+  return useQueries({
     queries: 
-      params.addresses.map(address => ({
+      addresses.map(address => ({
         queryKey: ['portfolio', address, params.date],
         queryFn: () => getHistorical({ ...params, address: address }),
         ...options,

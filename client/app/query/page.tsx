@@ -6,20 +6,21 @@ import { CategoryDropdown } from '@/components/query-dropdowns/category-dropdown
 import { TimePeriodDropdown, TimePeriodValue } from '@/components/query-dropdowns/time-period-dropdown';
 import { SingleDateTimeDropdown } from '@/components/query-dropdowns/single-date-time-dropdown';
 import { MultiDateTimeDropdown } from '@/components/query-dropdowns/multi-date-time-dropdown';
-import { ChainDropdown } from '@/components/query-dropdowns/chain-dropdown';
 import { PayButton } from '@/components/query-dropdowns/pay-button';
 import { WidgetSelectorDropdown } from '@/components/query-dropdowns/widget-selector-dropdown';
 import { PortfolioTransactionsToggle } from '@/components/query-dropdowns/portfolio-transactions-toggle';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { getWidgetTimePeriodType, requiresChains, requiresAddresses, hasCategories } from '@/lib/widget-time-config';
+import { getWidgetTimePeriodType, requiresAddresses, hasCategories } from '@/lib/widget-time-config';
 import { AddressDropdown } from '@/components/query-dropdowns/address-dropdown';
 import { renderWidget, WidgetRenderParams } from '@/lib/widget-renderer';
 import { renderTable, TableRenderParams, TableRenderResult } from '@/lib/table-renderer';
+import { renderData, DataRenderParams, DataRenderResult } from '@/lib/data-renderer';
 import { convertTableToCSV, convertComparisonTableToCSV, downloadTableAsCSV } from '@/lib/table-download';
 import { extractTableDataFromDOM, extractComparisonTableDataFromDOM } from '@/lib/table-csv-extractor';
 import { getTableKeyFromWidgetKey } from '@/lib/widget-table-mapping';
 import { downloadWidgetAsPNG } from '@/lib/widget-download';
 import { TableSelectorDropdown } from '@/components/query-dropdowns/table-selector-dropdown';
+import { PortfolioDownload } from '@/types/portfolio-download';
 import Link from 'next/link';
 
 type Mode = 'portfolio' | 'transactions';
@@ -40,6 +41,13 @@ interface StoredWidgetParams {
 
 interface StoredTableParams {
   tableKey: string;
+  addresses: string[];
+  dates: string[];
+  chains?: string[];
+  categories?: string[];
+}
+
+interface StoredDataParams {
   addresses: string[];
   dates: string[];
   chains?: string[];
@@ -85,6 +93,13 @@ export default function QueryPage() {
   // Store the previous table to restore if error occurs
   const previousTableRef = useRef<React.ReactNode | null>(null);
   const previousTableDataRef = useRef<TableRenderResult | null>(null);
+  // State to track rendered data (for Data tab)
+  const [renderedData, setRenderedData] = useState<React.ReactNode | null>(null);
+  const [dataDownload, setDataDownload] = useState<PortfolioDownload[] | null>(null);
+  const dataContainerRef = useRef<HTMLDivElement>(null);
+  // Store the previous data to restore if error occurs
+  const previousDataRef = useRef<React.ReactNode | null>(null);
+  const previousDataDownloadRef = useRef<PortfolioDownload[] | null>(null);
 
   // Load last rendered widget from localStorage on mount
   useEffect(() => {
@@ -93,6 +108,18 @@ export default function QueryPage() {
         const stored = localStorage.getItem('lastRenderedWidget');
         if (stored) {
           const params: StoredWidgetParams = JSON.parse(stored);
+          
+          // Sync singleDate state if this is a single-date widget with a stored date
+          const widgetTimeType = getWidgetTimePeriodType(params.widgetKey);
+          if (widgetTimeType === 'single' && params.dates && params.dates.length > 0) {
+            const storedDateStr = params.dates[0];
+            const storedDate = new Date(storedDateStr);
+            if (!isNaN(storedDate.getTime())) {
+              setSingleDate(storedDate);
+              console.log('Synced singleDate from stored widget:', storedDateStr, storedDate);
+            }
+          }
+          
           const widgetParams: WidgetRenderParams = {
             widgetKey: params.widgetKey,
             addresses: params.addresses,
@@ -100,6 +127,18 @@ export default function QueryPage() {
             chains: params.chains || [],
             categories: params.categories || [],
           };
+          
+          // Debug: Log the dates being used
+          if (params.widgetKey.includes('historical') || params.widgetKey === 'historic') {
+            console.log('Loading historical widget with dates:', params.dates);
+            if (params.dates && params.dates.length > 0) {
+              const today = new Date().toISOString().split('T')[0];
+              if (params.dates[0] === today) {
+                console.warn('WARNING: Stored historical widget has today\'s date:', params.dates[0], '- This might be from a previous session where today was selected');
+              }
+            }
+          }
+          
           const widgetComponent = renderWidget(widgetParams);
           const storedWidget: RenderedWidget = {
             id: `${params.widgetKey}-stored`,
@@ -175,9 +214,36 @@ export default function QueryPage() {
     loadStoredTable();
   }, []);
 
+  // Load last rendered data from localStorage on mount
+  useEffect(() => {
+    const loadStoredData = () => {
+      try {
+        const stored = localStorage.getItem('lastRenderedData');
+        if (stored) {
+          const params: StoredDataParams = JSON.parse(stored);
+          const dataParams: DataRenderParams = {
+            addresses: params.addresses,
+            dates: params.dates,
+            chains: params.chains || [],
+            categories: params.categories || [],
+          };
+          const dataResult = renderData(dataParams, (downloadData) => {
+            setDataDownload(downloadData);
+            previousDataDownloadRef.current = downloadData;
+          });
+          setRenderedData(dataResult.component);
+          previousDataRef.current = dataResult.component;
+        }
+      } catch (error) {
+        console.error('Error loading stored data:', error);
+      }
+    };
+
+    loadStoredData();
+  }, []);
+
   // Determine which time dropdown to show based on selected widget
   const widgetTimeType = getWidgetTimePeriodType(selectedWidget);
-  const showChains = requiresChains(selectedWidget);
   const showAddresses = requiresAddresses(selectedWidget);
   const showCategories = hasCategories(selectedWidget, mode);
 
@@ -214,11 +280,24 @@ export default function QueryPage() {
         // Portfolio widget uses current date automatically
         dates.push(new Date().toISOString().split('T')[0]);
       } else if (singleDate) {
-        // Format single date to ISO
+        // Format single date to ISO - this is the date selected by the user
         const year = singleDate.getFullYear();
         const month = String(singleDate.getMonth() + 1).padStart(2, '0');
         const day = String(singleDate.getDate()).padStart(2, '0');
-        dates.push(`${year}-${month}-${day}`);
+        const formattedDate = `${year}-${month}-${day}`;
+        dates.push(formattedDate);
+        // Debug: Log the date being used for historical widgets
+        if (selectedWidget.includes('historical') || selectedWidget === 'historic') {
+          console.log('Historical widget date:', formattedDate, 'from singleDate:', singleDate);
+          const today = new Date().toISOString().split('T')[0];
+          if (formattedDate === today) {
+            console.warn('WARNING: Historical widget is using today\'s date:', formattedDate, '- Make sure this is intentional!');
+          }
+        }
+      } else {
+        // For historical widgets, we MUST have a date - don't default to today
+        // This should have been caught by the validation below, but adding explicit check
+        console.warn('Historical widget selected but no date provided. Widget:', selectedWidget);
       }
     } else if (widgetTimeType === 'multi') {
       if (multiDate.mode === 'list') {
@@ -277,6 +356,19 @@ export default function QueryPage() {
       chains: chains,
       categories: categories,
     };
+    
+    // Debug: Log dates for historical widgets
+    if (selectedWidget.includes('historical') || selectedWidget === 'historic') {
+      console.log('Rendering historical widget:', selectedWidget);
+      console.log('Dates array:', dates);
+      console.log('singleDate state:', singleDate);
+      console.log('widgetTimeType:', widgetTimeType);
+      if (dates.length > 0) {
+        console.log('Date being passed to widget:', dates[0]);
+      } else {
+        console.error('ERROR: No dates in array for historical widget!');
+      }
+    }
 
     // Store current widget as previous before rendering new one
     previousWidgetRef.current = renderedWidget;
@@ -309,6 +401,20 @@ export default function QueryPage() {
       setRenderedTable(wrappedTable);
       setTableData(tableResult);
     }
+
+    // Also render data in Data tab (this overrides any stored standalone data)
+    const dataParams: DataRenderParams = {
+      addresses: addresses,
+      dates: dates,
+      chains: chains,
+      categories: categories,
+    };
+    const dataResult = renderData(dataParams, (downloadData) => {
+      setDataDownload(downloadData);
+      previousDataDownloadRef.current = downloadData;
+    });
+    setRenderedData(dataResult.component);
+    previousDataRef.current = dataResult.component;
 
     // Render the widget
     const widgetComponent = renderWidget(params);
@@ -354,8 +460,17 @@ export default function QueryPage() {
                 localStorage.setItem('lastRenderedWidget', JSON.stringify(paramsToStore));
                 hasStoredRef.current = true;
                 
-                // Note: Table is already rendered above in handlePay, so we don't need to render it again here
-                // The table was rendered immediately when the widget was requested, ensuring it's always in sync
+                // Also store data params for Data tab
+                const dataParamsToStore: StoredDataParams = {
+                  addresses: addrs,
+                  dates: dts,
+                  chains: chns.length > 0 ? chns : undefined,
+                  categories: cats.length > 0 ? cats : undefined,
+                };
+                localStorage.setItem('lastRenderedData', JSON.stringify(dataParamsToStore));
+                
+                // Note: Table and Data are already rendered above in handlePay, so we don't need to render them again here
+                // They were rendered immediately when the widget was requested, ensuring they're always in sync
               } catch (err) {
                 console.error('Error storing widget params:', err);
               }
@@ -394,6 +509,143 @@ export default function QueryPage() {
     };
 
     setRenderedWidget(newWidget);
+  };
+
+  // Helper function to convert TimePeriodValue to dates array
+  const convertTimePeriodToDates = (timePeriod: TimePeriodValue): string[] => {
+    const dates: string[] = [];
+    
+    if (!timePeriod.startDate) {
+      return dates; // No start date selected
+    }
+    
+    const start = new Date(timePeriod.startDate);
+    const end = timePeriod.endDate ? new Date(timePeriod.endDate) : new Date(); // If no end date, use today
+    
+    // Ensure start is before end
+    if (start > end) {
+      return dates; // Invalid range
+    }
+    
+    // Generate dates based on granularity
+    if (timePeriod.granularity === 'date') {
+      // Single date or date range - generate daily dates
+      const current = new Date(start);
+      while (current <= end) {
+        const year = current.getFullYear();
+        const month = String(current.getMonth() + 1).padStart(2, '0');
+        const day = String(current.getDate()).padStart(2, '0');
+        dates.push(`${year}-${month}-${day}`);
+        current.setDate(current.getDate() + 1);
+      }
+    } else if (timePeriod.granularity === 'week') {
+      // Weekly - generate one date per week
+      const current = new Date(start);
+      while (current <= end) {
+        const year = current.getFullYear();
+        const month = String(current.getMonth() + 1).padStart(2, '0');
+        const day = String(current.getDate()).padStart(2, '0');
+        dates.push(`${year}-${month}-${day}`);
+        current.setDate(current.getDate() + 7);
+      }
+    } else if (timePeriod.granularity === 'month') {
+      // Monthly - generate one date per month
+      const current = new Date(start);
+      while (current <= end) {
+        const year = current.getFullYear();
+        const month = String(current.getMonth() + 1).padStart(2, '0');
+        const day = String(current.getDate()).padStart(2, '0');
+        dates.push(`${year}-${month}-${day}`);
+        current.setMonth(current.getMonth() + 1);
+      }
+    } else if (timePeriod.granularity === 'quarter') {
+      // Quarterly - generate one date per quarter
+      const current = new Date(start);
+      while (current <= end) {
+        const year = current.getFullYear();
+        const month = String(current.getMonth() + 1).padStart(2, '0');
+        const day = String(current.getDate()).padStart(2, '0');
+        dates.push(`${year}-${month}-${day}`);
+        current.setMonth(current.getMonth() + 3);
+      }
+    } else if (timePeriod.granularity === 'year') {
+      // Yearly - generate one date per year
+      const current = new Date(start);
+      while (current <= end) {
+        const year = current.getFullYear();
+        const month = String(current.getMonth() + 1).padStart(2, '0');
+        const day = String(current.getDate()).padStart(2, '0');
+        dates.push(`${year}-${month}-${day}`);
+        current.setFullYear(current.getFullYear() + 1);
+      }
+    } else if (timePeriod.granularity === 'past') {
+      // Past periods - if startDate is set, use it; otherwise generate based on end date
+      if (timePeriod.endDate) {
+        const year = timePeriod.endDate.getFullYear();
+        const month = String(timePeriod.endDate.getMonth() + 1).padStart(2, '0');
+        const day = String(timePeriod.endDate.getDate()).padStart(2, '0');
+        dates.push(`${year}-${month}-${day}`);
+      } else if (timePeriod.startDate) {
+        const year = timePeriod.startDate.getFullYear();
+        const month = String(timePeriod.startDate.getMonth() + 1).padStart(2, '0');
+        const day = String(timePeriod.startDate.getDate()).padStart(2, '0');
+        dates.push(`${year}-${month}-${day}`);
+      }
+    }
+    
+    // Limit to 12 dates max
+    return dates.slice(0, 12);
+  };
+
+  // Handle data rendering (for Data tab)
+  const handleDataRender = () => {
+    const addresses = Array.from(selectedAddresses);
+    if (addresses.length === 0) {
+      alert('Please select at least one address');
+      return;
+    }
+
+    // Extract dates from time period selection
+    const dates = convertTimePeriodToDates(timePeriod);
+    
+    if (dates.length === 0) {
+      alert('Please select a time period');
+      return;
+    }
+
+    const chains = Array.from(selectedChains);
+    const categories = Array.from(selectedCategories);
+
+    const params: DataRenderParams = {
+      addresses: addresses,
+      dates: dates,
+      chains: chains,
+      categories: categories,
+    };
+
+    // Store current data as previous before rendering new one
+    previousDataRef.current = renderedData;
+    previousDataDownloadRef.current = dataDownload;
+
+    const dataResult = renderData(params, (downloadData) => {
+      setDataDownload(downloadData);
+      previousDataDownloadRef.current = downloadData;
+    });
+    setRenderedData(dataResult.component);
+    previousDataRef.current = dataResult.component;
+
+    // Store data params in localStorage
+    try {
+      const paramsToStore: StoredDataParams = {
+        addresses: addresses,
+        dates: dates,
+        chains: chains.length > 0 ? chains : undefined,
+        categories: categories.length > 0 ? categories : undefined,
+      };
+      localStorage.setItem('lastRenderedData', JSON.stringify(paramsToStore));
+    } catch (err) {
+      console.error('Error storing data params:', err);
+    }
   };
 
   // Handle table rendering (similar to handlePay but for tables)
@@ -519,6 +771,29 @@ export default function QueryPage() {
                 };
                 localStorage.setItem('lastRenderedTable', JSON.stringify(paramsToStore));
                 hasStoredRef.current = true;
+                
+                // Also store data params for Data tab
+                const dataParamsToStore: StoredDataParams = {
+                  addresses: addrs,
+                  dates: dts,
+                  chains: chns.length > 0 ? chns : undefined,
+                  categories: cats.length > 0 ? cats : undefined,
+                };
+                localStorage.setItem('lastRenderedData', JSON.stringify(dataParamsToStore));
+                
+                // Also render data in Data tab
+                const dataParams: DataRenderParams = {
+                  addresses: addrs,
+                  dates: dts,
+                  chains: chns,
+                  categories: cats,
+                };
+                const dataResult = renderData(dataParams, (downloadData) => {
+                  setDataDownload(downloadData);
+                  previousDataDownloadRef.current = downloadData;
+                });
+                setRenderedData(dataResult.component);
+                previousDataRef.current = dataResult.component;
               } catch (err) {
                 console.error('Error storing table params:', err);
               }
@@ -609,6 +884,31 @@ export default function QueryPage() {
     } catch (error) {
       console.error('Error downloading table:', error);
       alert(`Failed to download table: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  };
+
+  // Handle data download button click
+  const handleDataDownload = () => {
+    if (!dataDownload || dataDownload.length === 0) {
+      alert('No data available to download');
+      return;
+    }
+
+    try {
+      const jsonString = JSON.stringify(dataDownload, null, 2);
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      const timestamp = new Date().toISOString().split('T')[0];
+      link.download = `portfolio-data-${timestamp}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading data:', error);
+      alert(`Failed to download data: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -716,16 +1016,10 @@ export default function QueryPage() {
                   </div>
                 )}
                 
-                {/* Conditionally render chain/address selection based on widget config */}
-                {showAddresses && (
+                {/* Show address selection for widgets - always show for portfolio mode */}
+                {mode === 'portfolio' && (
                   <div className="w-full max-w-md">
                     <AddressDropdown value={selectedAddresses} onChange={setSelectedAddresses} />
-                  </div>
-                )}
-                
-                {showChains && (
-                  <div className="w-full max-w-md">
-                    <ChainDropdown value={selectedChains} onChange={setSelectedChains} />
                   </div>
                 )}
                 
@@ -789,11 +1083,6 @@ export default function QueryPage() {
                   </div>
                 )}
                 
-                {selectedTable && tableTimeType === 'timescale' && (
-                  <div className="w-full max-w-md">
-                    <TimePeriodDropdown value={timePeriod} onChange={setTimePeriod} />
-                  </div>
-                )}
                 
                 {!selectedTable && (
                   <div className="w-full max-w-md">
@@ -805,13 +1094,6 @@ export default function QueryPage() {
                 {mode === 'portfolio' && (
                   <div className="w-full max-w-md">
                     <AddressDropdown value={selectedAddresses} onChange={setSelectedAddresses} />
-                  </div>
-                )}
-                
-                {/* Show chains for transactions mode */}
-                {mode === 'transactions' && (
-                  <div className="w-full max-w-md">
-                    <ChainDropdown value={selectedChains} onChange={setSelectedChains} />
                   </div>
                 )}
                 
@@ -851,31 +1133,56 @@ export default function QueryPage() {
           </TabsContent>
           
           <TabsContent value="data" className="mt-0">
-            <div className="flex flex-col gap-6 items-start">
-              <PortfolioTransactionsToggle defaultMode={mode} onChange={setMode} />
-              <TimePeriodDropdown value={timePeriod} onChange={setTimePeriod} />
-              
-              {/* Show addresses for portfolio mode, chains for transactions mode (or both) */}
-              {mode === 'portfolio' && (
+            <div className="flex gap-6 items-start">
+              {/* Parameters - 40% width */}
+              <div className="flex flex-col gap-6 items-start w-[40%]">
+                <PortfolioTransactionsToggle defaultMode={mode} onChange={setMode} />
+                
+                {/* Time period dropdown - always use TimePeriodDropdown for data tab */}
                 <div className="w-full max-w-md">
-                  <AddressDropdown value={selectedAddresses} onChange={setSelectedAddresses} />
+                  <TimePeriodDropdown value={timePeriod} onChange={setTimePeriod} />
                 </div>
-              )}
-              
-              {(mode === 'transactions' || showChains) && (
-                <div className="w-full max-w-md">
-                  <ChainDropdown value={selectedChains} onChange={setSelectedChains} />
+                
+                {/* Show addresses for portfolio mode */}
+                {mode === 'portfolio' && (
+                  <div className="w-full max-w-md">
+                    <AddressDropdown value={selectedAddresses} onChange={setSelectedAddresses} />
+                  </div>
+                )}
+                
+                
+                {/* Categories only shown for transactions mode */}
+                {mode === 'transactions' && (
+                  <div className="w-full max-w-md">
+                    <CategoryDropdown value={selectedCategories} onChange={setSelectedCategories} />
+                  </div>
+                )}
+                
+                <div className="flex gap-3">
+                  <PayButton fee="0.025" onClick={handleDataRender} />
+                  {renderedData && dataDownload && dataDownload.length > 0 && (
+                    <button
+                      onClick={handleDataDownload}
+                      className="border-none cursor-pointer bg-[#347745] text-white px-5 py-2.5 rounded font-semibold hover:opacity-90 transition-opacity"
+                    >
+                      Download
+                    </button>
+                  )}
                 </div>
-              )}
-              
-              {/* Categories only shown for transactions mode */}
-              {mode === 'transactions' && (
-                <div className="w-full max-w-md">
-                  <CategoryDropdown value={selectedCategories} onChange={setSelectedCategories} />
-                </div>
-              )}
-              
-              <PayButton fee="0.025" />
+              </div>
+
+              {/* Rendered Data - 60% width */}
+              <div className="w-[60%] flex flex-col gap-4 min-h-[713px] pb-6" ref={dataContainerRef}>
+                {renderedData ? (
+                  <div className="w-full">
+                    {renderedData}
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center min-h-[713px] border border-border rounded-lg text-muted-foreground">
+                    <p>Select Query Parameters And Pay To Generate Results</p>
+                  </div>
+                )}
+              </div>
             </div>
           </TabsContent>
         </Tabs>
