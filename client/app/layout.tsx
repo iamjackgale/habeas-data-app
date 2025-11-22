@@ -32,7 +32,21 @@ export default function RootLayout({
   const queryClient = new QueryClient();
 
   return (
-    <html lang="en" suppressHydrationWarning className="dark h-full">
+    <html lang="en" suppressHydrationWarning className="h-full">
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                const theme = localStorage.getItem('theme') || 'dark';
+                if (theme === 'dark') {
+                  document.documentElement.classList.add('dark');
+                }
+              } catch (e) {}
+            `,
+          }}
+        />
+      </head>
       <body
         suppressHydrationWarning
         className={`${geistSans.variable} ${geistMono.variable} antialiased h-full overflow-hidden`}

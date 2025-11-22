@@ -5,9 +5,10 @@ import { Home } from 'lucide-react';
 
 import { NavItem, NavItems } from '@/components/app-sidebar/nav-items';
 
-import { Sidebar, SidebarContent, SidebarHeader, SidebarRail, SidebarTrigger, useSidebar } from '../ui/sidebar';
+import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarRail, SidebarTrigger, useSidebar } from '../ui/sidebar';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { state } = useSidebar();
@@ -35,6 +36,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent className="mt-6">
         <NavItems items={navItems} />
       </SidebarContent>
+
+      <SidebarFooter>
+        <div className={cn('flex items-center px-2 py-2', isExpanded ? 'justify-start' : 'justify-center')}>
+          <ThemeToggle />
+          {isExpanded && <span className="ml-3 text-sm text-muted-foreground">Toggle theme</span>}
+        </div>
+      </SidebarFooter>
 
       <SidebarRail />
     </Sidebar>
