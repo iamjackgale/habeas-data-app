@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
 export default nextConfig;
 
 
-
+// TODO: cleanup
 // /** @type {import('next').NextConfig} */
 // const nextConfig = {
 //   reactStrictMode: true,
