@@ -7,22 +7,35 @@ import TwoLevelPieChartComponent from '@/components/charts/pies';
 
 export default function PiesCurrentPortfolioByProtocol() {
   const targetAddress = '0x3f5eddad52c665a4aa011cd11a21e1d5107d7862';
-  const date1 = '2025-06-06';
-  const date2 = '2025-11-22';
+  const MAX_DATES = 4;
+  // Define dates as an array - can add any number of dates (max 4)
+  const rawDates = ['2025-06-06', '2025-11-22', '2025-01-01'];
   
-  // Fetch historical data for both dates using separate hooks
-  const { data: data1, isLoading: isLoading1, error: error1 } = useGetHistorical({
-    address: targetAddress,
-    date: date1,
-  });
+  // Validate max 4 dates
+  if (rawDates.length > MAX_DATES) {
+    return (
+      <div className="p-4 border border-red-300 bg-red-50 rounded-md">
+        <p className="font-semibold text-red-800">Error</p>
+        <p className="text-red-600">
+          Maximum {MAX_DATES} dates supported. Received {rawDates.length} dates.
+        </p>
+      </div>
+    );
+  }
+  
+  // Sort dates in ascending order (earliest to latest)
+  const dates = [...rawDates].sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+  
+  // Fetch historical data for all dates using hooks
+  const historicalData = dates.map(date => 
+    useGetHistorical({
+      address: targetAddress,
+      date: date,
+    })
+  );
 
-  const { data: data2, isLoading: isLoading2, error: error2 } = useGetHistorical({
-    address: targetAddress,
-    date: date2,
-  });
-
-  const isLoading = isLoading1 || isLoading2;
-  const error = error1 || error2;
+  const isLoading = historicalData.some(result => result.isLoading);
+  const error = historicalData.find(result => result.error)?.error;
 
   if (isLoading) return <p>Loading...</p>;
 
@@ -35,16 +48,15 @@ export default function PiesCurrentPortfolioByProtocol() {
     );
   }
 
-  // Extract portfolios from Record structure
-  const dataRecord1 = data1 as Record<string, Portfolio> | undefined;
-  const portfolioEntries1 = dataRecord1 ? Object.entries(dataRecord1) as [string, Portfolio][] : [];
-  const portfolio1 = dataRecord1?.[targetAddress] || (portfolioEntries1.length > 0 ? portfolioEntries1[0][1] : null);
+  // Extract portfolios from Record structure for all dates
+  const portfolios = historicalData.map((result, index) => {
+    const dataRecord = result.data as Record<string, Portfolio> | undefined;
+    const portfolioEntries = dataRecord ? Object.entries(dataRecord) as [string, Portfolio][] : [];
+    return dataRecord?.[targetAddress] || (portfolioEntries.length > 0 ? portfolioEntries[0][1] : undefined);
+  });
 
-  const dataRecord2 = data2 as Record<string, Portfolio> | undefined;
-  const portfolioEntries2 = dataRecord2 ? Object.entries(dataRecord2) as [string, Portfolio][] : [];
-  const portfolio2 = dataRecord2?.[targetAddress] || (portfolioEntries2.length > 0 ? portfolioEntries2[0][1] : null);
-
-  if (!portfolio1 || !portfolio2) {
+  // Check if all portfolios are available
+  if (portfolios.some(portfolio => !portfolio)) {
     return (
       <div className="p-4 border border-yellow-300 bg-yellow-50 rounded-md">
         <p className="font-semibold text-yellow-800">No Data</p>
@@ -53,12 +65,13 @@ export default function PiesCurrentPortfolioByProtocol() {
     );
   }
 
-  // Get protocol dictionaries for both dates
-  const protocolDictionary1 = getProtocolValueDictionary(portfolio1);
-  const protocolDictionary2 = getProtocolValueDictionary(portfolio2);
+  // Get protocol dictionaries for all dates (portfolios are guaranteed to be non-null at this point)
+  const protocolDictionaries = portfolios
+    .filter((portfolio): portfolio is Portfolio => portfolio !== undefined)
+    .map(portfolio => getProtocolValueDictionary(portfolio));
 
-  // Create comparison dictionary
-  const comparisonDictionary = getComparisonProtocolValueDictionary(protocolDictionary1, protocolDictionary2);
+  // Create comparison dictionary with all dictionaries
+  const comparisonDictionary = getComparisonProtocolValueDictionary(...protocolDictionaries);
 
   // Check if comparison data is empty
   if (Object.keys(comparisonDictionary).length === 0) {
@@ -70,12 +83,16 @@ export default function PiesCurrentPortfolioByProtocol() {
     );
   }
 
+  // Format dates for display (join with " vs ")
+  const datesDisplay = dates.join(' vs ');
+
   return (
     <div className="p-4 border border-gray-300 widget-bg rounded-md w-full max-w-full">
-      <p className="font-semibold widget-text mb-4">Portfolio Comparison by Protocol ({date1} vs {date2})</p>
+      <p className="font-semibold widget-text mb-4">Portfolio Comparison by Protocol ({datesDisplay})</p>
       <div className="w-full mx-auto">
         <TwoLevelPieChartComponent
           comparisonData={comparisonDictionary}
+          dates={dates}
           height={500}
           maxWidth={600}
         />
