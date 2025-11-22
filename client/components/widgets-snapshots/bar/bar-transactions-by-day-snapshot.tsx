@@ -52,12 +52,13 @@ export default function BarTransactionsByDaySnapshot() {
   // ALWAYS call the hook - hooks must be called in the same order every render
   // Pass empty array if loading or invalid to prevent actual API calls
   const shouldFetch = !defaultsLoading && daysDiff <= 30 && addressesArray.length > 0;
-  const { data, dataByAddress, isLoading, error } = useGetTransactionsForDateRange(
+  const queryResult = useGetTransactionsForDateRange(
     shouldFetch ? addressesArray : [],
     startDate,
-    endDate,
-    {}
+    endDate
   );
+  const { data: responseData, dataByAddress = {} } = queryResult.data || { data: [], dataByAddress: {} as Record<string, Transaction[]> };
+  const { isLoading, error } = queryResult;
 
   // Now we can do early returns after all hooks are called
   if (defaultsLoading) {
@@ -96,8 +97,8 @@ export default function BarTransactionsByDaySnapshot() {
   }
 
 
-  console.log('data');
-  console.log(data);
+  console.log('responseData');
+  console.log(responseData);
   console.log('dataByAddress');
   console.log(dataByAddress);
   console.log('targetAddress');

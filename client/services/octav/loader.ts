@@ -58,7 +58,8 @@ export function useGetTransactionsForDateRange(
         startDate,
         endDate,
       });
-      return response.data;
+      // Return the full response object so both data and dataByAddress are available
+      return response;
     },
     staleTime: 60 * 60 * 1000,
   });

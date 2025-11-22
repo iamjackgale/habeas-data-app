@@ -159,9 +159,8 @@ export default function SettingsPage() {
                 <table className="w-full border-collapse">
                   <thead>
                     <tr className="border-b border-border bg-accent/30">
-                      <th className="p-3 text-left font-semibold">Chain</th>
-                      <th className="p-3 text-left font-semibold">Label</th>
                       <th className="p-3 text-left font-semibold">Address</th>
+                      <th className="p-3 text-left font-semibold">Label</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -170,9 +169,8 @@ export default function SettingsPage() {
                       const addressEntry = entry as AddressEntry;
                       return (
                         <tr key={chain} className="border-b border-border hover:bg-accent/20 transition-colors">
-                          <td className="p-3 font-medium">{chain}</td>
-                          <td className="p-3">{addressEntry?.label || entry?.label || 'N/A'}</td>
                           <td className="p-3 font-mono text-sm">{addressEntry?.address || entry?.address || 'N/A'}</td>
+                          <td className="p-3">{addressEntry?.label || entry?.label || 'N/A'}</td>
                         </tr>
                       );
                     })}
