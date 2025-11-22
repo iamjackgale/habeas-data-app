@@ -3,8 +3,13 @@ import PieCurrentPortfolioByProtocol from '@/components/widgets/pie/pie-current-
 import PieCurrentPortfolioByAsset from '@/components/widgets/pie/pie-current-portfolio-by-asset';
 import PieHistoricalPortfolioByProtocol from '@/components/widgets/pie/pie-historical-portfolio-by-protocol';
 import PieHistoricalPortfolioByAsset from '@/components/widgets/pie/pie-historical-portfolio-by-asset';
-import PiesCurrentPortfolioByProtocol from '@/components/widgets/pies/pies-current-portfolio-by-protocol';
-import PiesCurrentPortfolioByAsset from '@/components/widgets/pies/pies-current-portfolio-by-asset';
+import PiesPortfolioByProtocol from '@/components/widgets/pies/pies-portfolio-by-protocol';
+import PiesPortfolioByAsset from '@/components/widgets/pies/pies-portfolio-by-asset';
+import BarCurrentPortfolioByProtocol from '@/components/widgets/bar/bar-current-portfolio-by-protocol';
+import BarCurrentPortfolioByAsset from '@/components/widgets/bar/bar-current-portfolio-by-asset';
+import BarHistoricalPortfolioByProtocol from '@/components/widgets/bar/bar-historical-portfolio-by-protocol';
+import BarHistoricalPortfolioByAsset from '@/components/widgets/bar/bar-historical-portfolio-by-asset';
+import BarStackedPortfolioByAsset from '@/components/widgets/bar-stacked/bar-stacked-portfolio-by-asset';
 import { generateMetadata } from '@/lib/metadata';
 import Historical from '@/components/widgets/historic';
 
@@ -48,13 +53,38 @@ export default function Page() {
         {/* Fourth row: Two-level comparison pie charts side by side */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div>
-            <PiesCurrentPortfolioByProtocol />
+            <PiesPortfolioByProtocol />
           </div>
           <div>
-            <PiesCurrentPortfolioByAsset />
+            <PiesPortfolioByAsset />
+          </div>
+        </div>
+        {/* Fifth row: Two current bar charts side by side */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div>
+            <BarCurrentPortfolioByProtocol />
+          </div>
+          <div>
+            <BarCurrentPortfolioByAsset />
+          </div>
+        </div>
+        {/* Sixth row: Two historical bar charts side by side */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div>
+            <BarHistoricalPortfolioByProtocol />
+          </div>
+          <div>
+            <BarHistoricalPortfolioByAsset />
+          </div>
+        </div>
+        {/* Seventh row: Bar stacked widget */}
+        <div className="grid grid-cols-1 gap-6">
+          <div>
+            <BarStackedPortfolioByAsset />
           </div>
         </div>
       </div>
     </div>
   );
 }
+

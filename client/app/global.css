@@ -507,3 +507,40 @@
 ::-webkit-scrollbar-track {
   border-radius: 4px;
 }
+
+/* Recharts bar chart hover override - prevent white highlighting */
+.bar-chart-wrapper .recharts-bar-rectangle,
+.bar-chart-wrapper .recharts-active-bar {
+  transition: none !important;
+}
+
+.bar-chart-wrapper .recharts-bar-rectangle:hover {
+  fill: inherit !important;
+  fill-opacity: 1 !important;
+  opacity: 1 !important;
+  stroke: none !important;
+}
+
+.bar-chart-wrapper .recharts-active-bar {
+  fill: inherit !important;
+  fill-opacity: 1 !important;
+  opacity: 1 !important;
+  stroke: none !important;
+}
+
+/* More specific selectors to override Recharts defaults */
+.bar-chart-wrapper .recharts-bar .recharts-bar-rectangle:hover,
+.bar-chart-wrapper .recharts-bar .recharts-active-bar {
+  fill: inherit !important;
+  fill-opacity: 1 !important;
+}
+
+.bar-chart-wrapper .recharts-bar-rectangle[fill]:hover {
+  fill: inherit !important;
+}
+
+/* Even more aggressive override */
+.bar-chart-wrapper .recharts-bar-rectangle:hover rect,
+.bar-chart-wrapper .recharts-active-bar rect {
+  fill: inherit !important;
+}

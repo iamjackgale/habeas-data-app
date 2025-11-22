@@ -2,10 +2,10 @@
 
 import { useGetHistorical } from '@/services/octav/loader';
 import { Portfolio } from '@/types/portfolio';
-import { getAssetValueDictionary, getComparisonAssetValueDictionary } from '@/handlers/portfolio-handler';
+import { getProtocolValueDictionary, getComparisonProtocolValueDictionary } from '@/handlers/portfolio-handler';
 import TwoLevelPieChartComponent from '@/components/charts/pies';
 
-export default function PiesCurrentPortfolioByAsset() {
+export default function PiesPortfolioByProtocol() {
   const targetAddress = '0x3f5eddad52c665a4aa011cd11a21e1d5107d7862';
   const MAX_DATES = 4;
   // Define dates as an array - can add any number of dates (max 4)
@@ -65,30 +65,27 @@ export default function PiesCurrentPortfolioByAsset() {
     );
   }
 
-  // Get asset dictionaries for all dates (portfolios are guaranteed to be non-null at this point)
-  const assetDictionaries = portfolios
+  // Get protocol dictionaries for all dates (portfolios are guaranteed to be non-null at this point)
+  const protocolDictionaries = portfolios
     .filter((portfolio): portfolio is Portfolio => portfolio !== undefined)
-    .map(portfolio => getAssetValueDictionary(portfolio));
+    .map(portfolio => getProtocolValueDictionary(portfolio));
 
   // Create comparison dictionary with all dictionaries
-  const comparisonDictionary = getComparisonAssetValueDictionary(...assetDictionaries);
+  const comparisonDictionary = getComparisonProtocolValueDictionary(...protocolDictionaries);
 
   // Check if comparison data is empty
   if (Object.keys(comparisonDictionary).length === 0) {
     return (
       <div className="p-4 border border-yellow-300 bg-yellow-50 rounded-md">
-        <p className="font-semibold text-yellow-800">No Asset Data</p>
-        <p className="text-yellow-600">No asset data available to display in comparison chart</p>
+        <p className="font-semibold text-yellow-800">No Protocol Data</p>
+        <p className="text-yellow-600">No protocol data available to display in comparison chart</p>
       </div>
     );
   }
 
-  // Format dates for display (join with " vs ")
-  const datesDisplay = dates.join(' vs ');
-
   return (
     <div className="p-4 border border-gray-300 widget-bg rounded-md w-full max-w-full">
-      <p className="font-semibold widget-text mb-4">Portfolio Comparison by Asset ({datesDisplay})</p>
+      <p className="font-semibold widget-text mb-4">Portfolio Comparison by Protocol</p>
       <div className="w-full mx-auto">
         <TwoLevelPieChartComponent
           comparisonData={comparisonDictionary}

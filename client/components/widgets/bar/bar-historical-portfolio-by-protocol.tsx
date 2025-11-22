@@ -2,11 +2,11 @@
 
 import { useGetHistorical } from '@/services/octav/loader';
 import { Portfolio } from '@/types/portfolio';
-import { getAssetValueDictionary } from '@/handlers/portfolio-handler';
+import { getProtocolValueDictionary } from '@/handlers/portfolio-handler';
 import { processBarChartData } from '@/handlers/bar-chart-handler';
 import BarChartComponent from '@/components/charts/bar';
 
-export default function BarHistoricalPortfolioByAsset() {
+export default function BarHistoricalPortfolioByProtocol() {
   const date = '2025-06-06';
   const targetAddress = '0x3f5eddad52c665a4aa011cd11a21e1d5107d7862';
   
@@ -40,29 +40,29 @@ export default function BarHistoricalPortfolioByAsset() {
     );
   }
 
-  // Get asset value dictionary
-  const assetDictionary = getAssetValueDictionary(portfolio);
+  // Get protocol value dictionary
+  const protocolDictionary = getProtocolValueDictionary(portfolio);
 
-  // Process asset dictionary into bar chart data using generic handler
-  const { data: barChartData, totalValue } = processBarChartData(assetDictionary, {
+  // Process protocol dictionary into bar chart data using generic handler
+  const { data: barChartData, totalValue } = processBarChartData(protocolDictionary, {
     aggregationThreshold: 0.005, // 0.5% threshold
     otherLegendThreshold: 0.00005, // 0.005% threshold
     otherCategoryName: 'other',
   });
 
-  // Show message if no asset data
+  // Show message if no protocol data
   if (barChartData.length === 0) {
     return (
       <div className="p-4 border border-yellow-300 bg-yellow-50 rounded-md">
-        <p className="font-semibold text-yellow-800">No Asset Data</p>
-        <p className="text-yellow-600">No asset data available to display in bar chart</p>
+        <p className="font-semibold text-yellow-800">No Protocol Data</p>
+        <p className="text-yellow-600">No protocol data available to display in bar chart</p>
       </div>
     );
   }
 
   return (
     <div className="p-4 border border-gray-300 widget-bg rounded-md w-full max-w-full">
-      <p className="font-semibold widget-text mb-4">Portfolio Assets by Asset ({date})</p>
+      <p className="font-semibold widget-text mb-4">Portfolio Assets by Protocol ({date})</p>
       <div className="w-full mx-auto">
         <BarChartComponent
           data={barChartData}
@@ -74,3 +74,4 @@ export default function BarHistoricalPortfolioByAsset() {
     </div>
   );
 }
+

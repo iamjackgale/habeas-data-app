@@ -1,6 +1,6 @@
 'use client';
 
-import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { BarChartDataEntry } from '@/handlers/bar-chart-handler';
 
 export interface BarChartComponentProps {
@@ -8,8 +8,8 @@ export interface BarChartComponentProps {
   data: BarChartDataEntry[];
   /** Total value for percentage calculations */
   totalValue: number;
-  /** Color for bars (default: "#8884d8") */
-  color?: string;
+  /** Colors array for bars (default: uses predefined 6 colors, then random) */
+  colors?: string[];
   /** Data key name for the bar values (default: "value") */
   dataKey?: string;
   /** Chart height (default: 500) */
@@ -22,35 +22,78 @@ export interface BarChartComponentProps {
   responsive?: boolean;
 }
 
+const DEFAULT_COLORS = [
+  '#0088FE',
+  '#00C49F',
+  '#FFBB28',
+  '#FF8042',
+  '#8884d8',
+  '#EA3B4C',
+];
+
+/**
+ * Generate a random color
+ */
+function getRandomColor(): string {
+  return '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+}
+
 /**
  * Reusable Bar Chart component
  */
 export default function BarChartComponent({
   data,
   totalValue,
-  color = '#8884d8',
+  colors = DEFAULT_COLORS,
   dataKey = 'value',
   height = 500,
   maxWidth = 600,
   isAnimationActive = true,
   responsive = true,
 }: BarChartComponentProps) {
+  // Format Y axis tick to show dollar amounts with commas and no decimal places
+  const formatYAxis = (value: number) => {
+    return `$${value.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+  };
+
+  // Get color for each bar: use predefined colors first, then random colors
+  const getBarColor = (index: number) => {
+    if (index < colors.length) {
+      return colors[index];
+    }
+    return getRandomColor();
+  };
+
+  // Format tooltip to show comma-separated dollar values with protocol name as label
+  const formatTooltip = (value: number, name: string) => {
+    const percent = totalValue > 0 ? ((value / totalValue) * 100).toFixed(1) : '0';
+    const dollarValue = `$${value.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+    return [`${dollarValue} (${percent}%)`, 'Value'];
+  };
+
+  // Custom tooltip label to show protocol name
+  const renderTooltipLabel = (label: string) => {
+    return label;
+  };
+
   if (responsive) {
     return (
-      <div className="w-full mx-auto" style={{ maxWidth: `${maxWidth}px` }}>
+      <div className="w-full mx-auto bar-chart-wrapper" style={{ maxWidth: `${maxWidth}px` }}>
         <ResponsiveContainer width="100%" height={height}>
-          <BarChart data={data}>
+          <BarChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="name" />
-            <YAxis />
-            <Tooltip
-              formatter={(value: number) => {
-                const percent = totalValue > 0 ? ((value / totalValue) * 100).toFixed(1) : '0';
-                return [`${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${percent}%)`, 'Value'];
-              }}
+            <YAxis tickFormatter={formatYAxis} />
+            <Tooltip 
+              formatter={formatTooltip} 
+              labelFormatter={renderTooltipLabel}
+              contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.95)', border: '1px solid #ccc' }}
             />
-            <Legend />
-            <Bar dataKey={dataKey} fill={color} isAnimationActive={isAnimationActive} />
+            <Bar dataKey={dataKey} isAnimationActive={isAnimationActive} activeBar={false}>
+              {data.map((entry, index) => (
+                <Cell key={`cell-${entry.name}`} fill={getBarColor(index)} />
+              ))}
+            </Bar>
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -58,7 +101,7 @@ export default function BarChartComponent({
   }
 
   return (
-    <div className="w-full mx-auto" style={{ maxWidth: `${maxWidth}px` }}>
+    <div className="w-full mx-auto bar-chart-wrapper" style={{ maxWidth: `${maxWidth}px` }}>
       <BarChart
         data={data}
         style={{
@@ -66,18 +109,21 @@ export default function BarChartComponent({
           maxWidth: `${maxWidth}px`,
           height: `${height}px`,
         }}
+        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
       >
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="name" />
-        <YAxis />
-        <Tooltip
-          formatter={(value: number) => {
-            const percent = totalValue > 0 ? ((value / totalValue) * 100).toFixed(1) : '0';
-            return [`${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${percent}%)`, 'Value'];
-          }}
+        <YAxis tickFormatter={formatYAxis} />
+        <Tooltip 
+          formatter={formatTooltip} 
+          labelFormatter={renderTooltipLabel}
+          contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.95)', border: '1px solid #ccc' }}
         />
-        <Legend />
-        <Bar dataKey={dataKey} fill={color} isAnimationActive={isAnimationActive} />
+        <Bar dataKey={dataKey} isAnimationActive={isAnimationActive} activeBar={false}>
+          {data.map((entry, index) => (
+            <Cell key={`cell-${entry.name}`} fill={getBarColor(index)} />
+          ))}
+        </Bar>
       </BarChart>
     </div>
   );
