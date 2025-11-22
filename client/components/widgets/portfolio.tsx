@@ -70,10 +70,19 @@ export default function Portfolio() {
     return sum + (isNaN(networth) ? 0 : networth);
   }, 0);
 
+  // Format net worth with 2 decimal places and comma separators
+  const formattedNetworth = totalNetworth.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+  // Get current date for title
+  const currentDate = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
+
   return (
     <div className="p-4 border border-gray-300 widget-bg rounded-md">
-      <p className="font-semibold widget-text">Net Worth for {firstAddress || 'N/A'}</p>
-      <p className="widget-text">${totalNetworth.toFixed(2)}</p>
+      <p className="font-semibold widget-text">Portfolio Net Worth on {currentDate}</p>
+      <p className="widget-text">${formattedNetworth}</p>
     </div>
   );
 }

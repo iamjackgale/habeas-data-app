@@ -22,10 +22,16 @@ export default function Historical() {
   console.log(data);
   const netWorth = Object.values(data).reduce((acc, portfolio) => acc + parseFloat(portfolio.networth), 0);
 
+  // Format net worth with 2 decimal places and comma separators
+  const formattedNetWorth = netWorth.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
   return (
-    <div className="p-4 border border-gray-300 bg-gray-50 rounded-md">
-      <p className="font-semibold text-gray-800">Net Worth at {date}</p>
-      <p className="text-gray-600">${netWorth}</p>
+    <div className="p-4 border border-gray-300 widget-bg rounded-md">
+      <p className="font-semibold widget-text">Portfolio Net Worth on {date}</p>
+      <p className="widget-text">${formattedNetWorth}</p>
     </div>
   );
 }
