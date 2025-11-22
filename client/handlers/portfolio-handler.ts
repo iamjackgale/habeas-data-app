@@ -105,56 +105,54 @@ export function getAssetValueDictionary(
 }
 
 /**
- * Compare two protocol value dictionaries and create a comparison dictionary
- * @param firstProtocolDict - First protocol dictionary (output of getProtocolValueDictionary)
- * @param secondProtocolDict - Second protocol dictionary (output of getProtocolValueDictionary)
- * @returns Record mapping protocol keys to [firstValue, secondValue] arrays
+ * Compare multiple protocol value dictionaries and create a comparison dictionary
+ * @param dictionaries - Array of protocol dictionaries (output of getProtocolValueDictionary)
+ * @returns Record mapping protocol keys to arrays of values from each dictionary
  */
 export function getComparisonProtocolValueDictionary(
-  firstProtocolDict: Record<string, string>,
-  secondProtocolDict: Record<string, string>
-): Record<string, [number, number]> {
-  const comparisonDict: Record<string, [number, number]> = {};
+  ...dictionaries: Record<string, string>[]
+): Record<string, number[]> {
+  const comparisonDict: Record<string, number[]> = {};
   
-  // Collect all unique keys from both dictionaries
-  const allKeys = new Set([
-    ...Object.keys(firstProtocolDict),
-    ...Object.keys(secondProtocolDict),
-  ]);
+  // Collect all unique keys from all dictionaries
+  const allKeys = new Set<string>();
+  dictionaries.forEach((dict) => {
+    Object.keys(dict).forEach((key) => allKeys.add(key));
+  });
   
-  // For each key, set X from first dictionary and Y from second dictionary
+  // For each key, create an array with values from each dictionary (0 for missing keys)
   allKeys.forEach((key) => {
-    const firstValue = parseFloat(firstProtocolDict[key] || '0') || 0;
-    const secondValue = parseFloat(secondProtocolDict[key] || '0') || 0;
-    comparisonDict[key] = [firstValue, secondValue];
+    const values = dictionaries.map((dict) => {
+      return parseFloat(dict[key] || '0') || 0;
+    });
+    comparisonDict[key] = values;
   });
   
   return comparisonDict;
 }
 
 /**
- * Compare two asset value dictionaries and create a comparison dictionary
- * @param firstAssetDict - First asset dictionary (output of getAssetValueDictionary)
- * @param secondAssetDict - Second asset dictionary (output of getAssetValueDictionary)
- * @returns Record mapping asset keys to [firstValue, secondValue] arrays
+ * Compare multiple asset value dictionaries and create a comparison dictionary
+ * @param dictionaries - Array of asset dictionaries (output of getAssetValueDictionary)
+ * @returns Record mapping asset keys to arrays of values from each dictionary
  */
 export function getComparisonAssetValueDictionary(
-  firstAssetDict: Record<string, string>,
-  secondAssetDict: Record<string, string>
-): Record<string, [number, number]> {
-  const comparisonDict: Record<string, [number, number]> = {};
+  ...dictionaries: Record<string, string>[]
+): Record<string, number[]> {
+  const comparisonDict: Record<string, number[]> = {};
   
-  // Collect all unique keys from both dictionaries
-  const allKeys = new Set([
-    ...Object.keys(firstAssetDict),
-    ...Object.keys(secondAssetDict),
-  ]);
+  // Collect all unique keys from all dictionaries
+  const allKeys = new Set<string>();
+  dictionaries.forEach((dict) => {
+    Object.keys(dict).forEach((key) => allKeys.add(key));
+  });
   
-  // For each key, set X from first dictionary and Y from second dictionary
+  // For each key, create an array with values from each dictionary (0 for missing keys)
   allKeys.forEach((key) => {
-    const firstValue = parseFloat(firstAssetDict[key] || '0') || 0;
-    const secondValue = parseFloat(secondAssetDict[key] || '0') || 0;
-    comparisonDict[key] = [firstValue, secondValue];
+    const values = dictionaries.map((dict) => {
+      return parseFloat(dict[key] || '0') || 0;
+    });
+    comparisonDict[key] = values;
   });
   
   return comparisonDict;

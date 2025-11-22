@@ -8,8 +8,8 @@ export interface TwoLevelPieChartComponentProps {
   innerData?: PieChartDataEntry[];
   /** Outer pie chart data entries (ring) - mutually exclusive with comparisonData */
   outerData?: PieChartDataEntry[];
-  /** Comparison dictionary format Record<string, [number, number]> - mutually exclusive with innerData/outerData */
-  comparisonData?: Record<string, [number, number]>;
+  /** Comparison dictionary format Record<string, number[]> - mutually exclusive with innerData/outerData. For two-level charts, uses first two values. */
+  comparisonData?: Record<string, number[]>;
   /** Total value for inner data percentage calculations */
   innerTotalValue?: number;
   /** Total value for outer data percentage calculations */
@@ -68,12 +68,17 @@ export default function TwoLevelPieChartComponent({
     const otherCategoryName = 'other';
 
     // Calculate total value for each key (sum of inner + outer values)
-    const entries = Object.entries(comparisonData).map(([name, [innerVal, outerVal]]) => ({
-      name,
-      innerValue: innerVal || 0,
-      outerValue: outerVal || 0,
-      totalValue: (innerVal || 0) + (outerVal || 0),
-    }));
+    // For two-level charts, use the first two values from the array (index 0 and 1)
+    const entries = Object.entries(comparisonData).map(([name, values]) => {
+      const innerVal = Array.isArray(values) && values.length > 0 ? (values[0] || 0) : 0;
+      const outerVal = Array.isArray(values) && values.length > 1 ? (values[1] || 0) : 0;
+      return {
+        name,
+        innerValue: innerVal,
+        outerValue: outerVal,
+        totalValue: innerVal + outerVal,
+      };
+    });
 
     // Sort by total value descending (largest to smallest)
     const sortedEntries = [...entries].sort((a, b) => b.totalValue - a.totalValue);
