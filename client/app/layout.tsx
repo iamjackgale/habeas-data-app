@@ -32,7 +32,7 @@ export default function RootLayout({
   const queryClient = new QueryClient();
 
   return (
-    <html lang="en" suppressHydrationWarning className="h-full">
+    <html lang="en" suppressHydrationWarning className="dark h-full">
       <body
         suppressHydrationWarning
         className={`${geistSans.variable} ${geistMono.variable} antialiased h-full overflow-hidden`}
