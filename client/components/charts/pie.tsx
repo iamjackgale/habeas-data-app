@@ -55,7 +55,7 @@ export default function PieChartComponent({
 }: PieChartComponentProps) {
 
   return (
-    <div className="w-full mx-auto" style={{ maxWidth: `${maxWidth}px` }}>
+    <div className="w-full mx-auto pie-chart-wrapper" style={{ maxWidth: `${maxWidth}px` }}>
       <ResponsiveContainer width="100%" height={height}>
         <PieChart style={{ transform: 'rotate(0deg)' }}>
           <Pie

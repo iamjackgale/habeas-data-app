@@ -6,7 +6,7 @@ import { Library, Gauge, Search, Settings } from 'lucide-react';
 
 import { NavItem, NavItems } from '@/components/app-sidebar/nav-items';
 
-import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarRail, SidebarTrigger, useSidebar } from '../ui/sidebar';
+import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarRail, useSidebar } from '../ui/sidebar';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -48,7 +48,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       icon: <Search width={20} height={20} className="stroke-[1.5]" />,
     },
     {
-      name: 'Widget',
+      name: 'Widgets',
       url: '/widget',
       pathname: '/widget',
       icon: <Library width={20} height={20} className="stroke-[1.5]" />,
@@ -85,7 +85,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarFooter>
         <div className={cn('flex items-center px-2 py-2', isExpanded ? 'justify-start' : 'justify-center')}>
           <ThemeToggle />
-          {isExpanded && <span className="ml-3 text-sm text-muted-foreground">Toggle theme</span>}
+          {isExpanded && <span className="ml-3 text-sm text-muted-foreground">Theme</span>}
         </div>
       </SidebarFooter>
 

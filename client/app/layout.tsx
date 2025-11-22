@@ -10,7 +10,7 @@ import { AppSidebar } from '@/components/app-sidebar/app-sidebar';
 import './global.css';
 
 import { Toaster } from 'sonner';
-import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { Header } from '@/components/header/header';
 
 const geistSans = Geist({
@@ -60,7 +60,6 @@ export default function RootLayout({
               </div>
 
               <SidebarInset className="overflow-y-auto h-full">
-                <SidebarTrigger className="absolute text-sidebar-foreground z-10 mt-[26px] hidden lg:block " />
                 <div className="flex flex-1 flex-col gap-4 p-2 lg:p-6 pt-0 mt-16 lg:mt-0">{children}</div>
               </SidebarInset>
             </SidebarProvider>

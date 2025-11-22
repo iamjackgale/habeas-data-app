@@ -241,7 +241,7 @@
   --color-theme-switch-light: rgba(255, 236, 200, 1);
   --color-theme-switch-dark: rgba(105, 125, 170, 1);
   --widget-background-light: #FCFCFE;
-  --widget-text-color-light: #FFFFFF;
+  --widget-text-color-light: var(--octav-color-gray-light-950);
 }
 
 :root {
@@ -545,4 +545,22 @@
 .bar-chart-wrapper .recharts-bar-rectangle:hover rect,
 .bar-chart-wrapper .recharts-active-bar rect {
   fill: inherit !important;
+}
+
+/* Pie chart legend text color - match page text color */
+.pie-chart-wrapper .recharts-legend-wrapper .recharts-legend-item-text {
+  fill: var(--widget-text-color) !important;
+  color: var(--widget-text-color) !important;
+}
+
+/* In light mode, ensure pie chart legend text is dark */
+:root .pie-chart-wrapper .recharts-legend-wrapper .recharts-legend-item-text {
+  fill: var(--octav-color-gray-light-950) !important;
+  color: var(--octav-color-gray-light-950) !important;
+}
+
+/* In dark mode, ensure pie chart legend text is light */
+.dark .pie-chart-wrapper .recharts-legend-wrapper .recharts-legend-item-text {
+  fill: var(--widget-text-color) !important;
+  color: var(--widget-text-color) !important;
 }
