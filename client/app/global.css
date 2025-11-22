@@ -366,6 +366,8 @@
   --color-theme-switch: var(--color-theme-switch-light);
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
+  --widget-background: #1C1F25;
+  --widget-text-color: #ECEEF3;
 }
 
 .dark {
@@ -469,6 +471,8 @@
   --sidebar-ring: oklch(0.556 0 0);
 
   --color-theme-switch: var(--color-theme-switch-dark);
+  --widget-background: #1C1F25;
+  --widget-text-color: #ECEEF3;
 }
 
 @layer base {
@@ -477,6 +481,15 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .widget-bg {
+    background-color: var(--widget-background);
+  }
+  .widget-text {
+    color: var(--widget-text-color);
   }
 }
 

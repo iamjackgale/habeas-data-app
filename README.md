@@ -4,6 +4,8 @@
 
 this is a simple demo of the x402 payment protocol, showcasing how easy it is to add crypto payments to any API and how seamlessly clients can pay for access
 
+> **Note:** This repository is a fork of [x402-demo](https://github.com/Jnix2007/x402-demo) by Jnix2007, extended with additional features including portfolio integration via the Octav API.
+
 ## what is x402?
 
 [x402](https://www.x402.org/) is an HTTP-based payment protocol that enables instant, automatic stablecoin payments for APIs and digital content
@@ -39,14 +41,31 @@ this project showcases **four Coinbase Developer Platform (CDP) products** worki
 - real-time balance updates via CDP API
 - transaction confirmations on Basescan
 
+## tech stack
+
+**client:**
+- Next.js 15 with App Router
+- React 19
+- Tailwind CSS v4
+- Shadcn UI
+- TypeScript
+- Radix UI primitives
+- React Query for data fetching
+
+**server:**
+- Express.js
+- Node.js
+
 ## quickstart
 
 ### pre-reqs
 
 1. **Node.js v18+** installed
-2. **CDP Project** created at https://portal.cdp.coinbase.com/
-3. **CDP API Key** for using CDP Facilitator, Faucet API, and Token Balances API
-4. **wallet address** to receive payments (any Ethereum address)
+2. **pnpm** installed (for client dependencies)
+   - install with: `npm install -g pnpm`
+3. **CDP Project** created at https://portal.cdp.coinbase.com/
+4. **CDP API Key** for using CDP Facilitator, Faucet API, and Token Balances API
+5. **wallet address** to receive payments (any Ethereum address)
 
 ### 1. install server dependencies
 
@@ -96,8 +115,10 @@ open a new terminal:
 
 ```bash
 cd client
-npm install
+pnpm install
 ```
+
+> **Note:** This project uses `pnpm` as the package manager for the client. Make sure you have `pnpm` installed. If you don't have it, install it with `npm install -g pnpm`.
 
 ### 5. configure client
 
@@ -109,6 +130,10 @@ edit your `client/.env.local`:
 ```env
 NEXT_PUBLIC_CDP_PROJECT_ID=your-project-id-here
 NEXT_PUBLIC_API_URL=http://localhost:3001
+
+# Octav API Key (REQUIRED for Octav Portfolio API)
+# Get your API key at https://data.octav.fi
+OCTAV_API_KEY=your_octav_api_key_here
 ```
 
 **get your CDP Project ID:**
@@ -117,11 +142,24 @@ NEXT_PUBLIC_API_URL=http://localhost:3001
 3. go to Settings
 4. copy the Project ID
 
+**get your Octav API Key:**
+1. visit https://data.octav.fi
+2. sign up or log in to your account
+3. navigate to your API keys section
+4. create a new API key or copy your existing one
+5. add it to your `.env.local` file as `OCTAV_API_KEY`
+6. ask the Octav team for Credits
+
+**Important:** Never commit your `.env.local` file to version control. It's already included in `.gitignore`.
+
 ### 6. start client (in a new terminal)
 
 ```bash
-npm run dev:client
+cd client
+pnpm run dev
 ```
+
+> **Note:** The client uses `pnpm` for package management. Use `pnpm run dev` instead of `npm run dev:client`.
 
 you should see:
 ```
@@ -151,10 +189,25 @@ x402-demo/
 │   └── .env.example
 ├── client/              # Next.js web app
 │   ├── app/
+│   │   ├── api/
+│   │   │   └── portfolio/
+│   │   │       └── route.ts          # NextJS API endpoint for Octav Portfolio API
+│   │   ├── (dashboard)/
+│   │   │   └── page.tsx
 │   │   ├── page.tsx           # main UI with auth & payments
 │   │   ├── providers.tsx      # CDP Embedded Wallet setup
 │   │   ├── layout.tsx
 │   │   └── globals.css
+│   ├── components/
+│   │   ├── widgets/
+│   │   │   └── portfolio.tsx         # Portfolio widget component
+│   │   └── ui/                        # UI components
+│   ├── services/
+│   │   └── octav/
+│   │       ├── loader.ts              # React Query hook (useGetPortfolio)
+│   │       └── portfolio.ts           # Portfolio API service
+│   ├── types/
+│   │   └── portfolio.ts               # TypeScript types for portfolio data
 │   ├── package.json
 │   └── .env.local.example
 └── README.md            # this file
@@ -196,6 +249,116 @@ the **CDP x402 Facilitator** handles:
 **EVM limitation:** On EVM chains (like Base), x402 uses EIP-3009 `transferWithAuthorization`, which requires tokens to explicitly implement this standard. Most ERC20 tokens have not implemented EIP-3009, so in practice this limits x402 in its current form to using mostly USDC.
 
 **Solana flexibility:** On Solana, x402 works with **any SPL token** using standard token transfers with facilitator fee sponsorship - no special token implementation required
+
+## octav portfolio API integration
+
+the client includes integration with the [Octav Portfolio API](https://docs.octav.fi/api/endpoints/portfolio) to fetch and display portfolio data for blockchain addresses.
+
+### NextJS API endpoint
+
+the template includes a NextJS API route at `/app/api/portfolio/route.ts` that acts as a secure proxy to the Octav API. this endpoint:
+
+- **securely stores your API key** on the server (never exposed to the client)
+- **handles authentication** with the Octav API
+- **validates request parameters**
+- **returns formatted error messages** for better debugging
+
+#### API endpoint structure
+
+```
+GET /api/portfolio?addresses=<address>&includeImages=true&includeExplorerUrls=true
+```
+
+**query parameters:**
+- `addresses` (required): single wallet address
+- `includeImages` (optional): include image URLs for assets, chains, and protocols
+- `includeExplorerUrls` (optional): include blockchain explorer URLs
+- `waitForSync` (optional): wait for fresh data if cache is stale
+
+**example request:**
+
+```typescript
+// in your component
+const { data, isLoading, error } = useGetPortfolio({
+  address: '0x6426af179aabebe47666f69fd9079673f6cd',
+  includeImages: true,
+  includeExplorerUrls: true,
+  waitForSync: true,
+});
+```
+
+### React Query hook
+
+the template provides a `useGetPortfolio` hook that uses React Query for data fetching:
+
+```typescript
+import { useGetPortfolio } from '@/services/octav/loader';
+
+function MyComponent() {
+  const { data, isLoading, error } = useGetPortfolio({
+    address: '0x6426af179aabebe47666f69fd9079673f6cd',
+    includeImages: true,
+    includeExplorerUrls: true,
+  });
+
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error.message}</div>;
+
+  return (
+    <div>
+      <h2>Portfolio for {data.address}</h2>
+      <p>Net Worth: ${data.networth}</p>
+      <p>Cash Balance: ${data.cashBalance}</p>
+      <p>Daily Income: ${data.dailyIncome}</p>
+      <p>Daily Expense: ${data.dailyExpense}</p>
+    </div>
+  );
+}
+```
+
+### portfolio data structure
+
+the API returns comprehensive portfolio data including:
+
+- **portfolio summary**: net worth, cash balance, daily income/expense, fees
+- **assets by protocol**: organized by protocol (wallet, lending, staking, DEX, etc.)
+- **chain distribution**: assets organized by blockchain
+
+see the complete type definitions in `/types/portfolio.ts` for all available fields.
+
+### error handling
+
+the API endpoint and React Query hook include comprehensive error handling:
+
+- **missing API key**: clear error message if `OCTAV_API_KEY` is not set
+- **invalid address**: validation error for malformed addresses
+- **API errors**: Octav API error messages are passed through to the component
+- **network errors**: handled gracefully with user-friendly messages
+
+**example error display:**
+
+```typescript
+if (error) {
+  return (
+    <div className="p-4 border border-red-300 bg-red-50 rounded-md">
+      <p className="font-semibold text-red-800">Error</p>
+      <p className="text-red-600">{error.message}</p>
+    </div>
+  );
+}
+```
+
+### example component
+
+check out `/components/widgets/portfolio.tsx` for a complete example of how to use the portfolio API in your components.
+
+### full API documentation
+
+- [Portfolio API](https://docs.octav.fi/api/endpoints/portfolio)
+- [API Access & Pricing](https://api-docs.octav.fi/getting-started/api-access)
+- [Get an API Key](https://data.octav.fi)
+- [Supported Chains](https://docs.octav.fi/api/reference/supported-chains)
+- [Protocol Types](https://docs.octav.fi/api/reference/protocol-types)
 
 ## x402 client-side integration
 
@@ -325,10 +488,21 @@ CDP products work together seamlessly - the server uses one CDP API key to acces
 
 ## learn more
 
+**x402 & CDP:**
 - [CDP Facilitator docs](https://docs.cdp.coinbase.com/x402)
 - [CDP Embedded Wallet docs](https://docs.cdp.coinbase.com/embedded-wallets)
 - [CDP x402 Facilitator API reference](https://docs.cdp.coinbase.com/api-reference/v2/rest-api/x402-facilitator/x402-facilitator)
 - [x402 GitHub repo](https://github.com/coinbase/x402)
+
+**Octav:**
+- [Octav API Documentation](https://api-docs.octav.fi)
+- [Portfolio API](https://docs.octav.fi/api/endpoints/portfolio)
+
+**technologies:**
+- [Next.js Documentation](https://nextjs.org/docs)
+- [React Query Documentation](https://tanstack.com/query/latest)
+- [Shadcn Documentation](https://ui.shadcn.com/)
+- [Tailwind CSS Documentation](https://tailwindcss.com/docs)
 
 ## license
 
