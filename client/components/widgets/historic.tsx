@@ -1,13 +1,17 @@
 'use client';
 
 import { useGetHistorical } from '@/services/octav/loader';
-import { LoadingSpinner } from '../loading-spinner';
+import { LoadingSpinner } from '@/components/loading-spinner';
 
-export default function Historical() {
-  const date = '2025-06-06';
+interface HistoricalProps {
+  address: string;
+  date: string;
+}
+
+export default function Historical({ address, date }: HistoricalProps) {
   const { data, isLoading, error, progress } = useGetHistorical({
-    address: '0x3f5eddad52c665a4aa011cd11a21e1d5107d7862',
-    date
+    address: address,
+    date: date
   });
 
   if (isLoading) return <LoadingSpinner/>;
@@ -20,8 +24,8 @@ export default function Historical() {
       </div>
     );
   }
-  console.log(data);
-  const netWorth = Object.values(data).reduce((acc, portfolio) => acc + parseFloat(portfolio.networth), 0);
+  
+  const netWorth = Object.values(data || {}).reduce((acc, portfolio: any) => acc + parseFloat(portfolio.networth || '0'), 0);
 
   // Format net worth with 2 decimal places and comma separators
   const formattedNetWorth = netWorth.toLocaleString('en-US', {

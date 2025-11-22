@@ -5,13 +5,15 @@ import { Portfolio } from '@/types/portfolio';
 import { getProtocolValueDictionary, getComparisonProtocolValueDictionary } from '@/handlers/portfolio-handler';
 import TwoLevelPieChartComponent from '@/components/charts/pies';
 
-export default function PiesPortfolioByProtocol() {
-  const targetAddress = '0x3f5eddad52c665a4aa011cd11a21e1d5107d7862';
-  const MAX_DATES = 4;
-  // Define dates as an array - can add any number of dates (max 4)
-  const rawDates = ['2025-06-06', '2025-11-22', '2025-01-01'];
+interface PiesPortfolioByProtocolProps {
+  address: string;
+  dates: string[];
+}
+
+export default function PiesPortfolioByProtocol({ address, dates: rawDates }: PiesPortfolioByProtocolProps) {
+  const MAX_DATES = 5;
   
-  // Validate max 4 dates
+  // Validate max 5 dates
   if (rawDates.length > MAX_DATES) {
     return (
       <div className="p-4 border border-red-300 bg-red-50 rounded-md">
@@ -29,7 +31,7 @@ export default function PiesPortfolioByProtocol() {
   // Fetch historical data for all dates using hooks
   const historicalData = dates.map(date => 
     useGetHistorical({
-      address: targetAddress,
+      address: address,
       date: date,
     })
   );
@@ -52,7 +54,7 @@ export default function PiesPortfolioByProtocol() {
   const portfolios = historicalData.map((result, index) => {
     const dataRecord = result.data as Record<string, Portfolio> | undefined;
     const portfolioEntries = dataRecord ? Object.entries(dataRecord) as [string, Portfolio][] : [];
-    return dataRecord?.[targetAddress] || (portfolioEntries.length > 0 ? portfolioEntries[0][1] : undefined);
+    return dataRecord?.[address] || (portfolioEntries.length > 0 ? portfolioEntries[0][1] : undefined);
   });
 
   // Check if all portfolios are available
@@ -91,7 +93,7 @@ export default function PiesPortfolioByProtocol() {
           comparisonData={comparisonDictionary}
           dates={dates}
           height={500}
-          maxWidth={600}
+          maxWidth={800}
         />
       </div>
     </div>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useGetHistorical, useGetHistoricalRange } from '@/services/octav/loader';
-import { LoadingSpinner } from '../loading-spinner';
+import { LoadingSpinner } from '@/components/loading-spinner';
 
 export default function HistoricalRange() {
   const dates = ['2025-03-01', '2025-06-01', '2025-09-01'];

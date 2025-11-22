@@ -6,13 +6,15 @@ import { getProtocolValueDictionary, getComparisonProtocolValueDictionary } from
 import { BarStackedChartDataEntry } from '@/handlers/bar-chart-handler';
 import BarStackedChartComponent from '@/components/charts/bar-stacked';
 
-export default function BarStackedPortfolioByProtocol() {
-  const targetAddress = '0x3f5eddad52c665a4aa011cd11a21e1d5107d7862';
-  const MAX_DATES = 5;
-  // Define dates as an array - can add any number of dates (max 5)
-  const rawDates = ['2025-06-06', '2025-11-22', '2025-01-01', '2025-03-15', '2025-08-30'];
+interface BarStackedPortfolioByProtocolProps {
+  address: string;
+  dates: string[];
+}
+
+export default function BarStackedPortfolioByProtocol({ address, dates: rawDates }: BarStackedPortfolioByProtocolProps) {
+  const MAX_DATES = 12;
   
-  // Validate max 5 dates
+  // Validate max 12 dates
   if (rawDates.length > MAX_DATES) {
     return (
       <div className="p-4 border border-red-300 bg-red-50 rounded-md">
@@ -29,34 +31,62 @@ export default function BarStackedPortfolioByProtocol() {
   
   // Fetch historical data for all dates using hooks
   // Hooks must be called unconditionally at the top level, so we call them individually
-  // Always call exactly MAX_DATES hooks (5) in the same order for React's rules
+  // Always call exactly MAX_DATES hooks (12) in the same order for React's rules
   // Use actual dates from the array, or use a dummy date for unused slots (results will be ignored)
   const DUMMY_DATE = '2025-01-01'; // Valid date, but unused results will be filtered out
   
   // Call hooks individually (always call MAX_DATES hooks in same order)
   const hook1 = useGetHistorical({
-    address: targetAddress,
+    address: address,
     date: dates[0] || DUMMY_DATE,
   });
   const hook2 = useGetHistorical({
-    address: targetAddress,
+    address: address,
     date: dates[1] || DUMMY_DATE,
   });
   const hook3 = useGetHistorical({
-    address: targetAddress,
+    address: address,
     date: dates[2] || DUMMY_DATE,
   });
   const hook4 = useGetHistorical({
-    address: targetAddress,
+    address: address,
     date: dates[3] || DUMMY_DATE,
   });
   const hook5 = useGetHistorical({
-    address: targetAddress,
+    address: address,
     date: dates[4] || DUMMY_DATE,
+  });
+  const hook6 = useGetHistorical({
+    address: address,
+    date: dates[5] || DUMMY_DATE,
+  });
+  const hook7 = useGetHistorical({
+    address: address,
+    date: dates[6] || DUMMY_DATE,
+  });
+  const hook8 = useGetHistorical({
+    address: address,
+    date: dates[7] || DUMMY_DATE,
+  });
+  const hook9 = useGetHistorical({
+    address: address,
+    date: dates[8] || DUMMY_DATE,
+  });
+  const hook10 = useGetHistorical({
+    address: address,
+    date: dates[9] || DUMMY_DATE,
+  });
+  const hook11 = useGetHistorical({
+    address: address,
+    date: dates[10] || DUMMY_DATE,
+  });
+  const hook12 = useGetHistorical({
+    address: address,
+    date: dates[11] || DUMMY_DATE,
   });
 
   // Create array of hook results, but only use the ones corresponding to actual dates
-  const allHookResults = [hook1, hook2, hook3, hook4, hook5];
+  const allHookResults = [hook1, hook2, hook3, hook4, hook5, hook6, hook7, hook8, hook9, hook10, hook11, hook12];
   const historicalData = allHookResults.slice(0, dates.length);
 
   const isLoading = historicalData.some(result => result.isLoading);
@@ -77,7 +107,7 @@ export default function BarStackedPortfolioByProtocol() {
   const portfolios = historicalData.map((result, index) => {
     const dataRecord = result.data as Record<string, Portfolio> | undefined;
     const portfolioEntries = dataRecord ? Object.entries(dataRecord) as [string, Portfolio][] : [];
-    return dataRecord?.[targetAddress] || (portfolioEntries.length > 0 ? portfolioEntries[0][1] : undefined);
+    return dataRecord?.[address] || (portfolioEntries.length > 0 ? portfolioEntries[0][1] : undefined);
   });
 
   // Check if all portfolios are available

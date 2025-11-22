@@ -90,7 +90,7 @@ export default function BarStackedChartComponent({
 
   if (responsive) {
     return (
-      <div className="w-full mx-auto bar-chart-wrapper" style={{ maxWidth: `${maxWidth}px` }}>
+      <div className="w-full mx-auto bar-chart-wrapper bar-stacked-chart-wrapper" style={{ maxWidth: `${maxWidth}px` }}>
         <ResponsiveContainer width="100%" height={height}>
           <BarChart
             data={data}
@@ -108,7 +108,11 @@ export default function BarStackedChartComponent({
               labelFormatter={renderTooltipLabel}
               contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.95)', border: '1px solid #ccc' }}
             />
-            <Legend />
+            <Legend
+              formatter={(value) => {
+                return <span className="text-foreground">{value}</span>;
+              }}
+            />
             {dataKeys.map((key, index) => (
               <Bar
                 key={key}
@@ -130,7 +134,7 @@ export default function BarStackedChartComponent({
   }
 
   return (
-    <div className="w-full mx-auto bar-chart-wrapper" style={{ maxWidth: `${maxWidth}px` }}>
+    <div className="w-full mx-auto bar-chart-wrapper bar-stacked-chart-wrapper" style={{ maxWidth: `${maxWidth}px` }}>
       <BarChart
         data={data}
         style={{
@@ -152,7 +156,11 @@ export default function BarStackedChartComponent({
           labelFormatter={renderTooltipLabel}
           contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.95)', border: '1px solid #ccc' }}
         />
-        <Legend />
+        <Legend
+          formatter={(value) => {
+            return <span className="text-foreground">{value}</span>;
+          }}
+        />
         {dataKeys.map((key, index) => (
           <Bar
             key={key}

@@ -75,9 +75,17 @@ export function processBarChartData(
   // Build final array: top 5 bars first, then "other" always at the end
   const barChartData: BarChartDataEntry[] = [...visibleBars];
 
-  // Only show "other" in legend if it's >= otherLegendThreshold of total
+  // Show "other" if:
+  // 1. We have more than 5 main bars (we're limiting to top 5), OR
+  // 2. We have small bars aggregated (< threshold), OR  
+  // 3. The "other" value is >= otherLegendThreshold of total (for very small aggregations)
+  const hasMoreThanFiveMainBars = sortedMainBars.length > MAX_VISIBLE_BARS;
+  const hasSmallBars = otherBars.length > 0;
   const otherPercentage = totalValue > 0 ? (totalOtherValue / totalValue) : 0;
-  if (totalOtherValue > 0 && otherPercentage >= otherLegendThreshold) {
+  
+  // Always show "Other" if we're limiting to 5 bars or have aggregated small bars
+  // Otherwise, only show if it meets the percentage threshold
+  if (totalOtherValue > 0 && (hasMoreThanFiveMainBars || hasSmallBars || otherPercentage >= otherLegendThreshold)) {
     barChartData.push({
       name: otherCategoryName,
       value: totalOtherValue,

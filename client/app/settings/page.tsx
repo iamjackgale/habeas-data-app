@@ -154,13 +154,13 @@ export default function SettingsPage() {
             disabled={isSaving}
             className={`px-6 py-2.5 rounded-xl font-semibold transition-all ${
               isSaving
-                ? 'bg-gray-400 cursor-not-allowed'
+                ? 'bg-gray-400 cursor-not-allowed text-foreground'
                 : saveStatus === 'success'
-                ? 'bg-green-600 hover:bg-green-700'
+                ? 'bg-green-600 hover:bg-green-700 text-white'
                 : saveStatus === 'error'
-                ? 'bg-red-600 hover:bg-red-700'
-                : 'bg-[#347745] hover:bg-[#2a5f37]'
-            } text-foreground`}
+                ? 'bg-red-600 hover:bg-red-700 text-white'
+                : 'bg-[#347745] hover:bg-[#2a5f37] text-white'
+            }`}
           >
             {isSaving ? 'Saving...' : saveStatus === 'success' ? 'Saved!' : saveStatus === 'error' ? 'Error' : 'Save Settings'}
           </button>

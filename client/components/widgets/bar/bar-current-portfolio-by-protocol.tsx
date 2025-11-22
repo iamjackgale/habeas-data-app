@@ -6,14 +6,16 @@ import { getProtocolValueDictionary } from '@/handlers/portfolio-handler';
 import { processBarChartData } from '@/handlers/bar-chart-handler';
 import BarChartComponent from '@/components/charts/bar';
 
-export default function BarCurrentPortfolioByProtocol() {
-  const targetAddress = '0xc9c61194682a3a5f56bf9cd5b59ee63028ab6041';
-  
+interface BarCurrentPortfolioByProtocolProps {
+  address: string;
+}
+
+export default function BarCurrentPortfolioByProtocol({ address }: BarCurrentPortfolioByProtocolProps) {
   // Get current date for title
   const currentDate = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
   
   const { data, isLoading, error } = useGetPortfolio({
-    address: targetAddress,
+    address: address,
     includeImages: true,
     includeExplorerUrls: true,
     waitForSync: true,
@@ -33,7 +35,7 @@ export default function BarCurrentPortfolioByProtocol() {
   // Extract portfolio from Record structure (data is Record<string, Portfolio>)
   const dataRecord = data as Record<string, Portfolio> | undefined;
   const portfolioEntries = dataRecord ? Object.entries(dataRecord) as [string, Portfolio][] : [];
-  const portfolio = dataRecord?.[targetAddress] || (portfolioEntries.length > 0 ? portfolioEntries[0][1] : null);
+  const portfolio = dataRecord?.[address] || (portfolioEntries.length > 0 ? portfolioEntries[0][1] : null);
 
   if (!portfolio) {
     return (

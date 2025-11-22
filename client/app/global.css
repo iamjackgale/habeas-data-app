@@ -557,19 +557,22 @@
 }
 
 /* Pie chart legend text color - match page text color */
-.pie-chart-wrapper .recharts-legend-wrapper .recharts-legend-item-text {
+.pie-chart-wrapper .recharts-legend-wrapper .recharts-legend-item-text,
+.bar-stacked-chart-wrapper .recharts-legend-wrapper .recharts-legend-item-text {
   fill: var(--widget-text-color) !important;
   color: var(--widget-text-color) !important;
 }
 
 /* In light mode, ensure pie chart legend text is dark */
-:root .pie-chart-wrapper .recharts-legend-wrapper .recharts-legend-item-text {
+:root .pie-chart-wrapper .recharts-legend-wrapper .recharts-legend-item-text,
+:root .bar-stacked-chart-wrapper .recharts-legend-wrapper .recharts-legend-item-text {
   fill: var(--octav-color-gray-light-950) !important;
   color: var(--octav-color-gray-light-950) !important;
 }
 
 /* In dark mode, ensure pie chart legend text is light */
-.dark .pie-chart-wrapper .recharts-legend-wrapper .recharts-legend-item-text {
+.dark .pie-chart-wrapper .recharts-legend-wrapper .recharts-legend-item-text,
+.dark .bar-stacked-chart-wrapper .recharts-legend-wrapper .recharts-legend-item-text {
   fill: var(--widget-text-color) !important;
   color: var(--widget-text-color) !important;
 }

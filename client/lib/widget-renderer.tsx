@@ -1,0 +1,266 @@
+/**
+ * Widget Renderer
+ * Maps widget keys to their actual React components and provides rendering logic
+ */
+
+import React from 'react';
+
+// Import all widget components
+import Portfolio from '@/components/widgets/portfolio';
+import Historical from '@/components/widgets/historic';
+import PieCurrentPortfolioByAsset from '@/components/widgets/pie/pie-current-portfolio-by-asset';
+import PieCurrentPortfolioByProtocol from '@/components/widgets/pie/pie-current-portfolio-by-protocol';
+import PieHistoricalPortfolioByAsset from '@/components/widgets/pie/pie-historical-portfolio-by-asset';
+import PieHistoricalPortfolioByProtocol from '@/components/widgets/pie/pie-historical-portfolio-by-protocol';
+import PiesPortfolioByAsset from '@/components/widgets/pies/pies-portfolio-by-asset';
+import PiesPortfolioByProtocol from '@/components/widgets/pies/pies-portfolio-by-protocol';
+import BarCurrentPortfolioByAsset from '@/components/widgets/bar/bar-current-portfolio-by-asset';
+import BarCurrentPortfolioByProtocol from '@/components/widgets/bar/bar-current-portfolio-by-protocol';
+import BarHistoricalPortfolioByAsset from '@/components/widgets/bar/bar-historical-portfolio-by-asset';
+import BarHistoricalPortfolioByProtocol from '@/components/widgets/bar/bar-historical-portfolio-by-protocol';
+import BarPortfolioByNetWorth from '@/components/widgets/bar/bar-portfolio-by-networth';
+import BarStackedPortfolioByAsset from '@/components/widgets/bar-stacked/bar-stacked-portfolio-by-asset';
+import BarStackedPortfolioByProtocol from '@/components/widgets/bar-stacked/bar-stacked-portfolio-by-protocol';
+
+export interface WidgetRenderParams {
+  widgetKey: string;
+  addresses: string[];
+  dates: string[];
+  chains?: string[];
+  categories?: string[];
+}
+
+/**
+ * Convert Date objects to ISO date strings (YYYY-MM-DD)
+ */
+function formatDateToISO(date: Date | null): string | null {
+  if (!date) return null;
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+/**
+ * Convert Date objects array to ISO date strings array
+ */
+function formatDatesToISO(dates: Date[]): string[] {
+  return dates.map(date => formatDateToISO(date) || '').filter(Boolean) as string[];
+}
+
+/**
+ * Render a widget component based on the widget key and parameters
+ */
+export function renderWidget(params: WidgetRenderParams): React.ReactNode {
+  const { widgetKey, addresses, dates, chains, categories } = params;
+
+  // Get the first address (for now, widgets only support single address)
+  const address = addresses[0] || '';
+  
+  if (!address) {
+    return (
+      <div className="p-4 border border-yellow-300 bg-yellow-50 rounded-md">
+        <p className="font-semibold text-yellow-800">Error</p>
+        <p className="text-yellow-600">No address selected</p>
+      </div>
+    );
+  }
+
+  // Render widget based on key
+  switch (widgetKey) {
+    case 'portfolio':
+      return <Portfolio address={address} />;
+
+    case 'historic':
+      if (!dates[0]) {
+        return (
+          <div className="p-4 border border-yellow-300 bg-yellow-50 rounded-md">
+            <p className="font-semibold text-yellow-800">Error</p>
+            <p className="text-yellow-600">No date selected</p>
+          </div>
+        );
+      }
+      return <Historical address={address} date={dates[0]} />;
+
+    case 'pie-current-portfolio-by-asset':
+      return <PieCurrentPortfolioByAsset address={address} />;
+
+    case 'pie-current-portfolio-by-protocol':
+      return <PieCurrentPortfolioByProtocol address={address} />;
+
+    case 'pie-historical-portfolio-by-asset':
+      if (!dates[0]) {
+        return (
+          <div className="p-4 border border-yellow-300 bg-yellow-50 rounded-md">
+            <p className="font-semibold text-yellow-800">Error</p>
+            <p className="text-yellow-600">No date selected</p>
+          </div>
+        );
+      }
+      return <PieHistoricalPortfolioByAsset address={address} date={dates[0]} />;
+
+    case 'pie-historical-portfolio-by-protocol':
+      if (!dates[0]) {
+        return (
+          <div className="p-4 border border-yellow-300 bg-yellow-50 rounded-md">
+            <p className="font-semibold text-yellow-800">Error</p>
+            <p className="text-yellow-600">No date selected</p>
+          </div>
+        );
+      }
+      return <PieHistoricalPortfolioByProtocol address={address} date={dates[0]} />;
+
+    case 'pies-portfolio-by-asset':
+      if (dates.length === 0) {
+        return (
+          <div className="p-4 border border-yellow-300 bg-yellow-50 rounded-md">
+            <p className="font-semibold text-yellow-800">Error</p>
+            <p className="text-yellow-600">No dates selected</p>
+          </div>
+        );
+      }
+      return <PiesPortfolioByAsset address={address} dates={dates} />;
+
+    case 'pies-portfolio-by-protocol':
+      if (dates.length === 0) {
+        return (
+          <div className="p-4 border border-yellow-300 bg-yellow-50 rounded-md">
+            <p className="font-semibold text-yellow-800">Error</p>
+            <p className="text-yellow-600">No dates selected</p>
+          </div>
+        );
+      }
+      return <PiesPortfolioByProtocol address={address} dates={dates} />;
+
+    case 'bar-current-portfolio-by-asset':
+      return <BarCurrentPortfolioByAsset address={address} />;
+
+    case 'bar-current-portfolio-by-protocol':
+      return <BarCurrentPortfolioByProtocol address={address} />;
+
+    case 'bar-historical-portfolio-by-asset':
+      if (!dates[0]) {
+        return (
+          <div className="p-4 border border-yellow-300 bg-yellow-50 rounded-md">
+            <p className="font-semibold text-yellow-800">Error</p>
+            <p className="text-yellow-600">No date selected</p>
+          </div>
+        );
+      }
+      return <BarHistoricalPortfolioByAsset address={address} date={dates[0]} />;
+
+    case 'bar-historical-portfolio-by-protocol':
+      if (!dates[0]) {
+        return (
+          <div className="p-4 border border-yellow-300 bg-yellow-50 rounded-md">
+            <p className="font-semibold text-yellow-800">Error</p>
+            <p className="text-yellow-600">No date selected</p>
+          </div>
+        );
+      }
+      return <BarHistoricalPortfolioByProtocol address={address} date={dates[0]} />;
+
+    case 'bar-portfolio-by-networth':
+      if (dates.length === 0) {
+        return (
+          <div className="p-4 border border-yellow-300 bg-yellow-50 rounded-md">
+            <p className="font-semibold text-yellow-800">Error</p>
+            <p className="text-yellow-600">No dates selected</p>
+          </div>
+        );
+      }
+      return <BarPortfolioByNetWorth address={address} dates={dates} />;
+
+    case 'bar-stacked-portfolio-by-asset':
+      if (dates.length === 0) {
+        return (
+          <div className="p-4 border border-yellow-300 bg-yellow-50 rounded-md">
+            <p className="font-semibold text-yellow-800">Error</p>
+            <p className="text-yellow-600">No dates selected</p>
+          </div>
+        );
+      }
+      return <BarStackedPortfolioByAsset address={address} dates={dates} />;
+
+    case 'bar-stacked-portfolio-by-protocol':
+      if (dates.length === 0) {
+        return (
+          <div className="p-4 border border-yellow-300 bg-yellow-50 rounded-md">
+            <p className="font-semibold text-yellow-800">Error</p>
+            <p className="text-yellow-600">No dates selected</p>
+          </div>
+        );
+      }
+      return <BarStackedPortfolioByProtocol address={address} dates={dates} />;
+
+    default:
+      return (
+        <div className="p-4 border border-red-300 bg-red-50 rounded-md">
+          <p className="font-semibold text-red-800">Error</p>
+          <p className="text-red-600">Unknown widget: {widgetKey}</p>
+        </div>
+      );
+  }
+}
+
+/**
+ * Extract dates from single date, multi date, or time period selections
+ */
+export function extractDates(
+  widgetKey: string | null,
+  singleDate: Date | null,
+  multiDate: { mode: 'list' | 'interval'; dates: Date[]; intervalType?: 'daily' | 'weekly' | 'monthly'; intervalCount?: number; startDate?: Date },
+  timePeriod: { startDate: Date | null; endDate: Date | null; granularity: string }
+): string[] {
+  if (!widgetKey) return [];
+
+  // Import the widget config to determine date type
+  const { getWidgetTimePeriodType } = require('@/lib/widget-time-config');
+  const timeType = getWidgetTimePeriodType(widgetKey);
+
+  if (timeType === 'single') {
+    // For single date widgets, use current date if no date selected (for portfolio)
+    if (widgetKey === 'portfolio') {
+      return [new Date().toISOString().split('T')[0]]; // Current date
+    }
+    const dateStr = formatDateToISO(singleDate);
+    return dateStr ? [dateStr] : [];
+  }
+
+  if (timeType === 'multi') {
+    // For multi date widgets
+    if (multiDate.mode === 'list') {
+      return formatDatesToISO(multiDate.dates);
+    } else if (multiDate.mode === 'interval' && multiDate.startDate) {
+      // Generate dates based on interval
+      const dates: string[] = [];
+      const start = new Date(multiDate.startDate);
+      const count = Math.min(multiDate.intervalCount || 12, 12);
+      const type = multiDate.intervalType || 'daily';
+
+      for (let i = 0; i < count; i++) {
+        const date = new Date(start);
+        if (type === 'daily') {
+          date.setDate(date.getDate() + i);
+        } else if (type === 'weekly') {
+          date.setDate(date.getDate() + (i * 7));
+        } else if (type === 'monthly') {
+          date.setMonth(date.getMonth() + i);
+        }
+        const dateStr = formatDateToISO(date);
+        if (dateStr) dates.push(dateStr);
+      }
+      return dates;
+    }
+    return [];
+  }
+
+  // For timescale widgets (future implementation)
+  if (timeType === 'timescale') {
+    // TODO: Implement timescale date extraction
+    return [];
+  }
+
+  return [];
+}
+

@@ -6,11 +6,13 @@ import { getComparisonNetWorthDictionary } from '@/handlers/portfolio-handler';
 import { BarChartDataEntry } from '@/handlers/bar-chart-handler';
 import BarChartComponent from '@/components/charts/bar';
 
-export default function BarPortfolioByNetWorth() {
-  const targetAddress = '0x3f5eddad52c665a4aa011cd11a21e1d5107d7862';
+interface BarPortfolioByNetWorthProps {
+  address: string;
+  dates: string[];
+}
+
+export default function BarPortfolioByNetWorth({ address, dates: rawDates }: BarPortfolioByNetWorthProps) {
   const MAX_DATES = 5;
-  // Define dates as an array
-  const rawDates = ['2025-06-06', '2025-11-22', '2025-01-01', '2025-03-15', '2025-08-30'];
   
   // Validate max 5 dates
   if (rawDates.length > MAX_DATES) {
@@ -35,23 +37,23 @@ export default function BarPortfolioByNetWorth() {
   
   // Call hooks individually (always call MAX_DATES hooks in same order)
   const hook1 = useGetHistorical({
-    address: targetAddress,
+    address: address,
     date: dates[0] || DUMMY_DATE,
   });
   const hook2 = useGetHistorical({
-    address: targetAddress,
+    address: address,
     date: dates[1] || DUMMY_DATE,
   });
   const hook3 = useGetHistorical({
-    address: targetAddress,
+    address: address,
     date: dates[2] || DUMMY_DATE,
   });
   const hook4 = useGetHistorical({
-    address: targetAddress,
+    address: address,
     date: dates[3] || DUMMY_DATE,
   });
   const hook5 = useGetHistorical({
-    address: targetAddress,
+    address: address,
     date: dates[4] || DUMMY_DATE,
   });
 
@@ -77,7 +79,7 @@ export default function BarPortfolioByNetWorth() {
   const portfolios = historicalData.map((result, index) => {
     const dataRecord = result.data as Record<string, Portfolio> | undefined;
     const portfolioEntries = dataRecord ? Object.entries(dataRecord) as [string, Portfolio][] : [];
-    return dataRecord?.[targetAddress] || (portfolioEntries.length > 0 ? portfolioEntries[0][1] : undefined);
+    return dataRecord?.[address] || (portfolioEntries.length > 0 ? portfolioEntries[0][1] : undefined);
   });
 
   // Check if all portfolios are available

@@ -55,7 +55,7 @@ export default function Page() {
         <h1 className="text-2xl font-bold">Widget Library</h1>
         <button
           onClick={handleUpdate}
-          className="px-6 py-2.5 rounded-xl font-semibold transition-all bg-[#347745] hover:bg-[#2a5f37] text-foreground"
+          className="px-6 py-2.5 rounded-xl font-semibold transition-all bg-[#347745] hover:bg-[#2a5f37] text-white"
         >
           Update
         </button>

@@ -33,29 +33,21 @@ export function PortfolioTransactionsToggle({
   const isPortfolio = mode === 'portfolio';
 
   return (
-    <div className="relative inline-block w-full max-w-md">
+    <div className="flex items-center gap-3 w-full max-w-md">
+      {/* Portfolio text - left of button */}
+      <span className="text-foreground font-medium">
+        Portfolio
+      </span>
+      
+      {/* Sliding button - 60% of current size */}
       <button
         type="button"
         onClick={handleToggle}
-        className="relative inline-flex h-10 w-[161px] items-center rounded-full overflow-hidden transition-all focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 bg-[#DF3441]"
+        className="relative inline-flex h-5 w-[48px] items-center rounded-full overflow-hidden transition-all focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
         role="switch"
         aria-checked={!isPortfolio}
         aria-label="Toggle between Portfolio and Transactions"
       >
-        {/* Portfolio text - always on the left */}
-        <span className={`absolute left-4 text-foreground font-medium z-10 transition-opacity ${
-          isPortfolio ? 'opacity-100' : 'opacity-0'
-        }`}>
-          Portfolio
-        </span>
-        
-        {/* Transactions text - always on the right */}
-        <span className={`absolute right-4 text-foreground font-medium z-10 transition-opacity ${
-          !isPortfolio ? 'opacity-100' : 'opacity-0'
-        }`}>
-          Transactions
-        </span>
-        
         {/* Background color changes based on selection */}
         <div
           className={`absolute inset-0 transition-colors duration-300 ${
@@ -63,13 +55,18 @@ export function PortfolioTransactionsToggle({
           }`}
         />
         
-        {/* Sliding button - circular */}
+        {/* Sliding button - circular, 60% of current size */}
         <span
-          className={`absolute h-8 w-8 bg-white rounded-full shadow-md transition-transform duration-300 ease-in-out z-20 ${
-            isPortfolio ? 'translate-x-[125px]' : 'translate-x-2'
+          className={`absolute h-4 w-4 bg-white rounded-full shadow-md transition-transform duration-300 ease-in-out z-20 ${
+            isPortfolio ? 'translate-x-1' : 'translate-x-[32px]'
           }`}
         />
       </button>
+      
+      {/* Transactions text - right of button */}
+      <span className="text-foreground font-medium">
+        Transactions
+      </span>
     </div>
   );
 }

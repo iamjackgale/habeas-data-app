@@ -45,7 +45,7 @@ const DEFAULT_COLORS = [
 
 /**
  * Multi-Level Pie Chart component
- * Displays up to 4 concentric pie charts (levels)
+ * Displays up to 5 concentric pie charts (levels)
  */
 export default function TwoLevelPieChartComponent({
   innerData,
@@ -61,7 +61,7 @@ export default function TwoLevelPieChartComponent({
   isAnimationActive = true,
   showOuterLabels = true,
 }: TwoLevelPieChartComponentProps) {
-  const MAX_LEVELS = 4;
+  const MAX_LEVELS = 5;
   const MAX_VISIBLE_SLICES = 5;
   const otherCategoryName = 'other';
 
@@ -74,7 +74,7 @@ export default function TwoLevelPieChartComponent({
     );
     numLevels = Math.max(...allLengths, 0);
     
-    // Validate max 4 levels
+    // Validate max 5 levels
     if (numLevels > MAX_LEVELS) {
       return (
         <div className="p-4 border border-red-300 bg-red-50 rounded-md">
@@ -157,12 +157,13 @@ export default function TwoLevelPieChartComponent({
     ];
   }
 
-  // Define radii for each level (up to 4 levels)
+  // Define radii for each level (up to 5 levels)
   const levelRadii = [
-    { inner: '15%', outer: '30%' }, // Level 1 (innermost)
-    { inner: '35%', outer: '50%' }, // Level 2
-    { inner: '55%', outer: '70%' }, // Level 3
-    { inner: '75%', outer: '90%' }, // Level 4 (outermost)
+    { inner: '10%', outer: '25%' }, // Level 1 (innermost)
+    { inner: '30%', outer: '45%' }, // Level 2
+    { inner: '50%', outer: '65%' }, // Level 3
+    { inner: '70%', outer: '85%' }, // Level 4
+    { inner: '90%', outer: '100%' }, // Level 5 (outermost)
   ];
 
   return (
@@ -172,6 +173,12 @@ export default function TwoLevelPieChartComponent({
           {processedDataByLevel.map((levelData, levelIndex) => {
             const radii = levelRadii[levelIndex];
             const colors = levelIndex === 0 ? innerColors : outerColors;
+            
+            // Safety check: skip if radii is undefined
+            if (!radii) {
+              console.warn(`No radii defined for level ${levelIndex}`);
+              return null;
+            }
             
             return (
               <Pie
@@ -206,13 +213,13 @@ export default function TwoLevelPieChartComponent({
               <th className="p-2 text-left widget-text font-semibold"></th>
               {dates.length > 0 ? (
                 dates.map((date, idx) => (
-                  <th key={`header-${idx}`} className="text-right p-2 widget-text font-semibold">
+                  <th key={`header-${idx}`} className="text-right p-2 widget-text font-semibold whitespace-nowrap">
                     {date}
                   </th>
                 ))
               ) : (
                 processedDataByLevel.map((_, idx) => (
-                  <th key={`header-${idx}`} className="text-right p-2 widget-text font-semibold">
+                  <th key={`header-${idx}`} className="text-right p-2 widget-text font-semibold whitespace-nowrap">
                     Level {idx + 1}
                   </th>
                 ))

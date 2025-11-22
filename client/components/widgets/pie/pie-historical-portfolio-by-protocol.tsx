@@ -6,13 +6,15 @@ import { getProtocolValueDictionary } from '@/handlers/portfolio-handler';
 import { processPieChartData } from '@/handlers/pie-chart-handler';
 import PieChartComponent from '@/components/charts/pie';
 
-export default function PieHistoricalPortfolioByProtocol() {
-  const date = '2025-06-06';
-  const targetAddress = '0x3f5eddad52c665a4aa011cd11a21e1d5107d7862';
-  
+interface PieHistoricalPortfolioByProtocolProps {
+  address: string;
+  date: string;
+}
+
+export default function PieHistoricalPortfolioByProtocol({ address, date }: PieHistoricalPortfolioByProtocolProps) {
   const { data, isLoading, error } = useGetHistorical({
-    address: targetAddress,
-    date
+    address: address,
+    date: date
   });
 
   if (isLoading) return <p>Loading...</p>;
@@ -29,9 +31,7 @@ export default function PieHistoricalPortfolioByProtocol() {
   // Extract portfolio from Record structure (data is Record<string, Portfolio>)
   const dataRecord = data as Record<string, Portfolio> | undefined;
   const portfolioEntries = dataRecord ? Object.entries(dataRecord) as [string, Portfolio][] : [];
-  const portfolio = dataRecord?.[targetAddress] || (portfolioEntries.length > 0 ? portfolioEntries[0][1] : null);
-
-  console.log('PieChart - Historical Portfolio data:', portfolio);
+  const portfolio = dataRecord?.[address] || (portfolioEntries.length > 0 ? portfolioEntries[0][1] : null);
 
   if (!portfolio) {
     return (

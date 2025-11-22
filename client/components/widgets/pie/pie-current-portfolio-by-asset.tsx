@@ -5,16 +5,18 @@ import { Portfolio } from '@/types/portfolio';
 import { getAssetValueDictionary } from '@/handlers/portfolio-handler';
 import { processPieChartData } from '@/handlers/pie-chart-handler';
 import PieChartComponent from '@/components/charts/pie';
-import { LoadingSpinner } from '../loading-spinner';
+import { LoadingSpinner } from '@/components/loading-spinner';
 
-export default function PieCurrentPortfolioByAsset() {
-  const targetAddress = '0xc9c61194682a3a5f56bf9cd5b59ee63028ab6041';
-  
+interface PieCurrentPortfolioByAssetProps {
+  address: string;
+}
+
+export default function PieCurrentPortfolioByAsset({ address }: PieCurrentPortfolioByAssetProps) {
   // Get current date for title
   const currentDate = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
   
   const { data, isLoading, error } = useGetPortfolio({
-    address: targetAddress,
+    address: address,
     includeImages: true,
     includeExplorerUrls: true,
     waitForSync: true,
@@ -34,9 +36,7 @@ export default function PieCurrentPortfolioByAsset() {
   // Extract portfolio from Record structure (data is Record<string, Portfolio>)
   const dataRecord = data as Record<string, Portfolio> | undefined;
   const portfolioEntries = dataRecord ? Object.entries(dataRecord) as [string, Portfolio][] : [];
-  const portfolio = dataRecord?.[targetAddress] || (portfolioEntries.length > 0 ? portfolioEntries[0][1] : null);
-
-  console.log('PieChart - Portfolio data:', portfolio);
+  const portfolio = dataRecord?.[address] || (portfolioEntries.length > 0 ? portfolioEntries[0][1] : null);
 
   if (!portfolio) {
     return (

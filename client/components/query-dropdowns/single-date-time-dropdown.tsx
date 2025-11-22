@@ -49,6 +49,13 @@ export function SingleDateTimeDropdown({ value, onChange }: SingleDateTimeDropdo
         }
         return { year: prev.year, month: prev.month - 1 };
       } else {
+        // Only allow navigating to future months if they're not beyond today
+        const today = new Date();
+        const nextDate = new Date(prev.year, prev.month + 1, 1);
+        if (nextDate > today) {
+          // Don't navigate to future months
+          return prev;
+        }
         if (prev.month === 11) {
           return { year: prev.year + 1, month: 0 };
         }
@@ -114,7 +121,12 @@ export function SingleDateTimeDropdown({ value, onChange }: SingleDateTimeDropdo
             </h3>
             <button
               onClick={() => navigateMonth('next')}
-              className="p-1 hover:bg-accent rounded transition-colors"
+              disabled={(() => {
+                const today = new Date();
+                const nextMonth = new Date(currentView.year, currentView.month + 1, 1);
+                return nextMonth > today;
+              })()}
+              className="p-1 hover:bg-accent rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               →
             </button>
@@ -134,17 +146,17 @@ export function SingleDateTimeDropdown({ value, onChange }: SingleDateTimeDropdo
               const dateStr = formatDateISO(date);
               const isToday = date.getTime() === today.getTime();
               const isSelected = value && formatDateISO(value) === dateStr;
-              const isPast = date < today;
+              const isFuture = date > today;
 
               return (
                 <button
                   key={index}
                   onClick={() => handleDateClick(date)}
-                  disabled={isPast}
+                  disabled={isFuture}
                   className={`aspect-square p-1 rounded transition-colors text-sm ${
                     isSelected
                       ? 'bg-primary text-primary-foreground'
-                      : isPast
+                      : isFuture
                       ? 'text-muted-foreground opacity-50 cursor-not-allowed'
                       : isToday
                       ? 'bg-accent hover:bg-accent/80'
@@ -161,9 +173,14 @@ export function SingleDateTimeDropdown({ value, onChange }: SingleDateTimeDropdo
               <input
                 type="date"
                 value={formatDateISO(value)}
+                max={today.toISOString().split('T')[0]}
                 onChange={(e) => {
                   if (e.target.value) {
-                    onChange(new Date(e.target.value));
+                    const selectedDate = new Date(e.target.value);
+                    // Only allow past dates (including today)
+                    if (selectedDate <= today) {
+                      onChange(selectedDate);
+                    }
                   }
                 }}
                 className="w-full px-3 py-2 border border-border bg-background text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"

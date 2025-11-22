@@ -24,9 +24,9 @@ export function DashboardFooter() {
   }, []);
 
   return (
-    <footer className="w-full flex flex-col items-center justify-center py-8 mt-8">
+    <footer className="w-full flex flex-col items-center justify-center pt-4 pb-[15px] mt-4">
       {/* Powered by text */}
-      <p className="text-center text-sm text-foreground mb-6">powered by</p>
+      <p className="text-center text-sm text-foreground mb-3">powered by</p>
       
       {/* Logo table */}
       <div className="w-full max-w-[30.576rem]">
@@ -35,7 +35,7 @@ export function DashboardFooter() {
             <tr>
               {/* Left cell: Octav sideview */}
               <td className="w-1/2 text-center align-middle">
-                <div className="flex items-center justify-center h-[4.48rem]">
+                <div className="flex items-center justify-center h-[3.136rem]">
                   <Image
                     src={isDark ? '/octav-sideview-dark.png' : '/octav-sideview-light.png'}
                     alt="Octav"
@@ -48,7 +48,7 @@ export function DashboardFooter() {
               
               {/* Right cell: Habeas logo */}
               <td className="w-1/2 text-center align-middle">
-                <div className="flex items-center justify-center h-[4.48rem]">
+                <div className="flex items-center justify-center h-[3.136rem]">
                   <Image
                     src={isDark ? '/habeas-logo-dark-transparent.png' : '/habeas-logo-light-transparent.png'}
                     alt="Habeas"
