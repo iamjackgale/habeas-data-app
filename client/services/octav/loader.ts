@@ -1,6 +1,7 @@
 import { useQueries, useQuery, UseQueryOptions } from '@tanstack/react-query';
 import { getPortfolio, GetPortfolioParams } from './portfolio';
 import { Portfolio } from '@/types/portfolio';
+import { getHistorical, GetHistoricalParams } from './historical';
 
 const PORTFOLIO_ADDRESSES = [
   // "0x3f5eddad52c665a4aa011cd11a21e1d5107d7862",
@@ -38,10 +39,31 @@ export function useGetPortfolio(
         error: results.find(result => result.error)?.error || null,
       };
     }
-  });
-  // return useQuery({
-  //   queryKey: ['portfolio', params.address, params.includeImages, params.includeExplorerUrls, params.waitForSync],
-  //   queryFn: () => getPortfolio(params),
-  //   ...options,
-  // });
+  })
+}
+
+export function useGetHistorical(
+  params: GetHistoricalParams,
+  options?: Omit<UseQueryOptions<Portfolio, Error, Portfolio, (string | boolean | undefined)[]>, 'queryKey' | 'queryFn'>
+) {
+    return useQueries({
+    queries: 
+      PORTFOLIO_ADDRESSES.map(address => ({
+        queryKey: ['portfolio', address, params.date],
+        queryFn: () => getHistorical({ ...params, address: address }),
+        ...options,
+      })),
+    combine: (results) => {
+      return {
+        data: results.reduce((acc, result) => {
+          if (result.data) {
+            acc[result.data.address] = result.data;
+          }
+          return acc;
+        }, {} as Record<string, Portfolio>),
+        isLoading: results.some(result => result.isLoading),
+        error: results.find(result => result.error)?.error || null,
+      };
+    }
+  })
 }

@@ -1,6 +1,7 @@
 import Portfolio from '@/components/widgets/portfolio';
 import PiePortfolioByProtocol from '@/components/widgets/pie-portfolio-by-protocol';
 import { generateMetadata } from '@/lib/metadata';
+import Historical from '@/components/widgets/historic';
 
 export const metadata = generateMetadata({
   title: 'Template',
@@ -17,6 +18,9 @@ export default function Page() {
         </div>
         <div>
           <PiePortfolioByProtocol />
+        </div>
+        <div>
+          <Historical />
         </div>
       </div>
     </div>
