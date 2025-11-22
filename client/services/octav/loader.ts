@@ -5,26 +5,17 @@ import { getHistorical, GetHistoricalParams, GetHistoricalRangeParams } from './
 import { Transaction, TransactionType } from '@/types/transaction';
 import { getTransactions } from './transactions';
 
-const PORTFOLIO_ADDRESSES = [
-  // "0x3f5eddad52c665a4aa011cd11a21e1d5107d7862",
-  // "0x26de4ebffbe8d3d632a292c972e3594efc2eceed",
-  // "0x1a07dceefeebba3d1873e2b92bef190d2f11c3cb",
-  // "0x7c780b8a63ee9b7d0f985e8a922be38a1f7b2141",
-  // "0xc9c61194682a3a5f56bf9cd5b59ee63028ab6041",
-  // "0x37ed06d71dffb97b6e89469ebf29552da46e52fa",
-  // "0x008f84b4f7b625636dd3e75045704b077d8db445",
-  "0x4aba01fb8e1f6bfe80c56deb367f19f35df0f4ae",
-  // "0xe37dd9a535c1d3c9fc33e3295b7e08bd1c42218d",
-  // "0x10e13f11419165beb0f456ec8a230899e4013bbd"
-];
+interface UseGetPortfolioParams extends Omit<GetPortfolioParams, 'address'> {
+  addresses: string[];
+}
 
 export function useGetPortfolio(
-  params: GetPortfolioParams,
+  params: UseGetPortfolioParams,
   options?: Omit<UseQueryOptions<Portfolio, Error, Portfolio, (string | boolean | undefined)[]>, 'queryKey' | 'queryFn'>
 ) {
   return useQueries({
     queries: 
-      PORTFOLIO_ADDRESSES.map(address => ({
+      params.addresses.map(address => ({
         queryKey: ['portfolio', address, params.includeImages, params.includeExplorerUrls, params.waitForSync],
         queryFn: () => getPortfolio({ ...params, address: address }),
         ...options,
@@ -44,13 +35,18 @@ export function useGetPortfolio(
   })
 }
 
+// params for useGetHistorical should be GetHistoricalParams without address and with addresses instead
+interface UseGetHistoricalParams extends Omit<GetHistoricalParams, 'address'> {
+  addresses: string[];
+}
+
 export function useGetHistorical(
-  params: GetHistoricalParams,
+  params: UseGetHistoricalParams,
   options?: Omit<UseQueryOptions<Portfolio, Error, Portfolio, (string | boolean | undefined)[]>, 'queryKey' | 'queryFn'>
 ) {
     return useQueries({
     queries: 
-      PORTFOLIO_ADDRESSES.map(address => ({
+      params.addresses.map(address => ({
         queryKey: ['portfolio', address, params.date],
         queryFn: () => getHistorical({ ...params, address: address }),
         ...options,
@@ -77,8 +73,12 @@ export function useGetHistorical(
   })
 }
 
+// params for useGetHistoricalRange should be GetHistoricalRangeParams without address and with addresses instead
+interface UseGetHistoricalRangeParams extends Omit<GetHistoricalRangeParams, 'address'> {
+  addresses: string[];
+}
 export function useGetHistoricalRange(
-  params: GetHistoricalRangeParams,
+  params: UseGetHistoricalRangeParams,
   options?: Omit<UseQueryOptions<Record<string, Portfolio>, Error>, 'queryKey' | 'queryFn'>
 ) {
   return useQueries({
@@ -87,7 +87,7 @@ export function useGetHistoricalRange(
       queryFn: async () => {
         // Fetch all addresses for this date in parallel
         const results = await Promise.all(
-          PORTFOLIO_ADDRESSES.map(address =>
+          params.addresses.map(address =>
             getHistorical({ date, address })
           )
         );
