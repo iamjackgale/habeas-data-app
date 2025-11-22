@@ -14,7 +14,12 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { getWidgetTimePeriodType, requiresChains, requiresAddresses, hasCategories } from '@/lib/widget-time-config';
 import { AddressDropdown } from '@/components/query-dropdowns/address-dropdown';
 import { renderWidget, WidgetRenderParams } from '@/lib/widget-renderer';
+import { renderTable, TableRenderParams, TableRenderResult } from '@/lib/table-renderer';
+import { convertTableToCSV, convertComparisonTableToCSV, downloadTableAsCSV } from '@/lib/table-download';
+import { extractTableDataFromDOM, extractComparisonTableDataFromDOM } from '@/lib/table-csv-extractor';
+import { getTableKeyFromWidgetKey } from '@/lib/widget-table-mapping';
 import { downloadWidgetAsPNG } from '@/lib/widget-download';
+import { TableSelectorDropdown } from '@/components/query-dropdowns/table-selector-dropdown';
 import Link from 'next/link';
 
 type Mode = 'portfolio' | 'transactions';
@@ -33,12 +38,21 @@ interface StoredWidgetParams {
   categories?: string[];
 }
 
+interface StoredTableParams {
+  tableKey: string;
+  addresses: string[];
+  dates: string[];
+  chains?: string[];
+  categories?: string[];
+}
+
 export default function QueryPage() {
   const [mode, setMode] = useState<Mode>('portfolio');
   const [selectedCategories, setSelectedCategories] = useState<Set<string>>(new Set());
   const [selectedChains, setSelectedChains] = useState<Set<string>>(new Set());
   const [selectedAddresses, setSelectedAddresses] = useState<Set<string>>(new Set());
   const [selectedWidget, setSelectedWidget] = useState<string | null>(null);
+  const [selectedTable, setSelectedTable] = useState<string | null>(null);
   const [timePeriod, setTimePeriod] = useState<TimePeriodValue>({
     startDate: null,
     endDate: null,
@@ -64,6 +78,13 @@ export default function QueryPage() {
   const previousWidgetRef = useRef<RenderedWidget | null>(null);
   // Ref for the widget container to capture for download
   const widgetContainerRef = useRef<HTMLDivElement>(null);
+  // State to track rendered table (for Table tab)
+  const [renderedTable, setRenderedTable] = useState<React.ReactNode | null>(null);
+  const [tableData, setTableData] = useState<TableRenderResult | null>(null);
+  const tableContainerRef = useRef<HTMLDivElement>(null);
+  // Store the previous table to restore if error occurs
+  const previousTableRef = useRef<React.ReactNode | null>(null);
+  const previousTableDataRef = useRef<TableRenderResult | null>(null);
 
   // Load last rendered widget from localStorage on mount
   useEffect(() => {
@@ -87,6 +108,29 @@ export default function QueryPage() {
           };
           setRenderedWidget(storedWidget);
           previousWidgetRef.current = storedWidget;
+          
+          // Also render the corresponding table in Table tab (this overrides any stored standalone table)
+          const tableKey = getTableKeyFromWidgetKey(params.widgetKey);
+          if (tableKey) {
+            const tableParams: TableRenderParams = {
+              tableKey: tableKey,
+              addresses: params.addresses,
+              dates: params.dates,
+              chains: params.chains || [],
+              categories: params.categories || [],
+            };
+            const tableResult = renderTable(tableParams);
+            // Wrap in a div with a key to ensure React recognizes it as a new component
+            const tableKeyUnique = `table-from-widget-stored-${params.widgetKey}-${Date.now()}`;
+            setRenderedTable(
+              <div key={tableKeyUnique}>
+                {tableResult.component}
+              </div>
+            );
+            setTableData(tableResult);
+            previousTableRef.current = tableResult.component;
+            previousTableDataRef.current = tableResult;
+          }
         }
       } catch (error) {
         console.error('Error loading stored widget:', error);
@@ -96,11 +140,56 @@ export default function QueryPage() {
     loadStoredWidget();
   }, []);
 
+  // Load last rendered table from localStorage on mount (only if no widget was loaded)
+  useEffect(() => {
+    const loadStoredTable = () => {
+      // Only load stored table if no widget was loaded (to avoid conflicts)
+      const hasStoredWidget = localStorage.getItem('lastRenderedWidget');
+      if (hasStoredWidget) {
+        // Widget will handle rendering the Data tab table, so skip loading standalone table
+        return;
+      }
+      
+      try {
+        const stored = localStorage.getItem('lastRenderedTable');
+        if (stored) {
+          const params: StoredTableParams = JSON.parse(stored);
+          const tableParams: TableRenderParams = {
+            tableKey: params.tableKey,
+            addresses: params.addresses,
+            dates: params.dates,
+            chains: params.chains || [],
+            categories: params.categories || [],
+          };
+          const tableResult = renderTable(tableParams);
+          setRenderedTable(tableResult.component);
+          setTableData(tableResult);
+          previousTableRef.current = tableResult.component;
+          previousTableDataRef.current = tableResult;
+        }
+      } catch (error) {
+        console.error('Error loading stored table:', error);
+      }
+    };
+
+    loadStoredTable();
+  }, []);
+
   // Determine which time dropdown to show based on selected widget
   const widgetTimeType = getWidgetTimePeriodType(selectedWidget);
   const showChains = requiresChains(selectedWidget);
   const showAddresses = requiresAddresses(selectedWidget);
   const showCategories = hasCategories(selectedWidget, mode);
+
+  // Determine table time type based on selected table
+  const getTableTimeType = (tableKey: string | null): 'single' | 'multi' => {
+    if (!tableKey) return 'single';
+    if (tableKey.startsWith('comparison-')) return 'multi';
+    if (tableKey.startsWith('historical-')) return 'single';
+    return 'single'; // Current portfolio tables use current date
+  };
+
+  const tableTimeType = getTableTimeType(selectedTable);
 
   // Handle Pay button click - render the widget
   const handlePay = () => {
@@ -192,6 +281,35 @@ export default function QueryPage() {
     // Store current widget as previous before rendering new one
     previousWidgetRef.current = renderedWidget;
 
+    // Immediately render corresponding table in Table tab (before widget wrapper checks for errors)
+    // This ensures the table is always updated when a widget is rendered
+    // Store current table as previous before rendering new one
+    previousTableRef.current = renderedTable;
+    previousTableDataRef.current = tableData;
+    
+    const tableKey = getTableKeyFromWidgetKey(selectedWidget);
+    if (tableKey) {
+      const tableParams: TableRenderParams = {
+        tableKey: tableKey,
+        addresses: addresses,
+        dates: dates,
+        chains: chains,
+        categories: categories,
+      };
+      const tableResult = renderTable(tableParams);
+      
+      // Use a unique key based on widget and timestamp to force React to recognize it as new
+      const tableKeyUnique = `table-from-widget-${selectedWidget}-${Date.now()}`;
+      const wrappedTable = (
+        <div key={tableKeyUnique}>
+          {tableResult.component}
+        </div>
+      );
+      
+      setRenderedTable(wrappedTable);
+      setTableData(tableResult);
+    }
+
     // Render the widget
     const widgetComponent = renderWidget(params);
 
@@ -235,6 +353,9 @@ export default function QueryPage() {
                 };
                 localStorage.setItem('lastRenderedWidget', JSON.stringify(paramsToStore));
                 hasStoredRef.current = true;
+                
+                // Note: Table is already rendered above in handlePay, so we don't need to render it again here
+                // The table was rendered immediately when the widget was requested, ensuring it's always in sync
               } catch (err) {
                 console.error('Error storing widget params:', err);
               }
@@ -273,6 +394,222 @@ export default function QueryPage() {
     };
 
     setRenderedWidget(newWidget);
+  };
+
+  // Handle table rendering (similar to handlePay but for tables)
+  const handleTableRender = () => {
+    if (!selectedTable) {
+      alert('Please select a table first');
+      return;
+    }
+
+    const addresses = Array.from(selectedAddresses);
+    if (addresses.length === 0) {
+      alert('Please select at least one address');
+      return;
+    }
+
+    // Extract dates based on table type
+    const dates: string[] = [];
+    
+    if (tableTimeType === 'single') {
+      if (selectedTable === 'portfolio-by-protocol' || selectedTable === 'portfolio-by-asset') {
+        // Current portfolio tables use current date automatically
+        dates.push(new Date().toISOString().split('T')[0]);
+      } else if (singleDate) {
+        const year = singleDate.getFullYear();
+        const month = String(singleDate.getMonth() + 1).padStart(2, '0');
+        const day = String(singleDate.getDate()).padStart(2, '0');
+        dates.push(`${year}-${month}-${day}`);
+      }
+    } else if (tableTimeType === 'multi') {
+      if (multiDate.mode === 'list') {
+        multiDate.dates.forEach(date => {
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          dates.push(`${year}-${month}-${day}`);
+        });
+      } else if (multiDate.mode === 'interval' && multiDate.startDate) {
+        const start = new Date(multiDate.startDate);
+        const count = Math.min(multiDate.intervalCount || 12, 12);
+        const type = multiDate.intervalType || 'daily';
+
+        for (let i = 0; i < count; i++) {
+          const date = new Date(start);
+          if (type === 'daily') {
+            date.setDate(date.getDate() + i);
+          } else if (type === 'weekly') {
+            date.setDate(date.getDate() + (i * 7));
+          } else if (type === 'monthly') {
+            date.setMonth(date.getMonth() + i);
+          }
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          dates.push(`${year}-${month}-${day}`);
+        }
+      }
+    }
+    
+    if (tableTimeType === 'single' && !selectedTable.startsWith('portfolio-by-') && dates.length === 0) {
+      alert('Please select a date');
+      return;
+    }
+
+    if (tableTimeType === 'multi' && dates.length === 0) {
+      alert('Please select at least one date');
+      return;
+    }
+
+    const chains = Array.from(selectedChains);
+    const categories = Array.from(selectedCategories);
+
+    const params: TableRenderParams = {
+      tableKey: selectedTable,
+      addresses: addresses,
+      dates: dates,
+      chains: chains,
+      categories: categories,
+    };
+
+    // Store current table as previous before rendering new one
+    previousTableRef.current = renderedTable;
+    previousTableDataRef.current = tableData;
+
+    const tableResult = renderTable(params);
+
+    // Create a wrapper component that can detect errors after rendering
+    const TableWrapper = ({ 
+      children, 
+      tableKey, 
+      addresses: addrs, 
+      dates: dts, 
+      chains: chns, 
+      categories: cats
+    }: { 
+      children: React.ReactNode; 
+      tableKey: string;
+      addresses: string[];
+      dates: string[];
+      chains: string[];
+      categories: string[];
+    }) => {
+      const containerRef = useRef<HTMLDivElement>(null);
+      const hasStoredRef = useRef(false);
+      const errorCheckedRef = useRef(false);
+
+      useEffect(() => {
+        // Check if the rendered content contains error indicators after a short delay
+        // to allow the table to fully render
+        const timeoutId = setTimeout(() => {
+          if (containerRef.current && !hasStoredRef.current && !errorCheckedRef.current) {
+            const hasError = containerRef.current.querySelector('.border-red-300, .border-yellow-300') !== null;
+            errorCheckedRef.current = true;
+            
+            // Only store if there's no error
+            if (!hasError) {
+              try {
+                const paramsToStore: StoredTableParams = {
+                  tableKey: tableKey,
+                  addresses: addrs,
+                  dates: dts,
+                  chains: chns.length > 0 ? chns : undefined,
+                  categories: cats.length > 0 ? cats : undefined,
+                };
+                localStorage.setItem('lastRenderedTable', JSON.stringify(paramsToStore));
+                hasStoredRef.current = true;
+              } catch (err) {
+                console.error('Error storing table params:', err);
+              }
+            } else {
+              // Error detected - restore previous table after 5 seconds
+              if (previousTableRef.current && previousTableDataRef.current) {
+                setTimeout(() => {
+                  setRenderedTable(previousTableRef.current);
+                  setTableData(previousTableDataRef.current);
+                }, 5000); // Wait 5 seconds before restoring
+              }
+            }
+          }
+        }, 500); // Wait 500ms for table to render
+
+        return () => clearTimeout(timeoutId);
+      }, [children, tableKey, addrs, dts, chns, cats]);
+
+      return <div ref={containerRef}>{children}</div>;
+    };
+
+    // Replace the existing table
+    setRenderedTable(
+      <TableWrapper
+        tableKey={selectedTable}
+        addresses={addresses}
+        dates={dates}
+        chains={chains}
+        categories={categories}
+      >
+        {tableResult.component}
+      </TableWrapper>
+    );
+    setTableData(tableResult);
+  };
+
+  // Handle CSV download
+  const handleTableDownload = () => {
+    if (!tableData || !tableContainerRef.current) {
+      alert('No table data available to download');
+      return;
+    }
+
+    try {
+      // Find the table element in the container
+      const tableElement = tableContainerRef.current.querySelector('table');
+      if (!tableElement) {
+        alert('Table not found. Please try rendering the table again.');
+        return;
+      }
+
+      let csvContent: string;
+      let filename: string;
+
+      // Check if it's a comparison table (has multiple date columns)
+      const headerCells = tableElement.querySelectorAll('thead th');
+      const isComparisonTable = headerCells.length > 2; // More than Name + Value columns
+
+      if (isComparisonTable) {
+        // Extract comparison table data from DOM
+        const extracted = extractComparisonTableDataFromDOM(tableElement);
+        if (!extracted) {
+          alert('Failed to extract comparison table data. Please try again.');
+          return;
+        }
+        csvContent = convertComparisonTableToCSV(
+          extracted.data,
+          tableData.title,
+          extracted.dates
+        );
+        filename = `${selectedTable || 'table'}-${new Date().toISOString().split('T')[0]}.csv`;
+      } else {
+        // Extract regular table data from DOM
+        const extracted = extractTableDataFromDOM(tableElement);
+        if (!extracted) {
+          alert('Failed to extract table data. Please try again.');
+          return;
+        }
+        csvContent = convertTableToCSV(
+          extracted,
+          tableData.title,
+          tableData.showTransactions || false
+        );
+        filename = `${selectedTable || 'table'}-${new Date().toISOString().split('T')[0]}.csv`;
+      }
+
+      downloadTableAsCSV(csvContent, filename);
+    } catch (error) {
+      console.error('Error downloading table:', error);
+      alert(`Failed to download table: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   };
 
   // Handle download button click
@@ -433,31 +770,83 @@ export default function QueryPage() {
           </TabsContent>
           
           <TabsContent value="table" className="mt-0">
-            <div className="flex flex-col gap-6 items-start">
-              <PortfolioTransactionsToggle defaultMode={mode} onChange={setMode} />
-              <TimePeriodDropdown value={timePeriod} onChange={setTimePeriod} />
-              
-              {/* Show addresses for portfolio mode, chains for transactions mode (or both) */}
-              {mode === 'portfolio' && (
-                <div className="w-full max-w-md">
-                  <AddressDropdown value={selectedAddresses} onChange={setSelectedAddresses} />
+            <div className="flex gap-6">
+              {/* Parameters - 40% width */}
+              <div className="flex flex-col gap-6 items-start w-[40%]">
+                <PortfolioTransactionsToggle defaultMode={mode} onChange={setMode} />
+                <TableSelectorDropdown mode={mode} value={selectedTable} onChange={setSelectedTable} />
+                
+                {/* Conditionally render time dropdown based on table type */}
+                {selectedTable && tableTimeType === 'single' && (
+                  <div className="w-full max-w-md">
+                    <SingleDateTimeDropdown value={singleDate} onChange={setSingleDate} />
+                  </div>
+                )}
+                
+                {selectedTable && tableTimeType === 'multi' && (
+                  <div className="w-full max-w-md">
+                    <MultiDateTimeDropdown value={multiDate} onChange={setMultiDate} />
+                  </div>
+                )}
+                
+                {selectedTable && tableTimeType === 'timescale' && (
+                  <div className="w-full max-w-md">
+                    <TimePeriodDropdown value={timePeriod} onChange={setTimePeriod} />
+                  </div>
+                )}
+                
+                {!selectedTable && (
+                  <div className="w-full max-w-md">
+                    <TimePeriodDropdown value={timePeriod} onChange={setTimePeriod} />
+                  </div>
+                )}
+                
+                {/* Show addresses for portfolio mode */}
+                {mode === 'portfolio' && (
+                  <div className="w-full max-w-md">
+                    <AddressDropdown value={selectedAddresses} onChange={setSelectedAddresses} />
+                  </div>
+                )}
+                
+                {/* Show chains for transactions mode */}
+                {mode === 'transactions' && (
+                  <div className="w-full max-w-md">
+                    <ChainDropdown value={selectedChains} onChange={setSelectedChains} />
+                  </div>
+                )}
+                
+                {/* Categories only shown for transactions mode */}
+                {mode === 'transactions' && (
+                  <div className="w-full max-w-md">
+                    <CategoryDropdown value={selectedCategories} onChange={setSelectedCategories} />
+                  </div>
+                )}
+                
+                <div className="flex gap-3">
+                  <PayButton fee="0.025" onClick={handleTableRender} />
+                  {renderedTable && tableData && (
+                    <button
+                      onClick={handleTableDownload}
+                      className="border-none cursor-pointer bg-[#347745] text-white px-5 py-2.5 rounded font-semibold hover:opacity-90 transition-opacity"
+                    >
+                      Download CSV
+                    </button>
+                  )}
                 </div>
-              )}
-              
-              {(mode === 'transactions' || showChains) && (
-                <div className="w-full max-w-md">
-                  <ChainDropdown value={selectedChains} onChange={setSelectedChains} />
-                </div>
-              )}
-              
-              {/* Categories only shown for transactions mode */}
-              {mode === 'transactions' && (
-                <div className="w-full max-w-md">
-                  <CategoryDropdown value={selectedCategories} onChange={setSelectedCategories} />
-                </div>
-              )}
-              
-              <PayButton fee="0.025" />
+              </div>
+
+              {/* Rendered Table - 60% width */}
+              <div className="w-[60%] flex flex-col gap-4 min-h-[713px] pb-6" ref={tableContainerRef}>
+                {renderedTable ? (
+                  <div className="w-full">
+                    {renderedTable}
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center min-h-[713px] border border-border rounded-lg text-muted-foreground">
+                    <p>Select Query Parameters And Pay To Generate Results</p>
+                  </div>
+                )}
+              </div>
             </div>
           </TabsContent>
           
