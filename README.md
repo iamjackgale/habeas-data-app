@@ -27,7 +27,7 @@ Instances of the Habeas app are owned by user organisations, and configured to s
 
 **Screenshot 4**: the Dashboard page becomes the default access page for the organisation's stakeholders and users, but is the final product of setting up and utilising the the Habeas application's tools and services.
 
-![Screenshot4]()
+![Screenshot4](client/public/screenshots/portfolio-page.png)
 
 </details>
 
