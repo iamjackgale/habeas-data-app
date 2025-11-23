@@ -1,11 +1,11 @@
-import { Portfolio, ProtocolPosition, Asset } from '@/types/portfolio';
+import { TPortfolio, ProtocolPosition, Asset } from '@/types/portfolio';
 
 /**
  * Get protocol value dictionary from portfolio data
  * @param portfolioData - Portfolio data object
  * @returns Record mapping protocol keys to their values
  */
-export function getProtocolValueDictionary(portfolioData: Portfolio | undefined): Record<string, string> {
+export function getProtocolValueDictionary(portfolioData: TPortfolio | undefined): Record<string, string> {
   if (!portfolioData?.assetByProtocols) {
     return {};
   }
@@ -58,7 +58,7 @@ function extractAssetsFromPosition(position: ProtocolPosition): Asset[] {
  * @returns Record mapping asset symbol/name to their aggregated values
  */
 export function getAssetValueDictionary(
-  portfolioData: Portfolio | undefined,
+  portfolioData: TPortfolio | undefined,
   useSymbol: boolean = true
 ): Record<string, string> {
   if (!portfolioData?.assetByProtocols) {
@@ -166,7 +166,7 @@ export function getComparisonAssetValueDictionary(
  */
 export function getComparisonNetWorthDictionary(
   dates: string[],
-  portfolios: (Portfolio | undefined)[]
+  portfolios: (TPortfolio | undefined)[]
 ): Record<string, number> {
   const netWorthDict: Record<string, number> = {};
   

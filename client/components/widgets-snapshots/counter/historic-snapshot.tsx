@@ -9,13 +9,13 @@ export default function HistoricalSnapshot() {
   const targetAddress = defaults?.historic?.address || '0xc9c61194682a3a5f56bf9cd5b59ee63028ab6041';
   
   const { data, isLoading, error } = useGetHistorical({
-    address: targetAddress,
+    addresses: [targetAddress],
     date
   });
 
   if (defaultsLoading || isLoading) return <p>Loading...</p>;
 
-  if (error) {
+  if (error !== null) {
     return (
       <div className="p-4 border border-red-300 bg-red-50 rounded-md">
         <p className="font-semibold text-red-800">Error</p>
@@ -23,6 +23,11 @@ export default function HistoricalSnapshot() {
       </div>
     );
   }
+
+  if (!data) return null;
+
+  console.log('daterino')
+  console.log(data)
 
   const netWorth = Object.values(data).reduce((acc, portfolio) => acc + parseFloat(portfolio.networth), 0);
 

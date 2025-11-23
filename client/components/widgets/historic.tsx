@@ -9,8 +9,8 @@ interface HistoricalProps {
 }
 
 export default function Historical({ address, date }: HistoricalProps) {
-  const { data, isLoading, error, progress } = useGetHistorical({
-    address: address,
+  const { data, isLoading, error } = useGetHistorical({
+    addresses: [address],
     date: date
   });
 

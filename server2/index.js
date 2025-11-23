@@ -41,6 +41,23 @@ app.use(paymentMiddleware(
           }
         }
       }
+    },
+    "POST /octav-pay": {
+      // price in USDC (0.01 USDC)
+      price: "$0.01",
+      // using Base Sepolia testnet
+      network: "base-sepolia",
+      // metadata about the endpoint for better discovery
+      config: {
+        description: "get a hello world message after payment",
+        outputSchema: {
+          type: "object",
+          properties: {
+            message: { type: "string", description: "greeting message" },
+            timestamp: { type: "string", description: "when the message was generated" }
+          }
+        }
+      }
     }
   },
   facilitator // use CDP's hosted facilitator (requires CDP_API_KEY and CDP_API_KEY_PRIVATE_KEY env vars)
@@ -55,6 +72,15 @@ app.get("/motivate", (req, res) => {
   });
 });
 
+// x402-enabled POST endpoint
+app.post("/octav-pay", (req, res) => {
+  res.json({
+    message: "Hello World",
+    timestamp: new Date().toISOString(),
+    paid: true
+  });
+});
+
 // Root endpoint - API info
 app.get("/", (req, res) => {
   res.json({
@@ -64,7 +90,8 @@ app.get("/", (req, res) => {
       "GET /health": "Health check",
       "GET /balance/:address": "Get USDC balance",
       "POST /faucet": "Request test USDC",
-      "GET /motivate": "Get motivational quote (requires 0.01 USDC payment)"
+      "GET /motivate": "Get motivational quote (requires 0.01 USDC payment)",
+      "POST /octav-pay": "Get hello world message (requires 0.01 USDC payment)"
     },
     payment: {
       price: "0.01 USDC",
@@ -152,6 +179,7 @@ app.listen(PORT, () => {
   console.log(`   • GET  /balance/:address - USDC balance via CDP Token Balances API (public)`);
   console.log(`   • POST /faucet           - request test USDC via CDP Faucet API (public)`);
   console.log(`   • GET  /motivate         - motivational quote (requires 0.01 USDC payment)`);
+  console.log(`   • POST /octav-pay        - hello world message (requires 0.01 USDC payment)`);
   console.log(`\nCDP products in use:`);
   console.log(`   • CDP x402 Facilitator - payment verification & settlement`);
   console.log(`   • CDP Faucet API       - test USDC distribution`);

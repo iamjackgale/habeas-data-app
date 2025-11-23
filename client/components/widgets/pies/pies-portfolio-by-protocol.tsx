@@ -1,7 +1,7 @@
 'use client';
 
 import { useGetHistorical } from '@/services/octav/loader';
-import { Portfolio } from '@/types/portfolio';
+import { TPortfolio } from '@/types/portfolio';
 import { getProtocolValueDictionary, getComparisonProtocolValueDictionary } from '@/handlers/portfolio-handler';
 import TwoLevelPieChartComponent from '@/components/charts/pies';
 import { useWidgetColors } from '@/hooks/use-widget-colors';
@@ -35,7 +35,7 @@ export default function PiesPortfolioByProtocol({ address, dates: rawDates }: Pi
   // Fetch historical data for all dates using hooks
   const historicalData = dates.map(date => 
     useGetHistorical({
-      address: address,
+      addresses: [address],
       date: date,
     })
   );
@@ -56,8 +56,8 @@ export default function PiesPortfolioByProtocol({ address, dates: rawDates }: Pi
 
   // Extract portfolios from Record structure for all dates
   const portfolios = historicalData.map((result, index) => {
-    const dataRecord = result.data as Record<string, Portfolio> | undefined;
-    const portfolioEntries = dataRecord ? Object.entries(dataRecord) as [string, Portfolio][] : [];
+    const dataRecord = result.data as Record<string, TPortfolio> | undefined;
+    const portfolioEntries = dataRecord ? Object.entries(dataRecord) as [string, TPortfolio][] : [];
     return dataRecord?.[address] || (portfolioEntries.length > 0 ? portfolioEntries[0][1] : undefined);
   });
 
@@ -73,7 +73,7 @@ export default function PiesPortfolioByProtocol({ address, dates: rawDates }: Pi
 
   // Get protocol dictionaries for all dates (portfolios are guaranteed to be non-null at this point)
   const protocolDictionaries = portfolios
-    .filter((portfolio): portfolio is Portfolio => portfolio !== undefined)
+    .filter((portfolio): portfolio is TPortfolio => portfolio !== undefined)
     .map(portfolio => getProtocolValueDictionary(portfolio));
 
   // Create comparison dictionary with all dictionaries

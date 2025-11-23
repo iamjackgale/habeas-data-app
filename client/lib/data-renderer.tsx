@@ -55,10 +55,10 @@ function DataDisplaySingle({
   onDataReady?: (data: PortfolioDownload[]) => void;
 }) {
   const { data, isLoading, error } = useGetPortfolio({
-    address: address,
+    addresses: [address],
     includeImages: false,
     includeExplorerUrls: false,
-    waitForSync: true,
+    waitForSync: false,
   });
 
   // Memoize portfolio extraction and conversion
@@ -130,7 +130,7 @@ function DataDisplayHistorical({
   onDataReady?: (data: PortfolioDownload[]) => void;
 }) {
   const { data, isLoading, error } = useGetHistorical({
-    address: address,
+    addresses: [address],
     date: date,
   });
 
@@ -205,7 +205,7 @@ function DataDisplayMultiple({
   // Fetch portfolio data for all dates - use useQueries pattern
   const historicalData = dates.map(date => 
     useGetHistorical({
-      address: address,
+      addresses: [address],
       date: date,
     })
   );

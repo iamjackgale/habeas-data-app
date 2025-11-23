@@ -38,7 +38,7 @@ export default function HistoricalRange({ address, dates }: HistoricalRangeProps
     <div className="p-4 border border-gray-300 widget-bg rounded-md">
       <p className="font-semibold widget-text mb-4">Historical Net Worth</p>
       <div className="space-y-2">
-        {Object.entries(data).map(([date, portfolios]) => {
+        {Object.entries(data.data).map(([date, portfolios]) => {
           const totalNetWorth = Object.values(portfolios).reduce(
             (acc, portfolio: any) => acc + parseFloat(portfolio.networth || '0'),
             0

@@ -8,11 +8,13 @@ export default function TransactionCountSnapshot() {
   const date = defaults?.historic?.date || '2025-06-06';
   const targetAddress = '0x008f84b4f7b625636dd3e75045704b077d8db445';
   
-  const { data, isLoading, error } = useGetTransactionsForDateRange(
+  const queryResult = useGetTransactionsForDateRange(
     [targetAddress],
     "2025-10-01",
     "2025-10-31"
   );
+  const { data } = queryResult.data || { data: [] };
+  const { isLoading, error } = queryResult;
 
   console.log('transaction data');
   console.log(data);

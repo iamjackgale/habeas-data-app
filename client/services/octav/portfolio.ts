@@ -1,8 +1,8 @@
 import axios, { AxiosError } from 'axios';
-import { Portfolio } from '@/types/portfolio';
+import { TPortfolio } from '@/types/portfolio';
 
 export interface GetPortfolioParams {
-  address: string;
+  addresses: string[];
   includeImages?: boolean;
   includeExplorerUrls?: boolean;
   waitForSync?: boolean;
@@ -13,17 +13,30 @@ export interface ApiErrorResponse {
   message?: string;
 }
 
+export interface CombinedPortfolioResponse {
+  data: Record<string, TPortfolio>;
+  progress: {
+    loaded: number;
+    total: number;
+    percentage: number;
+  };
+  errors?: Array<{
+    address: string;
+    error: string;
+  }>;
+}
+
 /**
- * Get portfolio data from NextJS API endpoint
+ * Get combined portfolio data from server endpoint
  * @param params - Portfolio query parameters
- * @returns {Promise<PortfolioResponse>} Portfolio data
- * @throws {Error} Error with message from API response
+ * @returns {Promise<Record<string, TPortfolio>>} Portfolio data keyed by address
+ * @throws {Error} Error with message from API response or from response errors array
  */
-export const getPortfolio = async (params: GetPortfolioParams): Promise<Portfolio> => {
-  const { address, includeImages, includeExplorerUrls, waitForSync } = params;
+export const getPortfolio = async (params: GetPortfolioParams): Promise<Record<string, TPortfolio>> => {
+  const { addresses, includeImages, includeExplorerUrls, waitForSync } = params;
 
   const queryParams = new URLSearchParams({
-    addresses: address,
+    addresses: addresses.join(','),
   });
 
   if (includeImages !== undefined) {
@@ -39,11 +52,20 @@ export const getPortfolio = async (params: GetPortfolioParams): Promise<Portfoli
   }
 
   try {
-    const response = await axios.get<Portfolio[]>(`/api/portfolio?${queryParams.toString()}`, {
-      withCredentials: true,
-    });
+    const response = await axios.get<CombinedPortfolioResponse>(
+      `http://localhost:3001/api/octav/portfolio?${queryParams.toString()}`,
+      {
+        withCredentials: false,
+      }
+    );
 
-    return response.data[0];
+    // Check for errors in the response
+    if (response.data.errors && response.data.errors.length > 0) {
+      const firstError = response.data.errors[0];
+      throw new Error(firstError.error || `Error fetching data for address ${firstError.address}`);
+    }
+
+    return response.data.data;
   } catch (error) {
     // Handle axios errors and extract API error message
     if (axios.isAxiosError(error)) {

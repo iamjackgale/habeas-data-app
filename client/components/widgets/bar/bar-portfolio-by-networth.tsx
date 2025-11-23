@@ -1,7 +1,7 @@
 'use client';
 
 import { useGetHistorical } from '@/services/octav/loader';
-import { Portfolio } from '@/types/portfolio';
+import { TPortfolio } from '@/types/portfolio';
 import { getComparisonNetWorthDictionary } from '@/handlers/portfolio-handler';
 import { BarChartDataEntry } from '@/handlers/bar-chart-handler';
 import BarChartComponent from '@/components/charts/bar';
@@ -41,23 +41,23 @@ export default function BarPortfolioByNetWorth({ address, dates: rawDates }: Bar
   
   // Call hooks individually (always call MAX_DATES hooks in same order)
   const hook1 = useGetHistorical({
-    address: address,
+    addresses: [address],
     date: dates[0] || DUMMY_DATE,
   });
   const hook2 = useGetHistorical({
-    address: address,
+    addresses: [address],
     date: dates[1] || DUMMY_DATE,
   });
   const hook3 = useGetHistorical({
-    address: address,
+    addresses: [address],
     date: dates[2] || DUMMY_DATE,
   });
   const hook4 = useGetHistorical({
-    address: address,
+    addresses: [address],
     date: dates[3] || DUMMY_DATE,
   });
   const hook5 = useGetHistorical({
-    address: address,
+    addresses: [address],
     date: dates[4] || DUMMY_DATE,
   });
 
@@ -81,8 +81,8 @@ export default function BarPortfolioByNetWorth({ address, dates: rawDates }: Bar
 
   // Extract portfolios from Record structure for all dates
   const portfolios = historicalData.map((result, index) => {
-    const dataRecord = result.data as Record<string, Portfolio> | undefined;
-    const portfolioEntries = dataRecord ? Object.entries(dataRecord) as [string, Portfolio][] : [];
+    const dataRecord = result.data as Record<string, TPortfolio> | undefined;
+    const portfolioEntries = dataRecord ? Object.entries(dataRecord) as [string, TPortfolio][] : [];
     return dataRecord?.[address] || (portfolioEntries.length > 0 ? portfolioEntries[0][1] : undefined);
   });
 

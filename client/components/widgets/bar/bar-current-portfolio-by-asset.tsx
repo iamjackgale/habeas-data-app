@@ -1,7 +1,7 @@
 'use client';
 
 import { useGetPortfolio } from '@/services/octav/loader';
-import { Portfolio } from '@/types/portfolio';
+import { TPortfolio } from '@/types/portfolio';
 import { getAssetValueDictionary } from '@/handlers/portfolio-handler';
 import { processBarChartData } from '@/handlers/bar-chart-handler';
 import BarChartComponent from '@/components/charts/bar';
@@ -19,7 +19,7 @@ export default function BarCurrentPortfolioByAsset({ address }: BarCurrentPortfo
   const widgetColors = useWidgetColors();
   
   const { data, isLoading, error } = useGetPortfolio({
-    address: address,
+    addresses: [address],
     includeImages: true,
     includeExplorerUrls: true,
     waitForSync: true,
@@ -37,8 +37,8 @@ export default function BarCurrentPortfolioByAsset({ address }: BarCurrentPortfo
   }
 
   // Extract portfolio from Record structure (data is Record<string, Portfolio>)
-  const dataRecord = data as Record<string, Portfolio> | undefined;
-  const portfolioEntries = dataRecord ? Object.entries(dataRecord) as [string, Portfolio][] : [];
+  const dataRecord = data as Record<string, TPortfolio> | undefined;
+  const portfolioEntries = dataRecord ? Object.entries(dataRecord) as [string, TPortfolio][] : [];
   const portfolio = dataRecord?.[address] || (portfolioEntries.length > 0 ? portfolioEntries[0][1] : null);
 
   if (!portfolio) {

@@ -29,12 +29,13 @@ export default function TableTransactionsByDay({ address, startDate, endDate }: 
   }
   
   // Fetch transactions for the date range
-  const { dataByAddress, isLoading, error } = useGetTransactionsForDateRange(
+  const queryResult = useGetTransactionsForDateRange(
     [address],
     startDate,
-    endDate,
-    {}
+    endDate
   );
+  const { dataByAddress = {} } = queryResult.data || { dataByAddress: {} as Record<string, Transaction[]> };
+  const { isLoading, error } = queryResult;
 
   if (isLoading) return <LoadingSpinner />;
 
