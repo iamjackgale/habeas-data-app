@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useCurrentUser } from '@coinbase/cdp-hooks';
 import { DashboardFooter } from '@/components/dashboard-footer';
 import { CategoryDropdown } from '@/components/query-dropdowns/category-dropdown';
 import { TimePeriodDropdown, TimePeriodValue } from '@/components/query-dropdowns/time-period-dropdown';
@@ -23,6 +24,7 @@ import { TableSelectorDropdown } from '@/components/query-dropdowns/table-select
 import { PortfolioDownload } from '@/types/portfolio-download';
 import { Transaction } from '@/types/transaction';
 import Link from 'next/link';
+import {  useX402 } from "@coinbase/cdp-hooks";
 
 type Mode = 'portfolio' | 'transactions';
 
@@ -56,6 +58,7 @@ interface StoredDataParams {
 }
 
 export default function QueryPage() {
+  const { currentUser } = useCurrentUser();
   const [mode, setMode] = useState<Mode>('portfolio');
   const [selectedCategories, setSelectedCategories] = useState<Set<string>>(new Set());
   const [selectedChains, setSelectedChains] = useState<Set<string>>(new Set());
@@ -264,8 +267,48 @@ export default function QueryPage() {
   const tableTimeType = getTableTimeType(selectedTable, mode);
   const showTableCategories = hasTableCategories(selectedTable, mode);
 
+  // Execute payment via x402 endpoint
+  const executePayment = async (amount: string): Promise<boolean> => {
+    try {
+      const walletAddress = currentUser?.evmAccounts?.[0];
+      
+      if (!walletAddress) {
+        alert('Wallet not connected');
+        return false;
+      }
+
+      const { fetchWithPayment } = useX402();
+      // Call the x402-gated endpoint
+      // The x402-express middleware will handle payment verification
+      const response = await fetchWithPayment('http://localhost:3001/octav/paid', {
+        method: 'GET'
+      })
+
+      if (!response.ok) {
+        throw new Error(`Payment failed: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.approved === true) {
+        return true;
+      }
+
+      return false;
+    } catch (error) {
+      console.error('Payment error:', error);
+      alert(`Payment failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      return false;
+    }
+  };
+
   // Handle Pay button click - render the widget
-  const handlePay = () => {
+  const handlePay = async () => {
+    // Execute payment first
+    const paymentSuccess = await executePayment('0.025');
+    if (!paymentSuccess) {
+      return; // Stop if payment failed
+    }
     if (!selectedWidget) {
       alert('Please select a widget first');
       return;
@@ -636,7 +679,12 @@ export default function QueryPage() {
   };
 
   // Handle data rendering (for Data tab)
-  const handleDataRender = () => {
+  const handleDataRender = async () => {
+    // Execute payment first
+    const paymentSuccess = await executePayment('0.025');
+    if (!paymentSuccess) {
+      return; // Stop if payment failed
+    }
     const addresses = Array.from(selectedAddresses);
     if (addresses.length === 0) {
       alert('Please select at least one address');
@@ -690,7 +738,12 @@ export default function QueryPage() {
   };
 
   // Handle table rendering (similar to handlePay but for tables)
-  const handleTableRender = () => {
+  const handleTableRender = async () => {
+    // Execute payment first
+    const paymentSuccess = await executePayment('0.025');
+    if (!paymentSuccess) {
+      return; // Stop if payment failed
+    }
     if (!selectedTable) {
       alert('Please select a table first');
       return;
