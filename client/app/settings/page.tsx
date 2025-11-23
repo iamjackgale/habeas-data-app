@@ -61,6 +61,9 @@ export default function SettingsPage() {
   const [organizationDescription, setOrganizationDescription] = useState<string>('');
   const [isSaving, setIsSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [darkLogo, setDarkLogo] = useState<string | null>(null);
+  const [lightLogo, setLightLogo] = useState<string | null>(null);
+  const [uploadingLogo, setUploadingLogo] = useState<'dark' | 'light' | null>(null);
 
   // Load config on mount
   useEffect(() => {
@@ -95,6 +98,23 @@ export default function SettingsPage() {
     loadConfig();
   }, []);
 
+  // Load existing logos on mount
+  useEffect(() => {
+    const loadLogos = async () => {
+      try {
+        const response = await fetch('/api/logos');
+        if (response.ok) {
+          const data = await response.json();
+          setDarkLogo(data.dark);
+          setLightLogo(data.light);
+        }
+      } catch (error) {
+        console.error('Error loading logos:', error);
+      }
+    };
+    loadLogos();
+  }, []);
+
   // Debug: Log proAddresses when it changes
   useEffect(() => {
     console.log('proAddresses state updated:', proAddresses);
@@ -106,6 +126,40 @@ export default function SettingsPage() {
     newColors[index] = color;
     setWidgetColors(newColors);
     setSaveStatus('idle'); // Reset save status when colors change
+  };
+
+  const handleLogoUpload = async (file: File, mode: 'dark' | 'light') => {
+    setUploadingLogo(mode);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('mode', mode);
+
+      const response = await fetch('/api/logos/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (mode === 'dark') {
+          setDarkLogo(data.path);
+        } else {
+          setLightLogo(data.path);
+        }
+        setSaveStatus('success');
+        setTimeout(() => setSaveStatus('idle'), 3000);
+      } else {
+        setSaveStatus('error');
+        setTimeout(() => setSaveStatus('idle'), 3000);
+      }
+    } catch (error) {
+      console.error('Error uploading logo:', error);
+      setSaveStatus('error');
+      setTimeout(() => setSaveStatus('idle'), 3000);
+    } finally {
+      setUploadingLogo(null);
+    }
   };
 
   const handleSave = async () => {
@@ -193,6 +247,86 @@ export default function SettingsPage() {
               />
             </div>
 
+            {/* Dark Mode Logo */}
+            <div className="flex flex-col gap-2">
+              <label htmlFor="darkLogo" className="text-sm font-semibold">
+                Dark Mode Logo
+              </label>
+              <div className="flex items-center gap-4">
+                <label
+                  htmlFor="darkLogo"
+                  className={`px-4 py-2 border border-border rounded-lg bg-background text-foreground cursor-pointer hover:bg-accent transition-colors ${
+                    uploadingLogo === 'dark' ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+                >
+                  {uploadingLogo === 'dark' ? 'Uploading...' : 'Choose File'}
+                </label>
+                <input
+                  id="darkLogo"
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      handleLogoUpload(file, 'dark');
+                    }
+                  }}
+                  disabled={uploadingLogo === 'dark'}
+                  className="hidden"
+                />
+                {darkLogo && (
+                  <div className="flex items-center gap-2">
+                    <img
+                      src={darkLogo}
+                      alt="Dark mode logo"
+                      className="h-12 w-auto object-contain border border-border rounded bg-black"
+                    />
+                    <span className="text-xs text-muted-foreground">Current</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Light Mode Logo */}
+            <div className="flex flex-col gap-2">
+              <label htmlFor="lightLogo" className="text-sm font-semibold">
+                Light Mode Logo
+              </label>
+              <div className="flex items-center gap-4">
+                <label
+                  htmlFor="lightLogo"
+                  className={`px-4 py-2 border border-border rounded-lg bg-background text-foreground cursor-pointer hover:bg-accent transition-colors ${
+                    uploadingLogo === 'light' ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+                >
+                  {uploadingLogo === 'light' ? 'Uploading...' : 'Choose File'}
+                </label>
+                <input
+                  id="lightLogo"
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      handleLogoUpload(file, 'light');
+                    }
+                  }}
+                  disabled={uploadingLogo === 'light'}
+                  className="hidden"
+                />
+                {lightLogo && (
+                  <div className="flex items-center gap-2">
+                    <img
+                      src={lightLogo}
+                      alt="Light mode logo"
+                      className="h-12 w-auto object-contain border border-border rounded bg-white"
+                    />
+                    <span className="text-xs text-muted-foreground">Current</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
             <div className="border-t border-border pt-4 mt-2">
               <div>
                 <h3 className="text-lg font-semibold mb-2">Pro Addresses</h3>
@@ -200,36 +334,37 @@ export default function SettingsPage() {
                   List of configured addresses available for queries.
                 </p>
               </div>
-            
-            {Object.keys(proAddresses).length > 0 ? (
-              <div className="border border-border rounded-lg overflow-hidden">
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="border-b border-border bg-accent/30">
-                      <th className="p-3 text-left font-semibold">Address</th>
-                      <th className="p-3 text-left font-semibold">Label</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {Object.entries(proAddresses).map(([chain, entry]) => {
-                      // Ensure entry is an object with address and label
-                      const addressEntry = entry as AddressEntry;
-                      return (
-                        <tr key={chain} className="border-b border-border hover:bg-accent/20 transition-colors">
-                          <td className="p-3 font-mono text-sm">{addressEntry?.address || entry?.address || 'N/A'}</td>
-                          <td className="p-3">{addressEntry?.label || entry?.label || 'N/A'}</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <div className="p-4 border border-border rounded-lg">
-                <p className="text-muted-foreground">No addresses configured</p>
-                <p className="text-xs text-muted-foreground mt-2">Debug: proAddresses keys: {Object.keys(proAddresses).length}</p>
-              </div>
-            )}
+              
+              {Object.keys(proAddresses).length > 0 ? (
+                <div className="border border-border rounded-lg overflow-hidden">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="border-b border-border bg-accent/30">
+                        <th className="p-3 text-left font-semibold">Address</th>
+                        <th className="p-3 text-left font-semibold">Label</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {Object.entries(proAddresses).map(([chain, entry]) => {
+                        // Ensure entry is an object with address and label
+                        const addressEntry = entry as AddressEntry;
+                        return (
+                          <tr key={chain} className="border-b border-border hover:bg-accent/20 transition-colors">
+                            <td className="p-3 font-mono text-sm">{addressEntry?.address || entry?.address || 'N/A'}</td>
+                            <td className="p-3">{addressEntry?.label || entry?.label || 'N/A'}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="p-4 border border-border rounded-lg">
+                  <p className="text-muted-foreground">No addresses configured</p>
+                  <p className="text-xs text-muted-foreground mt-2">Debug: proAddresses keys: {Object.keys(proAddresses).length}</p>
+                </div>
+              )}
+            </div>
           </div>
         </CollapsibleSection>
 

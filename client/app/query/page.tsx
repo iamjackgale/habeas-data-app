@@ -1205,7 +1205,7 @@ export default function QueryPage() {
                       onClick={handleTableDownload}
                       className="border-none cursor-pointer bg-[#347745] text-white px-5 py-2.5 rounded font-semibold hover:opacity-90 transition-opacity"
                     >
-                      Download CSV
+                      Download
                     </button>
                   )}
                 </div>

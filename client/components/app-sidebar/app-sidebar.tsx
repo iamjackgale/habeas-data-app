@@ -14,6 +14,7 @@ import { ThemeToggle } from '@/components/theme-toggle';
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { state } = useSidebar();
   const [isDark, setIsDark] = useState(false);
+  const [logo, setLogo] = useState<string | null>(null);
 
   const isExpanded = state === 'expanded';
 
@@ -33,6 +34,24 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
     return () => observer.disconnect();
   }, []);
+
+  // Load logos based on theme
+  useEffect(() => {
+    const loadLogos = async () => {
+      try {
+        const logosResponse = await fetch('/api/logos');
+        if (logosResponse.ok) {
+          const logos = await logosResponse.json();
+          // Use dark logo if dark mode, light logo if light mode
+          setLogo(isDark ? logos.dark : logos.light);
+        }
+      } catch (error) {
+        console.error('Error loading logos:', error);
+      }
+    };
+
+    loadLogos();
+  }, [isDark]);
 
   const navItems: NavItem[] = [
     {
@@ -66,14 +85,25 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarHeader>
         <div className="flex items-center justify-center px-2 my-6">
           <div className="w-[96%] flex items-center justify-center">
-            <Image 
-              src={isDark ? '/habeas-logo-dark-transparent.png' : '/habeas-logo-light-transparent.png'} 
-              alt="Habeas Logo" 
-              width={200}
-              height={200}
-              className="w-full h-auto object-contain"
-              priority
-            />
+            {logo ? (
+              <Image 
+                src={logo} 
+                alt="Organization Logo" 
+                width={200}
+                height={200}
+                className="w-full h-auto object-contain"
+                priority
+              />
+            ) : (
+              <Image 
+                src={isDark ? '/habeas-logo-dark-transparent.png' : '/habeas-logo-light-transparent.png'} 
+                alt="Habeas Logo" 
+                width={200}
+                height={200}
+                className="w-full h-auto object-contain"
+                priority
+              />
+            )}
           </div>
         </div>
       </SidebarHeader>

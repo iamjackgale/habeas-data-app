@@ -1,8 +1,14 @@
-# Habeas Data Application
+# Habeas Data
 
-![Cover Image](./cover-impage.png)
+![Cover Image](client/public/cover-image.png)
 
-this is a simple demo of the x402 payment protocol, showcasing how easy it is to add crypto payments to any API and how seamlessly clients can pay for access
+Habeas Data is a public-facing analytics applications that extends Octav's portfolio data platform, designed to bridge the information gap between organizations, and their investors and users. 
+
+By leveraging Octav's comprehensive data, APIs and modular display unit (widgets), Habeas helps organizations build transparent, accessible dashboards, widgets and data to showcase their performance and operations. 
+
+The platform empowers organizations to build trust through data transparency, allowing stakeholders to access and customise real-time financial information through intuitive widgets, charts and tables. Once created, data can be shared via the platform's dashboard, integrated into Octav or exported for use elsewhere.
+
+In transforming complex blockchain data into customisable insights, Habeas aims to help foster accountability and inform decisions around decentralized finance.
 
 > **Note:** This repository began as a fork of [x402-demo](https://github.com/Jnix2007/x402-demo) by Jnix2007, extended with additional features including portfolio integration via the Octav API.
 
@@ -15,11 +21,20 @@ this is a simple demo of the x402 payment protocol, showcasing how easy it is to
 - Shadcn UI
 - TypeScript
 - Radix UI primitives
-- React Query for data fetching
+- React Query (@tanstack/react-query) for data fetching
+- Recharts for data visualization
+- x402 payment protocol (x402-fetch)
+- Coinbase Developer Platform (CDP) - Embedded Wallet
+- Octav API for portfolio and transaction data
+- Axios for HTTP requests
+- Ethers.js for blockchain interactions
+- Sonner for toast notifications
+- html2canvas for widget export
 
 **server:**
 - Express.js
 - Node.js
+- TypeScript
 
 ## Quickstart
 
