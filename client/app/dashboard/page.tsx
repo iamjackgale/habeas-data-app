@@ -8,6 +8,8 @@ import TransactionCountSnapshot from '@/components/widgets-snapshots/counter/tra
 import TransactionValueSnapshot from '@/components/widgets-snapshots/counter/transaction-value';
 import BarTransactionsByDaySnapshot from '@/components/widgets-snapshots/bar/bar-transactions-by-day-snapshot';
 import PiesPortfolioByAssetSnapshot from '@/components/widgets-snapshots/pies/pies-portfolio-by-asset-snapshot';
+import BarStackedNetworthByChainSnapshot from '@/components/widgets-snapshots/bar-stacked/bar-stacked-networth-by-chain-snapshot';
+import PieCurrentPortfolioByAssetSnapshot from '@/components/widgets-snapshots/pie/pie-current-portfolio-by-asset-snapshot';
 
 export default function DashboardPage() {
   const [organizationName, setOrganizationName] = useState<string>('');
@@ -98,11 +100,13 @@ export default function DashboardPage() {
       {/* Key Widgets Section */}
       <div className="mt-8 flex justify-center">
         <div id="key-widgets" data-name="key-widgets" className="w-[1250px] grid grid-cols-2 gap-4 p-4 border border-border rounded-lg bg-card">
-          <div className="w-full">
-            <BarTransactionsByDaySnapshot />
+          <div className="w-full flex flex-col gap-4">
+            <BarStackedNetworthByChainSnapshot />
+            <PieCurrentPortfolioByAssetSnapshot />
           </div>
           <div className="w-full">
             <PiesPortfolioByAssetSnapshot />
+            <BarTransactionsByDaySnapshot />
           </div>
           {/* Space for two more widgets */}
         </div>
