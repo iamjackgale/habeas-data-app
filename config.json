@@ -1,11 +1,11 @@
 {
   "settings": {
-    "organizationName": "Beefy DAO",
-    "organizationDescription": "Beefy is a decentralized automatous organization that manages the Beefy protocol. This dashboard summarises the position of the Beefy treasury, the DAO's assets, and the ongoing operations which impact upon the DAO's finances.",
+    "organizationName": "Beefy",
+    "organizationDescription": "Beefy is a decentralized automatous organization that manages the Beefy protocol. This dashboard summarizes the position of the Beefy treasury, the DAO's assets, and the ongoing operations which impact upon the DAO's finances.",
     "visuals": {
       "widgetColors": [
-        "#367d7d",
-        "#00C49F",
+        "#00ffff",
+        "#0ea12c",
         "#FFBB28",
         "#FF8042",
         "#8884d8",
