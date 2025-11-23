@@ -125,11 +125,46 @@ export function WalletControls() {
     setAuthLoading(true);
     
     try {
+      // Check if CDP Project ID is configured
+      const projectId = process.env.NEXT_PUBLIC_CDP_PROJECT_ID;
+      console.log('🔍 OAuth Debug - Project ID:', projectId ? '✅ Set' : '❌ Missing');
+      console.log('🔍 OAuth Debug - Provider:', provider);
+      
+      if (!projectId) {
+        const errorMsg = 'CDP Project ID is not configured. Please set NEXT_PUBLIC_CDP_PROJECT_ID in your .env.local file and restart the dev server.';
+        console.error('❌', errorMsg);
+        alert(errorMsg);
+        setAuthLoading(false);
+        return;
+      }
+      
+      console.log('🔄 Attempting OAuth sign-in with', provider);
       await signInWithOAuth(provider);
+      console.log('✅ OAuth sign-in initiated successfully');
       setShowAuthMethods(false);
       setAuthStep("method");
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      console.error('❌ OAuth sign-in error:', err);
+      console.error('Error details:', {
+        message: err?.message,
+        name: err?.name,
+        stack: err?.stack,
+        code: err?.code,
+        cause: err?.cause
+      });
+      
+      // Provide user-friendly error message
+      const errorMessage = err?.message || err?.toString() || 'Network error occurred';
+      
+      let userMessage = `Failed to sign in with ${provider}.\n\nError: ${errorMessage}\n\nTroubleshooting steps:\n`;
+      userMessage += `1. Verify NEXT_PUBLIC_CDP_PROJECT_ID is set in .env.local (current: ${process.env.NEXT_PUBLIC_CDP_PROJECT_ID ? '✅ Set' : '❌ Missing'})\n`;
+      userMessage += `2. Restart your dev server after adding the Project ID\n`;
+      userMessage += `3. Check that ${provider} OAuth is enabled in your CDP project dashboard\n`;
+      userMessage += `4. Ensure redirect URIs are configured (e.g., http://localhost:3000)\n`;
+      userMessage += `5. Check your network connection and CDP service status\n`;
+      userMessage += `\nCheck the browser console for more details.`;
+      
+      alert(userMessage);
     } finally {
       setAuthLoading(false);
     }

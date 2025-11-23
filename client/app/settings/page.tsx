@@ -326,45 +326,6 @@ export default function SettingsPage() {
                 )}
               </div>
             </div>
-
-            <div className="border-t border-border pt-4 mt-2">
-              <div>
-                <h3 className="text-lg font-semibold mb-2">Pro Addresses</h3>
-                <p className="text-foreground mb-4">
-                  List of configured addresses available for queries.
-                </p>
-              </div>
-              
-              {Object.keys(proAddresses).length > 0 ? (
-                <div className="border border-border rounded-lg overflow-hidden">
-                  <table className="w-full border-collapse">
-                    <thead>
-                      <tr className="border-b border-border bg-accent/30">
-                        <th className="p-3 text-left font-semibold">Address</th>
-                        <th className="p-3 text-left font-semibold">Label</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {Object.entries(proAddresses).map(([chain, entry]) => {
-                        // Ensure entry is an object with address and label
-                        const addressEntry = entry as AddressEntry;
-                        return (
-                          <tr key={chain} className="border-b border-border hover:bg-accent/20 transition-colors">
-                            <td className="p-3 font-mono text-sm">{addressEntry?.address || entry?.address || 'N/A'}</td>
-                            <td className="p-3">{addressEntry?.label || entry?.label || 'N/A'}</td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <div className="p-4 border border-border rounded-lg">
-                  <p className="text-muted-foreground">No addresses configured</p>
-                  <p className="text-xs text-muted-foreground mt-2">Debug: proAddresses keys: {Object.keys(proAddresses).length}</p>
-                </div>
-              )}
-            </div>
           </div>
         </CollapsibleSection>
 
@@ -392,6 +353,47 @@ export default function SettingsPage() {
           </div>
         </CollapsibleSection>
 
+        {/* Addresses Section */}
+        <CollapsibleSection title="Addresses">
+          <div className="flex flex-col gap-4">
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Pro Addresses</h3>
+              <p className="text-foreground mb-4">
+                List of configured addresses available for queries.
+              </p>
+            </div>
+            
+            {Object.keys(proAddresses).length > 0 ? (
+              <div className="border border-border rounded-lg overflow-hidden">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b border-border bg-accent/30">
+                      <th className="p-3 text-left font-semibold">Address</th>
+                      <th className="p-3 text-left font-semibold">Label</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Object.entries(proAddresses).map(([chain, entry]) => {
+                      // Ensure entry is an object with address and label
+                      const addressEntry = entry as AddressEntry;
+                      return (
+                        <tr key={chain} className="border-b border-border hover:bg-accent/20 transition-colors">
+                          <td className="p-3 font-mono text-sm">{addressEntry?.address || entry?.address || 'N/A'}</td>
+                          <td className="p-3">{addressEntry?.label || entry?.label || 'N/A'}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="p-4 border border-border rounded-lg">
+                <p className="text-muted-foreground">No addresses configured</p>
+                <p className="text-xs text-muted-foreground mt-2">Debug: proAddresses keys: {Object.keys(proAddresses).length}</p>
+              </div>
+            )}
+          </div>
+        </CollapsibleSection>
 
         {/* Save Button */}
         <div className="flex items-center gap-4">
@@ -410,9 +412,6 @@ export default function SettingsPage() {
           >
             {isSaving ? 'Saving...' : saveStatus === 'success' ? 'Saved!' : saveStatus === 'error' ? 'Error' : 'Save Settings'}
           </button>
-          {saveStatus === 'success' && (
-            <span className="text-sm text-green-600">Saved!</span>
-          )}
           {saveStatus === 'error' && (
             <span className="text-sm text-red-600">Failed to save settings</span>
           )}

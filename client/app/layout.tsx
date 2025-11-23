@@ -32,6 +32,12 @@ const config: Config = {
   },
 };
 
+// Validate CDP Project ID on client side
+if (typeof window !== 'undefined' && !process.env.NEXT_PUBLIC_CDP_PROJECT_ID) {
+  console.error('⚠️ NEXT_PUBLIC_CDP_PROJECT_ID is not set in .env.local');
+  console.error('Please add NEXT_PUBLIC_CDP_PROJECT_ID to your .env.local file and restart the dev server');
+}
+
 function Providers({ children }: { children: ReactNode }) {
   return (
     <CDPHooksProvider config={config}>

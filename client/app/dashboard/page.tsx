@@ -5,6 +5,9 @@ import { DashboardFooter } from '@/components/dashboard-footer';
 import PortfolioSnapshot from '@/components/widgets-snapshots/counter/portfolio-snapshot';
 import HistoricalSnapshot from '@/components/widgets-snapshots/counter/historic-snapshot';
 import TransactionCountSnapshot from '@/components/widgets-snapshots/counter/transaction-snapshot';
+import TransactionValueSnapshot from '@/components/widgets-snapshots/counter/transaction-value';
+import BarTransactionsByDaySnapshot from '@/components/widgets-snapshots/bar/bar-transactions-by-day-snapshot';
+import PiesPortfolioByAssetSnapshot from '@/components/widgets-snapshots/pies/pies-portfolio-by-asset-snapshot';
 
 export default function DashboardPage() {
   const [organizationName, setOrganizationName] = useState<string>('');
@@ -72,9 +75,6 @@ export default function DashboardPage() {
             className="h-16 w-auto object-contain"
           />
         )}
-        {organizationName && (
-          <h1 className="text-2xl font-bold">{organizationName}</h1>
-        )}
         <h1 className="text-2xl font-bold">Portfolio Dashboard</h1>
         {organizationDescription && (
           <div className="flex justify-center mt-4">
@@ -87,11 +87,24 @@ export default function DashboardPage() {
 
       {/* Key Stats Section */}
       <div className="mt-8 flex justify-center">
-        <div id="key-stats" data-name="key-stats" className="w-full max-w-[50%] grid grid-cols-2 gap-4 p-4 border border-border rounded-lg bg-card">
+        <div id="key-stats" data-name="key-stats" className="w-[1000px] grid grid-cols-2 gap-4 p-4 border border-border rounded-lg bg-card">
           <PortfolioSnapshot />
           <HistoricalSnapshot />
           <TransactionCountSnapshot />
-          {/* Space for fourth counter widget */}
+          <TransactionValueSnapshot />
+        </div>
+      </div>
+
+      {/* Key Widgets Section */}
+      <div className="mt-8 flex justify-center">
+        <div id="key-widgets" data-name="key-widgets" className="w-[1250px] grid grid-cols-2 gap-4 p-4 border border-border rounded-lg bg-card">
+          <div className="w-full">
+            <BarTransactionsByDaySnapshot />
+          </div>
+          <div className="w-full">
+            <PiesPortfolioByAssetSnapshot />
+          </div>
+          {/* Space for two more widgets */}
         </div>
       </div>
 

@@ -27,6 +27,16 @@ interface WidgetDefaults {
     startDate: string;
     endDate: string;
   };
+  'transaction-count'?: {
+    address: string;
+    startDate: string;
+    endDate: string;
+  };
+  'transaction-value'?: {
+    address: string;
+    startDate: string;
+    endDate: string;
+  };
 }
 
 export function useWidgetDefaults() {

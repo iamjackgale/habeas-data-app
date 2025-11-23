@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useGetPortfolio } from '@/services/octav/loader';
 import { TPortfolio } from '@/types/portfolio';
 import { useWidgetDefaults } from '@/hooks/use-widget-defaults';
@@ -13,6 +14,34 @@ export default function PortfolioSnapshot() {
     () => defaults?.portfolio?.address || '0xc9c61194682a3a5f56bf9cd5b59ee63028ab6041',
     [defaults?.portfolio?.address]
   );
+  
+  const [addressLabel, setAddressLabel] = useState<string>(targetAddress);
+
+  // Fetch address label from config
+  useEffect(() => {
+    const fetchAddressLabel = async () => {
+      try {
+        const response = await fetch('/api/settings');
+        if (response.ok) {
+          const config = await response.json();
+          const addresses = config.settings?.addresses || {};
+          
+          // Find the address in the config and get its label
+          for (const [key, entry] of Object.entries(addresses)) {
+            const addressEntry = entry as { address: string; label: string };
+            if (addressEntry?.address?.toLowerCase() === targetAddress.toLowerCase()) {
+              setAddressLabel(addressEntry.label || targetAddress);
+              return;
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching address label:', error);
+      }
+    };
+    
+    fetchAddressLabel();
+  }, [targetAddress]);
   
   const { data, isLoading, error } = useGetPortfolio({
     addresses: [targetAddress],
@@ -66,6 +95,7 @@ export default function PortfolioSnapshot() {
     <div className="p-4 border border-gray-300 widget-bg rounded-md">
       <p className="font-semibold widget-text">Portfolio Net Worth ({currentDate})</p>
       <p className="widget-text">${formattedNetworth}</p>
+      <p className="widget-text italic">(for {addressLabel})</p>
     </div>
   );
 }

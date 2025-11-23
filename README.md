@@ -2,15 +2,34 @@
 
 ![Cover Image](client/public/cover-image.png)
 
-Habeas Data is a public-facing analytics applications that extends Octav's portfolio data platform, designed to bridge the information gap between organizations, and their investors and users. 
+Habeas Data is a public-facing analytics application that extends Octav's portfolio data platform. It is designed to bridge the information gap between organizations, and their stakeholders and users.   
 
-By leveraging Octav's comprehensive data, APIs and modular display unit (widgets), Habeas helps organizations build transparent, accessible dashboards, widgets and data to showcase their performance and operations. 
+By leveraging Octav's comprehensive data, APIs and modular display unit (widgets), Habeas helps organizations build transparent, accessible dashboards, widgets and data to showcase their performance and operations. It empowers the organization's stakeholders access and customise real-time financial information through intuitive widgets, charts and tables, which can also be integrated into Octav or exported elsewhere.
 
-The platform empowers organizations to build trust through data transparency, allowing stakeholders to access and customise real-time financial information through intuitive widgets, charts and tables. Once created, data can be shared via the platform's dashboard, integrated into Octav or exported for use elsewhere.
-
-In transforming complex blockchain data into customisable insights, Habeas aims to help foster accountability and inform decisions around decentralized finance.
+Instances of the Habeas app are owned by user organisations, and configured to share appropriate data with the organisation's own users and stakeholders, while reflecting the organisation's own preferences and security practices. To ration API usage and cover the costs of operation, Habeas integrates the x402 payment standard, requiring users to make small onchain payments in Base USDC before querying widgets, tables or data.
 
 > **Note:** This repository began as a fork of [x402-demo](https://github.com/Jnix2007/x402-demo) by Jnix2007, extended with additional features including portfolio integration via the Octav API.
+
+**<details><summary>Project Screenshots</summary>**
+
+
+**Screenshot 1**: Habeas provides analytics and insights by producing dashboards, widgets, tables and data based on Octav data. The application's widget library provides a comprehensive range of ways to understand portfolio performance and operations, expanding the transparency of its user organisations.
+
+![Screenshot1](client/public/screenshots/widgets-page.png)
+
+**Screenshot 2**: to enhance the flexibility and analytical utility of our widget designs, we integrated a custom query page that allows users to generate their own widgets (and/or underlying tables and data) with the parameters of their choice, provided they make a small payment to cover the cost of generation.
+
+![Screenshot2](client/public/screenshots/query-page.png)
+
+**Screenshot 3**: once logged in, admin users can access the settings page to configure their organisation's public-facing site, providing logos, descriptions, colour schemes and other visual cues to make Habeas' platform their own transparency tool.
+
+![Screenshot3](client/public/screenshots/settings-page.png)
+
+**Screenshot 4**: the Dashboard page becomes the default access page for the organisation's stakeholders and users, but is the final product of setting up and utilising the the Habeas application's tools and services.
+
+![Screenshot4]()
+
+</details>
 
 ## Tech Stack
 
@@ -157,23 +176,95 @@ you should see:
 6. watch the payment happen automatically
 7. see your quote and transaction confirmation on Basescan
 
-## Project Structure
+## Architecture
 
-[ASK TO WRITE NEW STRUCTURE CHART]
+### Client (Next.js Application)
 
-## Octav API Integrations
+The **client** is a Next.js 15 application that serves as the frontend and includes:
 
-the client includes integration with the [Octav Portfolio API](https://docs.octav.fi/api/endpoints/portfolio) to fetch and display portfolio data for blockchain addresses.
+- **Frontend UI**: React components for dashboards, widgets, charts, and tables
+- **Next.js API Routes**: Server-side API endpoints (`/app/api/`) that act as a proxy layer, directly calling the Octav API with the API key stored securely on the server
+- **Client Services**: React Query hooks and services that can fetch data either from:
+  - Next.js API routes (preferred for production)
+  - Express server proxy (optional, for development or additional features)
+- **Widget System**: Modular, reusable components for displaying portfolio and transaction data
+- **Settings Management**: Configuration interface for organization branding, addresses, and widget defaults
+- **Data Export**: CSV export functionality for tables and widget downloads
 
-[ADD TRANSACTIONS AND OTHER ENPOINTS]
+The client handles all user interactions, data visualization, and provides a secure way to access Octav API data without exposing API keys to the browser.
+
+### Server (Express/TypeScript)
+
+The **server** (`server-ts/`) is an optional Express.js TypeScript application that provides:
+
+- **Octav API Proxy**: Middleware layer that proxies requests to the Octav API
+- **Response Aggregation**: Combines data from multiple addresses into unified responses
+- **Caching**: Optional caching layer for improved performance
+- **Error Handling**: Centralized error handling and response formatting
+- **x402 Payment Integration**: Legacy payment processing functionality (from original x402-demo fork)
+
+The server runs on port 3001 and provides endpoints like `/api/octav/portfolio`, `/api/octav/historical`, and `/api/octav/transactions`. While the client can work standalone using Next.js API routes, the Express server offers additional features like response aggregation and caching for multiple address queries.
+
+### Data Flow
+
+1. **User interacts** with the Next.js client (dashboard, query page, widgets)
+2. **Client services** make requests to either:
+   - Next.js API routes (`/api/portfolio`, `/api/historical`, `/api/transactions`) → Direct to Octav API
+   - Express server (`http://localhost:3001/api/octav/*`) → Proxy to Octav API
+3. **Octav API** returns portfolio, historical, or transaction data
+4. **Data is processed** and displayed in widgets, charts, or tables
+5. **Users can export** data as CSV or download widget images
+
+## Octav Integrations
+
+The client includes integration with the [Octav Portfolio API](https://docs.octav.fi/api/endpoints/portfolio) to fetch and display portfolio data for blockchain addresses.
+
+### Octav API Endpoints
+
+Habeas utilizes three primary Octav API endpoints:
+
+- **Portfolio API** (`/portfolio`): Fetches current portfolio data including net worth, asset allocations, protocol positions, and chain summaries for one or more wallet addresses. Supports optional parameters for including images, explorer URLs, NFTs, and waiting for data synchronization.
+
+- **Historical API** (`/historical`): Retrieves portfolio snapshots for specific dates, enabling time-based analysis and comparison. Supports both single date queries and date range queries for tracking portfolio evolution over time.
+
+- **Transactions API** (`/transactions`): Provides detailed transaction data within specified date ranges, including transaction types, protocols, networks, and filtering options. Enables analysis of treasury operations, spending patterns, and transaction volumes.
 
 ## Widgets
 
-React query hooks
+Habeas empowers users to customize widgets across a wide range of parameters and various different graphical designs. Each widget can be configured with specific addresses, date ranges, categories, and visual styling to create tailored analytics dashboards that meet unique organizational needs.
 
-check out `/components/widgets/portfolio.tsx` for a complete example of how to use the portfolio API in your components.
+### Available Widget Types
 
-## Octav Products In This Demo
+**Counter Widgets:**
+- Portfolio Net Worth - Current portfolio value display
+- Historical Net Worth - Portfolio value at a specific date
+- Transaction Count - Number of transactions within a date range
+
+**Pie Charts:**
+- Current Portfolio by Asset - Asset allocation breakdown
+- Current Portfolio by Protocol - Protocol distribution
+- Historical Portfolio by Asset - Historical asset allocation
+- Historical Portfolio by Protocol - Historical protocol distribution
+
+**Pie-in-Pie Charts:**
+- Portfolio by Asset - Nested pie chart showing asset categories
+- Portfolio by Protocol - Nested pie chart showing protocol categories
+
+**Bar Charts:**
+- Current Portfolio by Asset - Asset comparison bars
+- Current Portfolio by Protocol - Protocol comparison bars
+- Historical Portfolio by Asset - Historical asset trends
+- Historical Portfolio by Protocol - Historical protocol trends
+- Portfolio by Net Worth - Net worth progression over time
+- Transactions by Day - Daily transaction volume
+
+**Bar Stacked Charts:**
+- Portfolio by Asset - Stacked asset composition over time
+- Portfolio by Protocol - Stacked protocol composition over time
+
+All widgets support customization of addresses, date ranges, categories, color schemes, and can be exported as images or integrated into external dashboards.
+
+The project makes use of:
 
 - [Portfolio API](https://docs.octav.fi/api/endpoints/portfolio)
 - [API Access & Pricing](https://api-docs.octav.fi/getting-started/api-access)
@@ -181,7 +272,7 @@ check out `/components/widgets/portfolio.tsx` for a complete example of how to u
 - [Supported Chains](https://docs.octav.fi/api/reference/supported-chains)
 - [Protocol Types](https://docs.octav.fi/api/reference/protocol-types)
 
-## CDP Products In This Demo
+## CDP Integrations
 
 This project uses **four CDP products**:
 
@@ -192,19 +283,17 @@ This project uses **four CDP products**:
 | **Faucet API** | distribute testnet USDC | server | CDP API Key |
 | **Token Balances API** | check USDC balances | server | CDP API Key |
 
-CDP products work together seamlessly - the server uses one CDP API key to access the Facilitator, Faucet, and Token Balances APIs, while the client uses a CDP Project ID for Embedded Wallet creation & auth
-
 ## Learn More
+
+**Octav:**
+- [Octav API Documentation](https://api-docs.octav.fi)
+- [Portfolio API](https://docs.octav.fi/api/endpoints/portfolio)
 
 **x402 & CDP:**
 - [CDP Facilitator docs](https://docs.cdp.coinbase.com/x402)
 - [CDP Embedded Wallet docs](https://docs.cdp.coinbase.com/embedded-wallets)
 - [CDP x402 Facilitator API reference](https://docs.cdp.coinbase.com/api-reference/v2/rest-api/x402-facilitator/x402-facilitator)
 - [x402 GitHub repo](https://github.com/coinbase/x402)
-
-**Octav:**
-- [Octav API Documentation](https://api-docs.octav.fi)
-- [Portfolio API](https://docs.octav.fi/api/endpoints/portfolio)
 
 **Technologies:**
 - [Next.js Documentation](https://nextjs.org/docs)

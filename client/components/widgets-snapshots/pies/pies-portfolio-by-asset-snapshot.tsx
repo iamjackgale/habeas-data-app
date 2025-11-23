@@ -1,6 +1,8 @@
 'use client';
 
-import { useGetHistorical } from '@/services/octav/loader';
+import { useMemo } from 'react';
+import { useQueries } from '@tanstack/react-query';
+import { getHistorical } from '@/services/octav/historical';
 import { TPortfolio } from '@/types/portfolio';
 import { getAssetValueDictionary, getComparisonAssetValueDictionary } from '@/handlers/portfolio-handler';
 import TwoLevelPieChartComponent from '@/components/charts/pies';
@@ -28,15 +30,22 @@ export default function PiesPortfolioByAssetSnapshot() {
   }
   
   // Sort dates in ascending order (earliest to latest)
-  const dates = [...rawDates].sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
-  
-  // Fetch historical data for all dates using hooks
-  const historicalData = dates.map(date => 
-    useGetHistorical({
-      addresses: [targetAddress],
-      date: date,
-    })
+  const dates = useMemo(() => 
+    [...rawDates].sort((a, b) => new Date(a).getTime() - new Date(b).getTime()),
+    [rawDates]
   );
+  
+  // Fetch historical data for all dates using useQueries (handles dynamic number of queries)
+  const historicalData = useQueries({
+    queries: dates.map(date => ({
+      queryKey: ['historical', targetAddress, date],
+      queryFn: () => getHistorical({
+        addresses: [targetAddress],
+        date: date,
+      }),
+      staleTime: 60 * 60 * 1000, // 1 hour
+    })),
+  });
 
   const isLoading = defaultsLoading || historicalData.some(result => result.isLoading);
   const error = historicalData.find(result => result.error)?.error;

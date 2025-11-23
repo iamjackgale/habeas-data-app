@@ -12,6 +12,7 @@ import { DashboardFooter } from '@/components/dashboard-footer';
 import Link from 'next/link';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import TransactionCountSnapshot from '@/components/widgets-snapshots/counter/transaction-snapshot';
+import TransactionValueSnapshot from '@/components/widgets-snapshots/counter/transaction-value';
 import { LoadingSpinner } from '@/components/loading-spinner';
 
 function CollapsibleSection({ 
@@ -118,6 +119,9 @@ export default function Page() {
             </div>
             <div>
               <TransactionCountSnapshot />
+            </div>
+            <div>
+              <TransactionValueSnapshot />
             </div>
           </div>
           
