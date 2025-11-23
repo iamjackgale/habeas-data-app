@@ -14,6 +14,7 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import TransactionCountSnapshot from '@/components/widgets-snapshots/counter/transaction-snapshot';
 import TransactionValueSnapshot from '@/components/widgets-snapshots/counter/transaction-value';
 import { LoadingSpinner } from '@/components/loading-spinner';
+import BarStackedNetworthByChainSnapshot from '@/components/widgets-snapshots/bar-stacked/bar-stacked-networth-by-chain-snapshot';
 
 function CollapsibleSection({ 
   title, 
@@ -162,6 +163,9 @@ export default function Page() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div>
               <BarStackedPortfolioByAssetSnapshot />
+            </div>
+            <div>
+              <BarStackedNetworthByChainSnapshot />
             </div>
           </div>
         </CollapsibleSection>

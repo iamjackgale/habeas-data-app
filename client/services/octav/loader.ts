@@ -35,7 +35,7 @@ interface UseGetHistoricalRangeParams extends GetHistoricalRangeParams {}
 
 export function useGetHistoricalRange(
   params: UseGetHistoricalRangeParams,
-  options?: Omit<UseQueryOptions<CombinedHistoricalRangeResponse, Error>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<Record<string, Record<string, TPortfolio>>, Error>, 'queryKey' | 'queryFn'>
 ) {
   return useQuery({
     queryKey: ['historical-range', params.addresses.join(','), params.dates.join(',')],

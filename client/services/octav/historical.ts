@@ -90,10 +90,10 @@ export const getHistorical = async (params: GetHistoricalParams): Promise<Record
 /**
  * Get historical portfolio data across multiple dates from server endpoint
  * @param params - Historical range query parameters
- * @returns {Promise<CombinedHistoricalRangeResponse>} Combined historical range data
+ * @returns {Promise<Record<string, Record<string, TPortfolio>>>} Historical range data keyed by date and address
  * @throws {Error} Error with message from API response
  */
-export const getHistoricalRange = async (params: GetHistoricalRangeParams): Promise<CombinedHistoricalRangeResponse> => {
+export const getHistoricalRange = async (params: GetHistoricalRangeParams): Promise<Record<string, Record<string, TPortfolio>>> => {
   const { addresses, dates } = params;
 
   const queryParams = new URLSearchParams({
@@ -109,7 +109,13 @@ export const getHistoricalRange = async (params: GetHistoricalRangeParams): Prom
       }
     );
 
-    return response.data;
+    // Check for errors in the response
+    if (response.data.errors && response.data.errors.length > 0) {
+      const firstError = response.data.errors[0];
+      throw new Error(firstError.error || `Error fetching data for date ${firstError.date}`);
+    }
+
+    return response.data.data;
   } catch (error) {
     // Handle axios errors and extract API error message
     if (axios.isAxiosError(error)) {
