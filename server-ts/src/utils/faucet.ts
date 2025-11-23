@@ -1,10 +1,14 @@
 import { generateJwt } from "@coinbase/cdp-sdk/auth";
 
 /**
- * request USDC from CDP Faucet
+ * Request USDC from CDP Faucet
  */
-export async function requestFaucet(address, apiKeyId, apiKeySecret) {
-  // generate JWT for auth
+export async function requestFaucet(
+  address: string,
+  apiKeyId: string,
+  apiKeySecret: string
+): Promise<string> {
+  // Generate JWT for auth
   const jwt = await generateJwt({
     apiKeyId: apiKeyId,
     apiKeySecret: apiKeySecret,

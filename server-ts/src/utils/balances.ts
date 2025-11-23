@@ -1,10 +1,29 @@
 import { generateJwt } from "@coinbase/cdp-sdk/auth";
 
+interface TokenBalance {
+  token: {
+    contractAddress: string;
+  };
+  amount: {
+    amount: string;
+    decimals: number;
+  };
+}
+
+interface TokenBalancesResponse {
+  balances?: TokenBalance[];
+}
+
 /**
- * get token balances for an address using CDP Token Balances API
+ * Get token balances for an address using CDP Token Balances API
  */
-export async function getTokenBalances(address, network, apiKeyId, apiKeySecret) {
-  // generate JWT for auth
+export async function getTokenBalances(
+  address: string,
+  network: string,
+  apiKeyId: string,
+  apiKeySecret: string
+): Promise<string> {
+  // Generate JWT for auth
   const jwt = await generateJwt({
     apiKeyId: apiKeyId,
     apiKeySecret: apiKeySecret,
@@ -28,19 +47,19 @@ export async function getTokenBalances(address, network, apiKeyId, apiKeySecret)
   if (!response.ok) {
     const errorText = await response.text();
     console.error("Token Balances API error:", errorText);
-    throw new Error(`failed to fetch balances: ${response.status}`);
+    throw new Error(`Failed to fetch balances: ${response.status}`);
   }
 
-  const data = await response.json();
+  const data = await response.json() as TokenBalancesResponse;
   
-  // find USDC balance on Base Sepolia
+  // Find USDC balance on Base Sepolia
   const usdcAddress = "0x036CbD53842c5426634e7929541eC2318f3dCF7e".toLowerCase();
   const usdcBalance = data.balances?.find(
     b => b.token.contractAddress.toLowerCase() === usdcAddress
   );
   
   if (usdcBalance) {
-    // convert to decimal format
+    // Convert to decimal format
     const amount = BigInt(usdcBalance.amount.amount);
     const decimals = usdcBalance.amount.decimals;
     const divisor = BigInt(10 ** decimals);
@@ -50,4 +69,3 @@ export async function getTokenBalances(address, network, apiKeyId, apiKeySecret)
   
   return "0";
 }
-

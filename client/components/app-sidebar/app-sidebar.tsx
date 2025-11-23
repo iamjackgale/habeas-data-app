@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { useEffect, useState } from 'react';
 import { Library, Gauge, Search, Settings } from 'lucide-react';
+import { useIsSignedIn } from '@coinbase/cdp-hooks';
 
 import { NavItem, NavItems } from '@/components/app-sidebar/nav-items';
 
@@ -10,11 +11,13 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarRail, use
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { WalletControls } from '@/components/wallet-controls';
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { state } = useSidebar();
   const [isDark, setIsDark] = useState(false);
   const [logo, setLogo] = useState<string | null>(null);
+  const { isSignedIn } = useIsSignedIn();
 
   const isExpanded = state === 'expanded';
 
@@ -53,7 +56,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     loadLogos();
   }, [isDark]);
 
-  const navItems: NavItem[] = [
+  const baseNavItems: NavItem[] = [
     {
       name: 'Dashboard',
       url: '/dashboard',
@@ -72,13 +75,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       pathname: '/widget',
       icon: <Library width={20} height={20} className="stroke-[1.5]" />,
     },
-    {
-      name: 'Settings',
-      url: '/settings',
-      pathname: '/settings',
-      icon: <Settings width={20} height={20} className="stroke-[1.5]" />,
-    },
   ];
+
+  const settingsNavItem: NavItem = {
+    name: 'Settings',
+    url: '/settings',
+    pathname: '/settings',
+    icon: <Settings width={20} height={20} className="stroke-[1.5]" />,
+  };
+
+  const navItems = isSignedIn ? [...baseNavItems, settingsNavItem] : baseNavItems;
 
   return (
     <Sidebar className="bg-background relative" collapsible="icon" {...props}>
@@ -113,9 +119,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarContent>
 
       <SidebarFooter>
-        <div className={cn('flex items-center px-2 py-2', isExpanded ? 'justify-start' : 'justify-center')}>
-          <ThemeToggle />
-          {isExpanded && <span className="ml-3 text-sm text-muted-foreground">Theme</span>}
+        <div className={cn('flex flex-col gap-2 px-2 py-2')}>
+          <WalletControls />
+          <div className={cn('flex items-center', isExpanded ? 'justify-start' : 'justify-center')}>
+            <ThemeToggle />
+            {isExpanded && <span className="ml-3 text-sm text-muted-foreground">Theme</span>}
+          </div>
         </div>
       </SidebarFooter>
 
