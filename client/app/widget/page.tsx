@@ -24,74 +24,37 @@ function CollapsibleSection({
   defaultOpen?: boolean;
 }) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
-  const [widgetsReady, setWidgetsReady] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
-  const checkIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (isOpen) {
-      // Reset ready state when opening
-      setWidgetsReady(false);
+      // Start as loading when opening
+      setIsLoading(true);
       
-      // Fallback timeout - show widgets after 10 seconds max
-      const fallbackTimeout = setTimeout(() => {
-        setWidgetsReady(true);
-        if (checkIntervalRef.current) {
-          clearInterval(checkIntervalRef.current);
-        }
-      }, 10000);
-      
-      // Start checking for widget readiness after a short delay to allow widgets to start rendering
-      const initialDelay = setTimeout(() => {
-        let consecutiveReadyChecks = 0;
-        checkIntervalRef.current = setInterval(() => {
-          if (contentRef.current) {
-            // Check if there are any loading indicators
-            const hasLoadingText = contentRef.current.textContent?.includes('Loading...');
-            const loadingSpinners = contentRef.current.querySelectorAll('img[alt="Loading"]');
-            
-            // Check if widgets have rendered (have widget containers, charts, or error/data messages)
-            // Look for actual widget content, not just containers
-            const widgetContainers = contentRef.current.querySelectorAll('.widget-bg, .border-red-300, .border-yellow-300, .border-gray-300');
-            const rechartsWrappers = contentRef.current.querySelectorAll('.recharts-wrapper');
-            const hasWidgetContent = widgetContainers.length > 0 || rechartsWrappers.length > 0;
-            
-            // Widgets are ready if:
-            // 1. We have widget content (containers or charts)
-            // 2. There's no "Loading..." text
-            // 3. There are no loading spinner images
-            const noLoadingIndicators = !hasLoadingText && loadingSpinners.length === 0;
-            
-            if (hasWidgetContent && noLoadingIndicators) {
-              consecutiveReadyChecks++;
-              // Require 2 consecutive ready checks to ensure stability
-              if (consecutiveReadyChecks >= 2) {
-                clearTimeout(fallbackTimeout);
-                setWidgetsReady(true);
-                if (checkIntervalRef.current) {
-                  clearInterval(checkIntervalRef.current);
-                }
-              }
-            } else {
-              consecutiveReadyChecks = 0;
-            }
+      // Check if any widget is showing "Loading..." text
+      const checkInterval = setInterval(() => {
+        if (contentRef.current) {
+          const hasLoadingText = contentRef.current.textContent?.includes('Loading...');
+          
+          if (!hasLoadingText) {
+            // No loading text found, widgets are ready
+            setIsLoading(false);
+            clearInterval(checkInterval);
           }
-        }, 200); // Check every 200ms
-      }, 200); // Initial delay to let widgets start rendering
+        }
+      }, 100);
+      
+      // Fallback: stop showing spinner after 15 seconds max
+      const fallbackTimeout = setTimeout(() => {
+        setIsLoading(false);
+        clearInterval(checkInterval);
+      }, 15000);
 
       return () => {
-        clearTimeout(initialDelay);
+        clearInterval(checkInterval);
         clearTimeout(fallbackTimeout);
-        if (checkIntervalRef.current) {
-          clearInterval(checkIntervalRef.current);
-        }
       };
-    } else {
-      // Clear interval when closed
-      if (checkIntervalRef.current) {
-        clearInterval(checkIntervalRef.current);
-      }
-      setWidgetsReady(false);
     }
   }, [isOpen]);
 
@@ -109,14 +72,12 @@ function CollapsibleSection({
         )}
       </button>
       {isOpen && (
-        <div className="p-6 relative min-h-[400px]" ref={contentRef}>
-          {/* Render widgets but make them invisible until ready */}
-          <div className={`flex flex-col gap-6 ${widgetsReady ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+        <div className="p-6 relative min-h-[200px]" ref={contentRef}>
+          <div className={isLoading ? 'opacity-0' : 'opacity-100 transition-opacity duration-300'}>
             {children}
           </div>
-          {/* Show loading spinner while widgets are loading */}
-          {!widgetsReady && (
-            <div className="flex items-center justify-center absolute inset-0">
+          {isLoading && (
+            <div className="absolute inset-0 flex items-center justify-center">
               <LoadingSpinner />
             </div>
           )}
@@ -155,9 +116,9 @@ export default function Page() {
             <div>
               <HistoricalSnapshot />
             </div>
-          </div>
-          <div>
-            <TransactionCountSnapshot />
+            <div>
+              <TransactionCountSnapshot />
+            </div>
           </div>
           
         </CollapsibleSection>
