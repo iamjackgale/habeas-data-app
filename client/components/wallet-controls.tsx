@@ -67,12 +67,46 @@ export function WalletControls() {
     setAuthLoading(true);
     
     try {
+      // Check if CDP Project ID is configured
+      const projectId = process.env.NEXT_PUBLIC_CDP_PROJECT_ID;
+      console.log('🔍 Email Sign-In Debug - Project ID:', projectId ? '✅ Set' : '❌ Missing');
+      
+      if (!projectId) {
+        const errorMsg = 'CDP Project ID is not configured. Please set NEXT_PUBLIC_CDP_PROJECT_ID in your .env.local file and restart the dev server.';
+        console.error('❌', errorMsg);
+        alert(errorMsg);
+        setAuthLoading(false);
+        return;
+      }
+      
+      console.log('🔄 Attempting email sign-in with', emailOrPhone);
       const result = await signInWithEmail({ email: emailOrPhone });
+      console.log('✅ Email sign-in initiated successfully');
       setFlowId(result.flowId);
       setAuthType("email");
       setAuthStep("otp");
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      console.error('❌ Email sign-in error:', err);
+      console.error('Error details:', {
+        message: err?.message,
+        name: err?.name,
+        stack: err?.stack,
+        code: err?.code,
+        cause: err?.cause
+      });
+      
+      // Provide user-friendly error message
+      const errorMessage = err?.message || err?.toString() || 'Network error occurred';
+      
+      let userMessage = `Failed to sign in with email.\n\nError: ${errorMessage}\n\nTroubleshooting steps:\n`;
+      userMessage += `1. Verify NEXT_PUBLIC_CDP_PROJECT_ID is set in .env.local (current: ${process.env.NEXT_PUBLIC_CDP_PROJECT_ID ? '✅ Set' : '❌ Missing'})\n`;
+      userMessage += `2. Restart your dev server after adding the Project ID\n`;
+      userMessage += `3. Check that email authentication is enabled in your CDP project dashboard\n`;
+      userMessage += `4. Verify your email address format\n`;
+      userMessage += `5. Check your network connection and CDP service status\n`;
+      userMessage += `\nCheck the browser console for more details.`;
+      
+      alert(userMessage);
     } finally {
       setAuthLoading(false);
     }
@@ -85,12 +119,46 @@ export function WalletControls() {
     setAuthLoading(true);
     
     try {
+      // Check if CDP Project ID is configured
+      const projectId = process.env.NEXT_PUBLIC_CDP_PROJECT_ID;
+      console.log('🔍 SMS Sign-In Debug - Project ID:', projectId ? '✅ Set' : '❌ Missing');
+      
+      if (!projectId) {
+        const errorMsg = 'CDP Project ID is not configured. Please set NEXT_PUBLIC_CDP_PROJECT_ID in your .env.local file and restart the dev server.';
+        console.error('❌', errorMsg);
+        alert(errorMsg);
+        setAuthLoading(false);
+        return;
+      }
+      
+      console.log('🔄 Attempting SMS sign-in with', emailOrPhone);
       const result = await signInWithSms({ phoneNumber: emailOrPhone });
+      console.log('✅ SMS sign-in initiated successfully');
       setFlowId(result.flowId);
       setAuthType("sms");
       setAuthStep("otp");
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      console.error('❌ SMS sign-in error:', err);
+      console.error('Error details:', {
+        message: err?.message,
+        name: err?.name,
+        stack: err?.stack,
+        code: err?.code,
+        cause: err?.cause
+      });
+      
+      // Provide user-friendly error message
+      const errorMessage = err?.message || err?.toString() || 'Network error occurred';
+      
+      let userMessage = `Failed to sign in with SMS.\n\nError: ${errorMessage}\n\nTroubleshooting steps:\n`;
+      userMessage += `1. Verify NEXT_PUBLIC_CDP_PROJECT_ID is set in .env.local (current: ${process.env.NEXT_PUBLIC_CDP_PROJECT_ID ? '✅ Set' : '❌ Missing'})\n`;
+      userMessage += `2. Restart your dev server after adding the Project ID\n`;
+      userMessage += `3. Check that SMS authentication is enabled in your CDP project dashboard\n`;
+      userMessage += `4. Verify your phone number format (e.g., +1234567890)\n`;
+      userMessage += `5. Check your network connection and CDP service status\n`;
+      userMessage += `\nCheck the browser console for more details.`;
+      
+      alert(userMessage);
     } finally {
       setAuthLoading(false);
     }

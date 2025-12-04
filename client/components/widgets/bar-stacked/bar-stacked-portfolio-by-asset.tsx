@@ -4,7 +4,7 @@ import { useGetHistorical } from '@/services/octav/loader';
 import { TPortfolio } from '@/types/portfolio';
 import { getAssetValueDictionary, getComparisonAssetValueDictionary } from '@/handlers/portfolio-handler';
 import { BarStackedChartDataEntry } from '@/handlers/bar-chart-handler';
-import BarStackedChartComponent from '@/components/charts/bar-stacked';
+import BarStackedBySignChartComponent from '@/components/charts/bar-stacked-by-sign';
 import { useWidgetColors } from '@/hooks/use-widget-colors';
 
 interface BarStackedPortfolioByAssetProps {
@@ -232,7 +232,7 @@ export default function BarStackedPortfolioByAsset({ address, dates: rawDates }:
     <div className="p-4 border border-gray-300 widget-bg rounded-md w-full max-w-full">
       <p className="font-semibold widget-text mb-4">Portfolio Comparison by Asset</p>
       <div className="w-full mx-auto">
-        <BarStackedChartComponent
+        <BarStackedBySignChartComponent
           data={finalStackedData}
           dataKeys={finalDataKeys}
           totalValue={totalValue}

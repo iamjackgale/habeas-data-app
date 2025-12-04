@@ -22,6 +22,7 @@ import BarPortfolioByNetWorth from '@/components/widgets/bar/bar-portfolio-by-ne
 import BarTransactionsByDay from '@/components/widgets/bar/bar-transactions-by-day';
 import BarStackedPortfolioByAsset from '@/components/widgets/bar-stacked/bar-stacked-portfolio-by-asset';
 import BarStackedPortfolioByProtocol from '@/components/widgets/bar-stacked/bar-stacked-portfolio-by-protocol';
+import BarStackedNetworthByChain from '@/components/widgets/bar-stacked/bar-stacked-networth-by-chain';
 
 export interface WidgetRenderParams {
   widgetKey: string;
@@ -238,6 +239,25 @@ export function renderWidget(params: WidgetRenderParams): React.ReactNode {
         );
       }
       return <BarStackedPortfolioByProtocol address={address} dates={dates} />;
+
+    case 'bar-stacked-networth-by-chain':
+      if (dates.length === 0) {
+        return (
+          <div className="p-4 border border-yellow-300 bg-yellow-50 rounded-md">
+            <p className="font-semibold text-yellow-800">Error</p>
+            <p className="text-yellow-600">No dates selected</p>
+          </div>
+        );
+      }
+      if (addresses.length === 0) {
+        return (
+          <div className="p-4 border border-yellow-300 bg-yellow-50 rounded-md">
+            <p className="font-semibold text-yellow-800">Error</p>
+            <p className="text-yellow-600">No addresses selected</p>
+          </div>
+        );
+      }
+      return <BarStackedNetworthByChain addresses={addresses} dates={dates} />;
 
     default:
       return (

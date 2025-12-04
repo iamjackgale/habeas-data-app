@@ -17,6 +17,7 @@ const PORTFOLIO_TABLE_CATEGORIES: Record<string, Array<{ key: string; label: str
   'Comparison': [
     { key: 'comparison-portfolio-by-protocol', label: 'Portfolio Comparison by Protocol' },
     { key: 'comparison-portfolio-by-asset', label: 'Portfolio Comparison by Asset' },
+    { key: 'comparison-networth-by-chain', label: 'Net Worth Comparison by Chain' },
   ],
 };
 

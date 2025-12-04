@@ -56,8 +56,8 @@ app.get('/octav/paid', (req: Request, res: Response) => {
 // Routes
 app.get('/', (req: Request, res: Response) => {
   res.json({
-    name: 'x402 Demo API (TypeScript)',
-    description: 'TypeScript Express server with x402 payments',
+    name: 'Habeas Data API (TypeScript)',
+    description: 'TypeScript Express server for Habeas Data services using x402 payments',
     status: 'ok',
     endpoints: {
       'GET /health': 'Health check',

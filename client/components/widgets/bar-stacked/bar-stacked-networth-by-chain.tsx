@@ -1,7 +1,7 @@
 import { BarStackedChartDataEntry } from "@/handlers/bar-chart-handler";
 import { useWidgetColors } from "@/hooks/use-widget-colors";
 import { useGetHistoricalRange } from "@/services/octav/loader";
-import BarStackedChartComponent from '@/components/charts/bar-stacked';
+import BarStackedBySignChartComponent from '@/components/charts/bar-stacked-by-sign';
 
 
 interface BarStackedNetworthByChainProps {
@@ -191,9 +191,9 @@ export default function BarStackedNetworthByChain({ addresses, dates: rawDates }
 
   return (
     <div className="p-4 border border-gray-300 widget-bg rounded-md w-full max-w-full">
-      <p className="font-semibold widget-text mb-4">Portfolio Comparison by Chain</p>
+      <p className="font-semibold widget-text mb-4">Net Worth by Chain</p>
       <div className="w-full mx-auto">
-        <BarStackedChartComponent
+        <BarStackedBySignChartComponent
           data={finalStackedData}
           dataKeys={finalDataKeys}
           totalValue={totalValue}

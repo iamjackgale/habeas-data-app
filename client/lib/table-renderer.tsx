@@ -12,7 +12,7 @@ import TablePortfolioByProtocol from '@/components/tables/table-portfolio-by-pro
 import TablePortfolioByAsset from '@/components/tables/table-portfolio-by-asset';
 import TableTransactionsByDay from '@/components/tables/table-transactions-by-day';
 import { TableComparison, ComparisonTableDataEntry } from '@/components/tables/table-comparison';
-import { useGetHistorical } from '@/services/octav/loader';
+import { useGetHistorical, useGetHistoricalRange } from '@/services/octav/loader';
 import { TPortfolio } from '@/types/portfolio';
 import { getProtocolValueDictionary, getComparisonProtocolValueDictionary } from '@/handlers/portfolio-handler';
 import { getAssetValueDictionary, getComparisonAssetValueDictionary } from '@/handlers/portfolio-handler';
@@ -393,6 +393,115 @@ function TableComparisonPortfolioByAsset({ address, dates }: { address: string; 
   );
 }
 
+// Table component for comparison networth by chain (supports multiple addresses)
+function TableComparisonNetworthByChain({ addresses, dates }: { addresses: string[]; dates: string[] }) {
+  const sortedDates = [...dates].sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+  const MAX_DATES = 12;
+  
+  if (sortedDates.length > MAX_DATES) {
+    return (
+      <div className="p-4 border border-red-300 bg-red-50 rounded-md">
+        <p className="font-semibold text-red-800">Error</p>
+        <p className="text-red-600">
+          Maximum {MAX_DATES} dates supported. Received {sortedDates.length} dates.
+        </p>
+      </div>
+    );
+  }
+
+  if (addresses.length === 0) {
+    return (
+      <div className="p-4 border border-yellow-300 bg-yellow-50 rounded-md">
+        <p className="font-semibold text-yellow-800">Error</p>
+        <p className="text-yellow-600">No addresses selected</p>
+      </div>
+    );
+  }
+
+  const { data, isLoading, error } = useGetHistoricalRange({
+    addresses,
+    dates: sortedDates,
+  });
+
+  if (isLoading) return <LoadingSpinner />;
+
+  if (error) {
+    return (
+      <div className="p-4 border border-red-300 bg-red-50 rounded-md">
+        <p className="font-semibold text-red-800">Error</p>
+        <p className="text-yellow-600">{error.message}</p>
+      </div>
+    );
+  }
+
+  if (!data) {
+    return (
+      <div className="p-4 border border-yellow-300 bg-yellow-50 rounded-md">
+        <p className="font-semibold text-yellow-800">No Data</p>
+        <p className="text-yellow-600">No historical data available</p>
+      </div>
+    );
+  }
+
+  // Build a comparison dictionary: { chainKey: [value_date0, value_date1, ...] }
+  const comparisonDictionary: Record<string, number[]> = {};
+  
+  sortedDates.forEach((date, dateIndex) => {
+    const dateData = data[date];
+    if (!dateData) return;
+    
+    // Aggregate chain balances across all addresses for this date
+    const chainTotals: Record<string, number> = {};
+    
+    Object.values(dateData).forEach((portfolio) => {
+      if (!portfolio.chains) return;
+      
+      Object.entries(portfolio.chains).forEach(([chainKey, chainData]) => {
+        const chainValue = parseFloat(chainData.value) || 0;
+        chainTotals[chainKey] = (chainTotals[chainKey] || 0) + chainValue;
+      });
+    });
+    
+    // For each chain in the dictionary, add its value for this date (or 0 if missing)
+    Object.keys(comparisonDictionary).forEach((chainKey) => {
+      comparisonDictionary[chainKey].push(chainTotals[chainKey] || 0);
+    });
+    
+    // Add any new chains that appeared for the first time on this date
+    Object.entries(chainTotals).forEach(([chainKey, total]) => {
+      if (!comparisonDictionary[chainKey]) {
+        // Initialize with zeros for all previous dates
+        comparisonDictionary[chainKey] = new Array(dateIndex).fill(0);
+        // Add the current date's value
+        comparisonDictionary[chainKey].push(total);
+      }
+    });
+  });
+
+  const tableData: ComparisonTableDataEntry[] = Object.entries(comparisonDictionary).map(([name, values]) => ({
+    name,
+    values: values.map(v => typeof v === 'number' ? v : parseFloat(String(v)) || 0),
+    dates: sortedDates,
+  }));
+
+  if (tableData.length === 0) {
+    return (
+      <div className="p-4 border border-yellow-300 bg-yellow-50 rounded-md">
+        <p className="font-semibold text-yellow-800">No Chain Data</p>
+        <p className="text-yellow-600">No chain data available to display</p>
+      </div>
+    );
+  }
+
+  return (
+    <TableComparison
+      title="Net Worth Comparison by Chain"
+      data={tableData}
+      dates={sortedDates}
+    />
+  );
+}
+
 /**
  * Render a table component based on the table key and parameters
  * Returns both the component and the data needed for CSV export
@@ -400,7 +509,7 @@ function TableComparisonPortfolioByAsset({ address, dates }: { address: string; 
 export function renderTable(params: TableRenderParams): TableRenderResult {
   const { tableKey, addresses, dates, chains, categories } = params;
 
-  // Get the first address (for now, tables only support single address)
+  // Get the first address (for now, most tables only support single address)
   const address = addresses[0] || '';
   
   if (!address) {
@@ -507,6 +616,36 @@ export function renderTable(params: TableRenderParams): TableRenderResult {
       return {
         component: <TableComparisonPortfolioByAsset address={address} dates={dates} />,
         title: 'Portfolio Comparison by Asset',
+        comparisonData: undefined, // Will be extracted from component
+        dates: dates,
+      };
+
+    case 'comparison-networth-by-chain':
+      if (dates.length === 0) {
+        return {
+          component: (
+            <div className="p-4 border border-yellow-300 bg-yellow-50 rounded-md">
+              <p className="font-semibold text-yellow-800">Error</p>
+              <p className="text-yellow-600">No dates selected</p>
+            </div>
+          ),
+          title: 'Error',
+        };
+      }
+      if (addresses.length === 0) {
+        return {
+          component: (
+            <div className="p-4 border border-yellow-300 bg-yellow-50 rounded-md">
+              <p className="font-semibold text-yellow-800">Error</p>
+              <p className="text-yellow-600">No addresses selected</p>
+            </div>
+          ),
+          title: 'Error',
+        };
+      }
+      return {
+        component: <TableComparisonNetworthByChain addresses={addresses} dates={dates} />,
+        title: 'Net Worth Comparison by Chain',
         comparisonData: undefined, // Will be extracted from component
         dates: dates,
       };

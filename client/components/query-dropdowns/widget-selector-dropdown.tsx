@@ -6,26 +6,27 @@ import { ChevronDown, ChevronUp, ChevronRight } from 'lucide-react';
 type Mode = 'portfolio' | 'transactions';
 
 const PORTFOLIO_WIDGET_CATEGORIES = {
-  'pie': [
+  'Pie Charts': [
     { key: 'pie-current-portfolio-by-asset', label: 'Portfolio Assets by Asset' },
     { key: 'pie-current-portfolio-by-protocol', label: 'Portfolio Assets by Protocol' },
     { key: 'pie-historical-portfolio-by-asset', label: 'Portfolio Assets by Asset' },
     { key: 'pie-historical-portfolio-by-protocol', label: 'Portfolio Assets by Protocol' },
   ],
-  'pie-in-pie': [
+  'Pie-in-Pie Charts': [
     { key: 'pies-portfolio-by-asset', label: 'Portfolio Comparison by Asset' },
     { key: 'pies-portfolio-by-protocol', label: 'Portfolio Comparison by Protocol' },
   ],
-  'bar': [
+  'Bar Charts': [
     { key: 'bar-current-portfolio-by-asset', label: 'Portfolio Assets by Asset' },
     { key: 'bar-current-portfolio-by-protocol', label: 'Portfolio Assets by Protocol' },
     { key: 'bar-historical-portfolio-by-asset', label: 'Portfolio Assets by Asset' },
     { key: 'bar-historical-portfolio-by-protocol', label: 'Portfolio Assets by Protocol' },
     { key: 'bar-portfolio-by-networth', label: 'Portfolio Net Worth by Date' },
   ],
-  'bar-stacked': [
+  'Stacked Bar Charts': [
     { key: 'bar-stacked-portfolio-by-asset', label: 'Portfolio Comparison by Asset' },
     { key: 'bar-stacked-portfolio-by-protocol', label: 'Portfolio Comparison by Protocol' },
+    { key: 'bar-stacked-networth-by-chain', label: 'Portfolio Comparison by Chain' },
   ],
 };
 

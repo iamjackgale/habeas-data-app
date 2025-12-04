@@ -24,6 +24,7 @@ export function getTableKeyFromWidgetKey(widgetKey: string): string | null {
     'pies-portfolio-by-protocol': 'comparison-portfolio-by-protocol',
     'bar-stacked-portfolio-by-asset': 'comparison-portfolio-by-asset',
     'bar-stacked-portfolio-by-protocol': 'comparison-portfolio-by-protocol',
+    'bar-stacked-networth-by-chain': 'comparison-networth-by-chain',
     'bar-portfolio-by-networth': null, // No direct table equivalent (net worth is different)
     
     // Transactions widgets -> transactions tables

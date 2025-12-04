@@ -32,6 +32,7 @@ const MULTI_DATE_WIDGETS: string[] = [
   'pies-portfolio-by-protocol', // MAX_DATES = 4
   'bar-stacked-portfolio-by-asset', // MAX_DATES = 5
   'bar-stacked-portfolio-by-protocol', // MAX_DATES = 5
+  'bar-stacked-networth-by-chain', // MAX_DATES = 12
   'bar-portfolio-by-networth', // MAX_DATES = 5
   'bar-transactions-by-day', // Needs startDate and endDate (2 dates, max 30 days range)
 ];
@@ -117,6 +118,7 @@ const WIDGET_CONFIG: Record<string, WidgetConfig> = {
   'pies-portfolio-by-protocol': { timePeriodType: 'multi', selectionType: 'addresses', hasCategories: false },
   'bar-stacked-portfolio-by-asset': { timePeriodType: 'multi', selectionType: 'addresses', hasCategories: false },
   'bar-stacked-portfolio-by-protocol': { timePeriodType: 'multi', selectionType: 'addresses', hasCategories: false },
+  'bar-stacked-networth-by-chain': { timePeriodType: 'multi', selectionType: 'addresses', hasCategories: false },
   'bar-portfolio-by-networth': { timePeriodType: 'multi', selectionType: 'addresses', hasCategories: false },
   'bar-transactions-by-day': { timePeriodType: 'multi', selectionType: 'addresses', hasCategories: false },
 };
