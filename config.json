@@ -106,6 +106,80 @@
         "startDate": "2025-10-01",
         "endDate": "2025-10-31"
       }
+    },
+    "categories": {
+      "Boost Revenues": {
+        "category_type": "revenue"
+      },
+      "Gauge Vote Incentive Revenues": {
+        "category_type": "revenue"
+      },
+      "Onramp Revenues": {
+        "category_type": "revenue"
+      },
+      "Strategy Revenues": {
+        "category_type": "revenue"
+      },
+      "Validator Revenues": {
+        "category_type": "revenue"
+      },
+      "Zap Revenues": {
+        "category_type": "revenue"
+      },
+      "Accounting Costs": {
+        "category_type": "cost"
+      },
+      "Audit Costs": {
+        "category_type": "cost"
+      },
+      "Boost Costs": {
+        "category_type": "cost"
+      },
+      "Gauge Vote Incentive Costs": {
+        "category_type": "cost"
+      },
+      "Merkl Costs": {
+        "category_type": "cost"
+      },
+      "Bounty Costs": {
+        "category_type": "cost"
+      },
+      "Contributor Costs": {
+        "category_type": "cost"
+      },
+      "Cowllector Gas Costs": {
+        "category_type": "cost"
+      },
+      "Developer Gas Costs": {
+        "category_type": "cost"
+      },
+      "Event Costs": {
+        "category_type": "cost"
+      },
+      "Gelato Costs": {
+        "category_type": "cost"
+      },
+      "Infrastructure Costs": {
+        "category_type": "cost"
+      },
+      "Keeper Gas Costs": {
+        "category_type": "cost"
+      },
+      "Marketing Costs": {
+        "category_type": "cost"
+      },
+      "Merchandise Costs": {
+        "category_type": "cost"
+      },
+      "Service Costs": {
+        "category_type": "cost"
+      },
+      "Travel Costs": {
+        "category_type": "cost"
+      },
+      "Treasury Gas Costs": {
+        "category_type": "cost"
+      }
     }
   }
 }
