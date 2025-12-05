@@ -29,6 +29,7 @@ export function getTableKeyFromWidgetKey(widgetKey: string): string | null {
     
     // Transactions widgets -> transactions tables
     'bar-transactions-by-day': 'transactions-by-day',
+    'bar-stacked-transactions-by-category': 'comparison-by-interval',
   };
 
   return mapping[widgetKey] || null;

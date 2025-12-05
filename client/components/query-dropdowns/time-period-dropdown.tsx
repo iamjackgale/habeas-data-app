@@ -216,7 +216,7 @@ export function TimePeriodDropdown({ value, onChange }: TimePeriodDropdownProps 
                 key={idx}
                 onClick={() => handleDateClick(date)}
                 className={`p-2 text-center cursor-pointer rounded hover:bg-accent ${bgColor} ${
-                  isSelected || isInRange ? 'text-primary-foreground' : ''
+                  isSelected ? 'text-primary-foreground' : isInRange ? 'text-foreground' : ''
                 }`}
               >
                 {date.getDate()}

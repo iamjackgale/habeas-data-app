@@ -37,7 +37,7 @@ export function DashboardFooter() {
               <td className="w-1/2 text-center align-middle">
                 <div className="flex items-center justify-center h-[3.136rem]">
                   <Image
-                    src={isDark ? '/octav-sideview-dark.png' : '/octav-sideview-light.png'}
+                    src={isDark ? '/octav-logos/dark/octav-sideview-dark.png' : '/octav-logos/light/octav-sideview-light.png'}
                     alt="Octav"
                     width={180}
                     height={72}
@@ -50,7 +50,7 @@ export function DashboardFooter() {
               <td className="w-1/2 text-center align-middle">
                 <div className="flex items-center justify-center h-[3.136rem]">
                   <Image
-                    src={isDark ? '/habeas-logo-dark-transparent.png' : '/habeas-logo-light-transparent.png'}
+                    src={isDark ? '/habeas-logos/dark/habeas-logo-dark-transparent.png' : '/habeas-logos/light/habeas-logo-light-transparent.png'}
                     alt="Habeas"
                     width={205}
                     height={81}

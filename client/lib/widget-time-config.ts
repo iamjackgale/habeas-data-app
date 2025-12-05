@@ -35,6 +35,7 @@ const MULTI_DATE_WIDGETS: string[] = [
   'bar-stacked-networth-by-chain', // MAX_DATES = 12
   'bar-portfolio-by-networth', // MAX_DATES = 5
   'bar-transactions-by-day', // Needs startDate and endDate (2 dates, max 30 days range)
+  'bar-stacked-transactions-by-category', // Needs startDate and endDate (date range) with categories
 ];
 
 /**
@@ -121,6 +122,7 @@ const WIDGET_CONFIG: Record<string, WidgetConfig> = {
   'bar-stacked-networth-by-chain': { timePeriodType: 'multi', selectionType: 'addresses', hasCategories: false },
   'bar-portfolio-by-networth': { timePeriodType: 'multi', selectionType: 'addresses', hasCategories: false },
   'bar-transactions-by-day': { timePeriodType: 'multi', selectionType: 'addresses', hasCategories: false },
+  'bar-stacked-transactions-by-category': { timePeriodType: 'multi', selectionType: 'addresses', hasCategories: true },
 };
 
 /**

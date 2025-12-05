@@ -4,16 +4,16 @@
     "organizationDescription": "Beefy is a decentralized automatous organization that manages the Beefy protocol. This dashboard summarizes the position of the Beefy treasury, the DAO's assets, and the ongoing operations which impact upon the DAO's finances.",
     "visuals": {
       "widgetColors": [
-        "#00ffff",
-        "#0ea12c",
-        "#FFBB28",
-        "#FF8042",
-        "#8884d8",
-        "#d92929",
-        "#ffc658",
-        "#ff7300",
-        "#9c88ff",
-        "#ff8c94"
+        "#4285F4",
+        "#DB4437",
+        "#F4B400",
+        "#0F9D58",
+        "#AB47BC",
+        "#00ACC1",
+        "#FF7043",
+        "#9E9D24",
+        "#5E35B1",
+        "#26A69A"
       ]
     },
     "addresses": {
@@ -105,81 +105,277 @@
         "address": "0xc9c61194682a3a5f56bf9cd5b59ee63028ab6041",
         "startDate": "2025-10-01",
         "endDate": "2025-10-31"
+      },
+      "bar-stacked-transactions-by-category": {
+        "address": "0xc9c61194682a3a5f56bf9cd5b59ee63028ab6041",
+        "startDate": "2025-10-01",
+        "endDate": "2025-10-31",
+        "timeInterval": "weekly",
+        "categories": ["41 strategy revenue", "42 zap revenue"]
       }
     },
     "categories": {
-      "Boost Revenues": {
-        "category_type": "revenue"
+      "00 spam": {
+        "category_name": "Spam",
+        "category_type": "Excluded",
+        "category_colour": "#000000"
       },
-      "Gauge Vote Incentive Revenues": {
-        "category_type": "revenue"
+      "01 bifi migration": {
+        "category_name": "BIFI Migration",
+        "category_type": "Excluded",
+        "category_colour": "#000000"
       },
-      "Onramp Revenues": {
-        "category_type": "revenue"
+      "02 compensation dstr": {
+        "category_name": "Compensation Distribution",
+        "category_type": "Excluded",
+        "category_colour": "#000000"
       },
-      "Strategy Revenues": {
-        "category_type": "revenue"
+      "03 reward dstr": {
+        "category_name": "Reward Distribution",
+        "category_type": "Excluded",
+        "category_colour": "#000000"
       },
-      "Validator Revenues": {
-        "category_type": "revenue"
+      "04 boost ptn inflow": {
+        "category_name": "Boost Partner Inflow",
+        "category_type": "Excluded",
+        "category_colour": "#000000"
       },
-      "Zap Revenues": {
-        "category_type": "revenue"
+      "05 boost ptn outflow": {
+        "category_name": "Boost Partner Outflow",
+        "category_type": "Excluded",
+        "category_colour": "#000000"
       },
-      "Accounting Costs": {
-        "category_type": "cost"
+      "11 treasury swaps": {
+        "category_name": "Treasury Swaps",
+        "category_type": "Assets",
+        "category_colour": "#0012ff"
       },
-      "Audit Costs": {
-        "category_type": "cost"
+      "12 stable assets": {
+        "category_name": "Stable Assets",
+        "category_type": "Assets",
+        "category_colour": "#0012ff"
       },
-      "Boost Costs": {
-        "category_type": "cost"
+      "13 othr tkn assets": {
+        "category_name": "Other Token Assets",
+        "category_type": "Assets",
+        "category_colour": "#0012ff"
       },
-      "Gauge Vote Incentive Costs": {
-        "category_type": "cost"
+      "15 pol assets": {
+        "category_name": "Protocol-Owned Liquidity",
+        "category_type": "Assets",
+        "category_colour": "#0012ff"
       },
-      "Merkl Costs": {
-        "category_type": "cost"
+      "19 bridging": {
+        "category_name": "Bridging",
+        "category_type": "Assets",
+        "category_colour": "#0012ff"
       },
-      "Bounty Costs": {
-        "category_type": "cost"
+      "30 cntrbr incentives": {
+        "category_name": "Contributor Incentives",
+        "category_type": "Equity",
+        "category_colour": "#ff00e6"
       },
-      "Contributor Costs": {
-        "category_type": "cost"
+      "31 dao boosts": {
+        "category_name": "DAO Boosts",
+        "category_type": "Equity",
+        "category_colour": "#ff00e6"
       },
-      "Cowllector Gas Costs": {
-        "category_type": "cost"
+      "32 op boosts": {
+        "category_name": "OP Boosts",
+        "category_type": "Equity",
+        "category_colour": "#ff00e6"
       },
-      "Developer Gas Costs": {
-        "category_type": "cost"
+      "33 zap grant boosts": {
+        "category_name": "Zap Grant Boosts",
+        "category_type": "Equity",
+        "category_colour": "#ff00e6"
       },
-      "Event Costs": {
-        "category_type": "cost"
+      "34 sonic grnt boosts": {
+        "category_name": "Sonic Grant Boosts",
+        "category_type": "Equity",
+        "category_colour": "#ff00e6"
       },
-      "Gelato Costs": {
-        "category_type": "cost"
+      "35 compound boosts": {
+        "category_name": "Compound Boosts",
+        "category_type": "Equity",
+        "category_colour": "#ff00e6"
       },
-      "Infrastructure Costs": {
-        "category_type": "cost"
+      "36 degen boosts": {
+        "category_name": "Degen Boosts",
+        "category_type": "Equity",
+        "category_colour": "#ff00e6"
       },
-      "Keeper Gas Costs": {
-        "category_type": "cost"
+      "37 threshold boosts": {
+        "category_name": "Threshold Boosts",
+        "category_type": "Equity",
+        "category_colour": "#ff00e6"
       },
-      "Marketing Costs": {
-        "category_type": "cost"
+      "40 strategy income": {
+        "category_name": "Strategy Income",
+        "category_type": "Revenue",
+        "category_colour": "#2dc200"
       },
-      "Merchandise Costs": {
-        "category_type": "cost"
+      "41 strategy revenue": {
+        "category_name": "Strategy Revenue",
+        "category_type": "Revenue",
+        "category_colour": "#2dc200"
       },
-      "Service Costs": {
-        "category_type": "cost"
+      "42 zap revenue": {
+        "category_name": "Zap Revenue",
+        "category_type": "Revenue",
+        "category_colour": "#2dc200"
       },
-      "Travel Costs": {
-        "category_type": "cost"
+      "43 validator revenue": {
+        "category_name": "Validator Revenue",
+        "category_type": "Revenue",
+        "category_colour": "#2dc200"
       },
-      "Treasury Gas Costs": {
-        "category_type": "cost"
+      "44 bribe revenue": {
+        "category_name": "Bribe Revenue",
+        "category_type": "Revenue",
+        "category_colour": "#2dc200"
+      },
+      "45 boost revenue": {
+        "category_name": "Boost Revenue",
+        "category_type": "Revenue",
+        "category_colour": "#2dc200"
+      },
+      "46 onramp revenue": {
+        "category_name": "Onramp Revenue",
+        "category_type": "Revenue",
+        "category_colour": "#2dc200"
+      },
+      "50 infrastructure": {
+        "category_name": "Infrastructure Costs",
+        "category_type": "Costs",
+        "category_colour": "#ff0000"
+      },
+      "51 service costs": {
+        "category_name": "Service Costs",
+        "category_type": "Costs",
+        "category_colour": "#ff0000"
+      },
+      "52 gelato costs": {
+        "category_name": "Gelato Costs",
+        "category_type": "Costs",
+        "category_colour": "#ff0000"
+      },
+      "53 developer gas": {
+        "category_name": "Developer Gas Costs",
+        "category_type": "Costs",
+        "category_colour": "#ff0000"
+      },
+      "54 keeper gas": {
+        "category_name": "Keeper Gas Costs",
+        "category_type": "Costs",
+        "category_colour": "#ff0000"
+      },
+      "55 treasury gas": {
+        "category_name": "Treasury Gas Costs",
+        "category_type": "Costs",
+        "category_colour": "#ff0000"
+      },
+      "56 cowllector gas": {
+        "category_name": "Cowllector Gas Costs",
+        "category_type": "Costs",
+        "category_colour": "#ff0000"
+      },
+      "57 audit costs": {
+        "category_name": "Audit Costs Costs",
+        "category_type": "Costs",
+        "category_colour": "#ff0000"
+      },
+      "58 bug bounty costs": {
+        "category_name": "Bug Bounty Costs",
+        "category_type": "Costs",
+        "category_colour": "#ff0000"
+      },
+      "60 contributor costs": {
+        "category_name": "Contributor Costs",
+        "category_type": "Overheads",
+        "category_colour": "#c90101"
+      },
+      "61 accounting costs": {
+        "category_name": "Accounting Costs",
+        "category_type": "Overheads",
+        "category_colour": "#c90101"
+      },
+      "62 marketing costs": {
+        "category_name": "Marketing Costs",
+        "category_type": "Overheads",
+        "category_colour": "#c90101"
+      },
+      "63 event costs": {
+        "category_name": "Event Costs",
+        "category_type": "Overheads",
+        "category_colour": "#c90101"
+      },
+      "64 merch costs": {
+        "category_name": "Merch Costs",
+        "category_type": "Overheads",
+        "category_colour": "#c90101"
+      },
+      "65 travel expenses": {
+        "category_name": "Travel Expenses",
+        "category_type": "Overheads",
+        "category_colour": "#c90101"
+      },
+      "66 boost costs": {
+        "category_name": "Boost Costs",
+        "category_type": "Overheads",
+        "category_colour": "#c90101"
+      },
+      "68 bribe costs": {
+        "category_name": "Bribe Costs",
+        "category_type": "Overheads",
+        "category_colour": "#c90101"
+      },
+      "69 merkl costs": {
+        "category_name": "Merkl Costs",
+        "category_type": "Overheads",
+        "category_colour": "#c90101"
+      },
+      "70 grant funding": {
+        "category_name": "Grant Funding",
+        "category_type": "Other Income",
+        "category_colour": "#fff506"
+      },
+      "71 airdrop": {
+        "category_name": "Airdrop",
+        "category_type": "Other Income",
+        "category_colour": "#fff506"
+      },
+      "90 failed": {
+        "category_name": "Failed",
+        "category_type": "Admin",
+        "category_colour": "#ffffff"
+      },
+      "96 validator admin": {
+        "category_name": "Validator Admin",
+        "category_type": "Admin",
+        "category_colour": "#ffffff"
+      },
+      "97 gauge admin": {
+        "category_name": "Gauge Admin",
+        "category_type": "Admin",
+        "category_colour": "#ffffff"
+      },
+      "97 staking admin": {
+        "category_name": "Staking Admin",
+        "category_type": "Admin",
+        "category_colour": "#ffffff"
+      },
+      "98 approvals": {
+        "category_name": "Approvals",
+        "category_type": "Admin",
+        "category_colour": "#ffffff"
+      },
+      "99 multisig admin": {
+        "category_name": "Multisig Admin",
+        "category_type": "Admin",
+        "category_colour": "#ffffff"
       }
-    }
+    },
+    "requireX402Payments": false
   }
 }

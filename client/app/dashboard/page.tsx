@@ -7,6 +7,7 @@ import HistoricalSnapshot from '@/components/widgets-snapshots/counter/historic-
 import TransactionCountSnapshot from '@/components/widgets-snapshots/counter/transaction-snapshot';
 import TransactionValueSnapshot from '@/components/widgets-snapshots/counter/transaction-value';
 import BarTransactionsByDaySnapshot from '@/components/widgets-snapshots/bar/bar-transactions-by-day-snapshot';
+import BarStackedTransactionsByCategorySnapshot from '@/components/widgets-snapshots/bar-stacked/bar-stacked-transactions-by-category-snapshot';
 import PiesPortfolioByAssetSnapshot from '@/components/widgets-snapshots/pies/pies-portfolio-by-asset-snapshot';
 import BarStackedNetworthByChainSnapshot from '@/components/widgets-snapshots/bar-stacked/bar-stacked-networth-by-chain-snapshot';
 import PieCurrentPortfolioByAssetSnapshot from '@/components/widgets-snapshots/pie/pie-current-portfolio-by-asset-snapshot';
@@ -107,8 +108,8 @@ export default function DashboardPage() {
           <div className="w-full">
             <PiesPortfolioByAssetSnapshot />
             <BarTransactionsByDaySnapshot />
+            <BarStackedTransactionsByCategorySnapshot />
           </div>
-          {/* Space for two more widgets */}
         </div>
       </div>
 

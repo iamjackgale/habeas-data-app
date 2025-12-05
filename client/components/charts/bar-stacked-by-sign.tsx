@@ -22,6 +22,10 @@ export interface BarStackedBySignChartComponentProps {
   isAnimationActive?: boolean;
   /** Whether to show responsive container (default: true) */
   responsive?: boolean;
+  /** X-axis label */
+  xAxisLabel?: string;
+  /** Y-axis label */
+  yAxisLabel?: string;
 }
 
 const DEFAULT_COLORS = [
@@ -43,6 +47,8 @@ export default function BarStackedBySignChartComponent({
   maxWidth = 700,
   isAnimationActive = true,
   responsive = true,
+  xAxisLabel,
+  yAxisLabel,
 }: BarStackedBySignChartComponentProps) {
   // Format Y axis tick to show dollar amounts with commas and no decimal places
   // Handles negative values properly
@@ -104,13 +110,20 @@ export default function BarStackedBySignChartComponent({
             margin={{
               top: 25,
               right: 0,
-              left: 0,
-              bottom: 5,
+              left: yAxisLabel ? 20 : 0,
+              bottom: xAxisLabel ? 30 : 5,
             }}
           >
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="name" />
-            <YAxis width="auto" tickFormatter={formatYAxis} />
+            <XAxis 
+              dataKey="name" 
+              label={xAxisLabel ? { value: xAxisLabel, position: 'insideBottom', offset: -5, style: { textAnchor: 'middle' } } : undefined}
+            />
+            <YAxis 
+              width="auto" 
+              tickFormatter={formatYAxis}
+              label={yAxisLabel ? { value: yAxisLabel, angle: -90, position: 'insideLeft', style: { textAnchor: 'middle' } } : undefined}
+            />
             <Tooltip
               formatter={(value: number, name: string, entry: any) => formatTooltip(value, name, entry)}
               labelFormatter={renderTooltipLabel}
@@ -120,6 +133,8 @@ export default function BarStackedBySignChartComponent({
               formatter={(value) => {
                 return <span className="text-foreground">{value}</span>;
               }}
+              wrapperStyle={{ paddingTop: '20px' }}
+              iconSize={12}
             />
             <ReferenceLine y={0} stroke="#000" />
             {dataKeys.map((key, index) => (
@@ -155,13 +170,20 @@ export default function BarStackedBySignChartComponent({
         margin={{
           top: 25,
           right: 0,
-          left: 0,
-          bottom: 5,
+          left: yAxisLabel ? 20 : 0,
+          bottom: xAxisLabel ? 30 : 5,
         }}
       >
         <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="name" />
-        <YAxis width="auto" tickFormatter={formatYAxis} />
+        <XAxis 
+          dataKey="name" 
+          label={xAxisLabel ? { value: xAxisLabel, position: 'insideBottom', offset: -5, style: { textAnchor: 'middle' } } : undefined}
+        />
+        <YAxis 
+          width="auto" 
+          tickFormatter={formatYAxis}
+          label={yAxisLabel ? { value: yAxisLabel, angle: -90, position: 'insideLeft', style: { textAnchor: 'middle' } } : undefined}
+        />
         <Tooltip
           formatter={(value: number, name: string, entry: any) => formatTooltip(value, name, entry)}
           labelFormatter={renderTooltipLabel}
@@ -171,6 +193,8 @@ export default function BarStackedBySignChartComponent({
           formatter={(value) => {
             return <span className="text-foreground">{value}</span>;
           }}
+          wrapperStyle={{ paddingTop: '20px' }}
+          iconSize={12}
         />
         <ReferenceLine y={0} stroke="#000" />
         {dataKeys.map((key, index) => (

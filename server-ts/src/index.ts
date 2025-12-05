@@ -87,10 +87,11 @@ app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
   console.log(`\nEndpoints:`);
   console.log(`  • GET  /health                       - Health check`);
-  console.log(`  • GET  /api/octav/portfolio          - Get combined portfolio`);
-  console.log(`  • GET  /api/octav/historical         - Get historical portfolio`);
-  console.log(`  • GET  /api/octav/historical/range   - Get historical range`);
-  console.log(`  • GET  /api/octav/transactions       - Get transactions`);
-  console.log(`  • GET  /api/cdp/balance/:address     - Get USDC balance`);
-  console.log(`  • POST /api/cdp/faucet               - Request test USDC`);
+    console.log(`  • GET  /api/octav/portfolio          - Get combined portfolio`);
+    console.log(`  • GET  /api/octav/historical         - Get historical portfolio`);
+    console.log(`  • GET  /api/octav/historical/range   - Get historical range`);
+    console.log(`  • GET  /api/octav/transactions       - Get transactions`);
+    console.log(`  • GET  /api/octav/categories/sync    - Sync categories from cache`);
+    console.log(`  • GET  /api/cdp/balance/:address     - Get USDC balance`);
+    console.log(`  • POST /api/cdp/faucet               - Request test USDC`);
 });

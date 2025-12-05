@@ -11,7 +11,9 @@ import React from 'react';
 import TablePortfolioByProtocol from '@/components/tables/table-portfolio-by-protocol';
 import TablePortfolioByAsset from '@/components/tables/table-portfolio-by-asset';
 import TableTransactionsByDay from '@/components/tables/table-transactions-by-day';
+import TableComparisonByInterval from '@/components/tables/table-comparison-by-interval';
 import { TableComparison, ComparisonTableDataEntry } from '@/components/tables/table-comparison';
+import { TimeInterval } from '@/components/query-dropdowns/time-interval-dropdown';
 import { useGetHistorical, useGetHistoricalRange } from '@/services/octav/loader';
 import { TPortfolio } from '@/types/portfolio';
 import { getProtocolValueDictionary, getComparisonProtocolValueDictionary } from '@/handlers/portfolio-handler';
@@ -26,6 +28,7 @@ export interface TableRenderParams {
   dates: string[];
   chains?: string[];
   categories?: string[];
+  timeInterval?: TimeInterval;
 }
 
 export interface TableRenderResult {
@@ -507,7 +510,7 @@ function TableComparisonNetworthByChain({ addresses, dates }: { addresses: strin
  * Returns both the component and the data needed for CSV export
  */
 export function renderTable(params: TableRenderParams): TableRenderResult {
-  const { tableKey, addresses, dates, chains, categories } = params;
+  const { tableKey, addresses, dates, chains, categories, timeInterval } = params;
 
   // Get the first address (for now, most tables only support single address)
   const address = addresses[0] || '';
@@ -669,6 +672,59 @@ export function renderTable(params: TableRenderParams): TableRenderResult {
       return {
         component: <TableTransactionsByDay address={address} startDate={startDate} endDate={endDate} />,
         title: `Transactions by Day (${startDate} to ${endDate})`,
+        data: undefined, // Will be extracted from component
+      };
+
+    case 'comparison-by-interval':
+      if (dates.length < 2) {
+        return {
+          component: (
+            <div className="p-4 border border-yellow-300 bg-yellow-50 rounded-md">
+              <p className="font-semibold text-yellow-800">Error</p>
+              <p className="text-yellow-600">Please select a date range (start and end date)</p>
+            </div>
+          ),
+          title: 'Error',
+        };
+      }
+      if (!timeInterval) {
+        return {
+          component: (
+            <div className="p-4 border border-yellow-300 bg-yellow-50 rounded-md">
+              <p className="font-semibold text-yellow-800">Error</p>
+              <p className="text-yellow-600">Please select a time interval</p>
+            </div>
+          ),
+          title: 'Error',
+        };
+      }
+      if (!categories || categories.length === 0) {
+        return {
+          component: (
+            <div className="p-4 border border-yellow-300 bg-yellow-50 rounded-md">
+              <p className="font-semibold text-yellow-800">Error</p>
+              <p className="text-yellow-600">Please select at least one category</p>
+            </div>
+          ),
+          title: 'Error',
+        };
+      }
+      // Sort dates and use first as startDate, last as endDate
+      const sortedDatesForInterval = [...dates].sort((a, b) => a.localeCompare(b));
+      const startDateForInterval = sortedDatesForInterval[0];
+      const endDateForInterval = sortedDatesForInterval[sortedDatesForInterval.length - 1];
+      const selectedCategoriesSet = new Set(categories);
+      return {
+        component: (
+          <TableComparisonByInterval
+            addresses={addresses}
+            startDate={startDateForInterval}
+            endDate={endDateForInterval}
+            timeInterval={timeInterval}
+            selectedCategories={selectedCategoriesSet}
+          />
+        ),
+        title: `Transactions Comparison by Category (${startDateForInterval} to ${endDateForInterval})`,
         data: undefined, // Will be extracted from component
       };
 

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { getPortfolio } from '../controllers/portfolio.js';
 import { getHistorical, getHistoricalRange } from '../controllers/historical.js';
 import { getTransactions } from '../controllers/transactions.js';
+import { syncCategories } from '../controllers/category-sync.js';
 
 const router = Router();
 
@@ -48,5 +49,11 @@ router.get('/historical/range', getHistoricalRange);
  *   - tokenId: NFT token ID (optional)
  */
 router.get('/transactions', getTransactions);
+
+/**
+ * GET /api/octav/categories/sync
+ * Scans all cached transaction data and adds any new categories to config.json with type "none"
+ */
+router.get('/categories/sync', syncCategories);
 
 export default router;

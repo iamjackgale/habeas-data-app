@@ -102,7 +102,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               />
             ) : (
               <Image 
-                src={isDark ? '/habeas-logo-dark-transparent.png' : '/habeas-logo-light-transparent.png'} 
+                src={isDark ? '/habeas-logos/dark/habeas-logo-dark-transparent.png' : '/habeas-logos/light/habeas-logo-light-transparent.png'} 
                 alt="Habeas Logo" 
                 width={200}
                 height={200}

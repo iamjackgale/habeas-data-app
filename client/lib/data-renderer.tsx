@@ -282,28 +282,38 @@ function DataDisplayMultiple({
  * Component that fetches and displays transaction data for a date range
  */
 function DataDisplayTransactions({ 
-  address, 
+  addresses,
   startDate,
   endDate,
   onDataReady 
 }: { 
-  address: string; 
+  addresses: string[];
   startDate: string;
   endDate: string;
   onDataReady?: (data: Transaction[]) => void;
 }) {
   const { dataByAddress, isLoading, error } = useGetTransactionsForDateRange(
-    [address],
+    addresses,
     startDate,
     endDate,
     {}
   );
 
-  // Memoize transaction extraction
+  // Memoize transaction extraction - combine transactions from all addresses
   const transactions = useMemo(() => {
-    if (!dataByAddress || isLoading || error) return null;
-    return dataByAddress[address] || [];
-  }, [dataByAddress, isLoading, error, address]);
+    if (isLoading) return null; // Still loading
+    if (error) return null; // Error occurred
+    // dataByAddress might be an empty object {} when no data, which is still truthy
+    // So we check if it exists and then extract transactions
+    if (!dataByAddress) return null;
+    const allTransactions: Transaction[] = [];
+    addresses.forEach(address => {
+      const addressTransactions = dataByAddress[address] || [];
+      allTransactions.push(...addressTransactions);
+    });
+    // Return empty array if no transactions found (not null, so we can distinguish from loading/error)
+    return allTransactions;
+  }, [dataByAddress, isLoading, error, addresses]);
 
   const jsonString = useMemo(() => {
     if (!transactions) return '';
@@ -361,38 +371,87 @@ export function renderData(
   onDataReady?: (data: PortfolioDownload[] | Transaction[]) => void
 ): DataRenderResult {
   const { addresses, dates, mode, widgetKey, tableKey } = params;
-  const address = addresses[0] || '';
+  const address = addresses[0] || ''; // For single-address widgets (portfolio)
 
-  if (!address) {
-    return {
-      component: (
-        <div className="p-4 border border-yellow-300 bg-yellow-50 rounded-md">
-          <p className="font-semibold text-yellow-800">Error</p>
-          <p className="text-yellow-600">No address selected</p>
-        </div>
-      ),
-      data: [],
-      title: 'No Data',
-    };
-  }
-
-  // Check if this is a transaction request
+  // For transaction requests, check if we have addresses
   const isTransactionRequest = mode === 'transactions' || 
     widgetKey === 'bar-transactions-by-day' || 
-    tableKey === 'transactions-by-day';
+    widgetKey === 'bar-stacked-transactions-by-category' ||
+    tableKey === 'transactions-by-day' ||
+    tableKey === 'comparison-by-interval';
+
+  if (isTransactionRequest) {
+    if (addresses.length === 0) {
+      return {
+        component: (
+          <div className="p-4 border border-yellow-300 bg-yellow-50 rounded-md">
+            <p className="font-semibold text-yellow-800">Error</p>
+            <p className="text-yellow-600">No addresses selected</p>
+          </div>
+        ),
+        data: [],
+        title: 'No Data',
+      };
+    }
+  } else {
+    // For portfolio requests, check single address
+    if (!address) {
+      return {
+        component: (
+          <div className="p-4 border border-yellow-300 bg-yellow-50 rounded-md">
+            <p className="font-semibold text-yellow-800">Error</p>
+            <p className="text-yellow-600">No address selected</p>
+          </div>
+        ),
+        data: [],
+        title: 'No Data',
+      };
+    }
+  }
+
 
   // Handle transaction data
-  if (isTransactionRequest && dates.length >= 2) {
+  if (isTransactionRequest) {
+    // For transaction requests, we need at least 2 dates (start and end)
+    if (dates.length < 2) {
+      console.log('[DataRenderer] Transaction request but dates.length < 2:', {
+        widgetKey,
+        tableKey,
+        mode,
+        dates,
+        addresses,
+      });
+      return {
+        component: (
+          <div className="p-4 border border-yellow-300 bg-yellow-50 rounded-md">
+            <p className="font-semibold text-yellow-800">No Date Range</p>
+            <p className="text-yellow-600">Please select a date range (start and end date) for transaction data</p>
+            <p className="text-xs text-yellow-500 mt-2">Debug: dates.length = {dates.length}, widgetKey = {widgetKey || 'null'}</p>
+          </div>
+        ),
+        data: [],
+        title: 'No Date Range',
+      };
+    }
+    
     // Sort dates and use first as startDate, last as endDate
     const sortedDates = [...dates].sort((a, b) => a.localeCompare(b));
     const startDate = sortedDates[0];
     const endDate = sortedDates[sortedDates.length - 1];
     const dateRange = `${startDate} to ${endDate}`;
     
+    console.log('[DataRenderer] Rendering transaction data:', {
+      widgetKey,
+      addresses,
+      startDate,
+      endDate,
+      dateRange,
+    });
+    
     return {
       component: (
         <DataDisplayTransactions 
-          address={address} 
+          addresses={addresses} 
           startDate={startDate} 
           endDate={endDate}
           onDataReady={onDataReady as ((data: Transaction[]) => void) | undefined}

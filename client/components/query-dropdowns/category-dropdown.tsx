@@ -2,41 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { ChevronDown, ChevronUp, ChevronRight } from 'lucide-react';
-
-interface CategoryOption {
-  value: string;
-  label: string;
-}
-
-const REVENUE_OPTIONS: CategoryOption[] = [
-  { value: 'Boost Revenues', label: 'Boost Revenues' },
-  { value: 'Gauge Vote Incentive Revenues', label: 'Gauge Vote Incentive Revenues' },
-  { value: 'Onramp Revenues', label: 'Onramp Revenues' },
-  { value: 'Strategy Revenues', label: 'Strategy Revenues' },
-  { value: 'Validator Revenues', label: 'Validator Revenues' },
-  { value: 'Zap Revenues', label: 'Zap Revenues' },
-];
-
-const COST_OPTIONS: CategoryOption[] = [
-  { value: 'Accounting Costs', label: 'Accounting Costs' },
-  { value: 'Audit Costs', label: 'Audit Costs' },
-  { value: 'Boost Costs', label: 'Boost Costs' },
-  { value: 'Gauge Vote Incentive Costs', label: 'Gauge Vote Incentive Costs' },
-  { value: 'Merkl Costs', label: 'Merkl Costs' },
-  { value: 'Bounty Costs', label: 'Bounty Costs' },
-  { value: 'Contributor Costs', label: 'Contributor Costs' },
-  { value: 'Cowllector Gas Costs', label: 'Cowllector Gas Costs' },
-  { value: 'Developer Gas Costs', label: 'Developer Gas Costs' },
-  { value: 'Event Costs', label: 'Event Costs' },
-  { value: 'Gelato Costs', label: 'Gelato Costs' },
-  { value: 'Infrastructure Costs', label: 'Infrastructure Costs' },
-  { value: 'Keeper Gas Costs', label: 'Keeper Gas Costs' },
-  { value: 'Marketing Costs', label: 'Marketing Costs' },
-  { value: 'Merchandise Costs', label: 'Merchandise Costs' },
-  { value: 'Service Costs', label: 'Service Costs' },
-  { value: 'Travel Costs', label: 'Travel Costs' },
-  { value: 'Treasury Gas Costs', label: 'Treasury Gas Costs' },
-];
+import { useCategories, getCategoryDisplayName, groupCategoriesByType, getCategoryTypes } from '@/hooks/use-categories';
 
 interface CategoryDropdownProps {
   value?: Set<string>;
@@ -45,10 +11,15 @@ interface CategoryDropdownProps {
 
 export function CategoryDropdown({ value, onChange }: CategoryDropdownProps = {}) {
   const [isOpen, setIsOpen] = useState(false);
-  const [revenuesOpen, setRevenuesOpen] = useState(false);
-  const [costsOpen, setCostsOpen] = useState(false);
+  const [typeOpenStates, setTypeOpenStates] = useState<Record<string, boolean>>({});
   const [internalCategories, setInternalCategories] = useState<Set<string>>(new Set());
   const dropdownRef = useRef<HTMLDivElement>(null);
+  
+  // Load categories from config
+  const categoriesConfig = useCategories();
+  const groupedCategories = groupCategoriesByType(categoriesConfig);
+  const categoryTypes = getCategoryTypes(categoriesConfig);
+  
   
   // Use controlled value if provided, otherwise use internal state
   const selectedCategories = value !== undefined ? value : internalCategories;
@@ -61,37 +32,27 @@ export function CategoryDropdown({ value, onChange }: CategoryDropdownProps = {}
     }
   };
 
-  const allRevenuesSelected = REVENUE_OPTIONS.every(opt => selectedCategories.has(opt.value));
-  const allCostsSelected = COST_OPTIONS.every(opt => selectedCategories.has(opt.value));
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    }
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  const handleAllRevenuesChange = (checked: boolean) => {
-    const newSelected = new Set(selectedCategories);
-    if (checked) {
-      REVENUE_OPTIONS.forEach(opt => newSelected.add(opt.value));
-    } else {
-      REVENUE_OPTIONS.forEach(opt => newSelected.delete(opt.value));
-    }
-    updateCategories(newSelected);
+  const toggleTypeOpen = (type: string) => {
+    setTypeOpenStates(prev => ({
+      ...prev,
+      [type]: !prev[type]
+    }));
   };
 
-  const handleAllCostsChange = (checked: boolean) => {
+  const handleTypeToggle = (type: string, checked: boolean) => {
     const newSelected = new Set(selectedCategories);
+    const categoriesInType = groupedCategories[type] || [];
+    
     if (checked) {
-      COST_OPTIONS.forEach(opt => newSelected.add(opt.value));
+      categoriesInType.forEach(categoryKey => {
+        newSelected.add(categoryKey);
+      });
     } else {
-      COST_OPTIONS.forEach(opt => newSelected.delete(opt.value));
+      categoriesInType.forEach(categoryKey => {
+        newSelected.delete(categoryKey);
+      });
     }
+    
     updateCategories(newSelected);
   };
 
@@ -105,8 +66,29 @@ export function CategoryDropdown({ value, onChange }: CategoryDropdownProps = {}
     updateCategories(newSelected);
   };
 
+  const isTypeAllSelected = (type: string): boolean => {
+    const categoriesInType = groupedCategories[type] || [];
+    if (categoriesInType.length === 0) return false;
+    return categoriesInType.every(categoryKey => selectedCategories.has(categoryKey));
+  };
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Create display text from selected categories
   const displayText = selectedCategories.size > 0
-    ? Array.from(selectedCategories).join(', ')
+    ? Array.from(selectedCategories)
+        .map(cat => getCategoryDisplayName(cat, categoriesConfig))
+        .slice(0, 3)
+        .join(', ') + (selectedCategories.size > 3 ? ` +${selectedCategories.size - 3} more` : '')
     : 'Select categories...';
 
   return (
@@ -124,100 +106,76 @@ export function CategoryDropdown({ value, onChange }: CategoryDropdownProps = {}
       </div>
       {isOpen && (
         <div className="absolute top-full left-0 right-0 mt-1 border border-border bg-background text-foreground rounded-xl max-h-[calc((100vh-300px)*0.4375)] overflow-y-auto z-50 shadow-lg">
-          <div className="grid grid-cols-2">
-            {/* Left Column: Revenues */}
-            <div className="border-r border-border">
-              <label className="block px-4 py-2.5 cursor-pointer border-b border-border hover:bg-accent text-left">
-                <input
-                  type="checkbox"
-                  checked={allRevenuesSelected}
-                  onChange={(e) => handleAllRevenuesChange(e.target.checked)}
-                  className="mr-2.5 accent-primary cursor-pointer"
-                />
-                All Revenues
-              </label>
-              <div>
+          {categoryTypes.map((type) => {
+            const categoriesInType = groupedCategories[type] || [];
+            const isOpen = typeOpenStates[type] ?? false;
+            const allSelected = isTypeAllSelected(type);
+            
+            return (
+              <div key={type}>
                 <div
-                  onClick={() => setRevenuesOpen(!revenuesOpen)}
-                  className="flex justify-between items-center px-4 py-2.5 cursor-pointer border-b border-border hover:bg-accent"
+                  onClick={() => toggleTypeOpen(type)}
+                  className="flex items-center justify-between px-4 py-2.5 cursor-pointer border-b border-border hover:bg-accent"
                 >
-                  <span>Revenues</span>
-                  {revenuesOpen ? (
-                    <ChevronDown className="h-4 w-4" />
-                  ) : (
-                    <ChevronRight className="h-4 w-4" />
-                  )}
+                  <div className="flex items-center gap-2">
+                    {isOpen ? (
+                      <ChevronDown className="h-4 w-4" />
+                    ) : (
+                      <ChevronRight className="h-4 w-4" />
+                    )}
+                    <span>{type}</span>
+                  </div>
+                  <label
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleTypeToggle(type, !allSelected);
+                    }}
+                    className="cursor-pointer"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={allSelected}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        handleTypeToggle(type, e.target.checked);
+                      }}
+                      className="mr-2.5 accent-primary cursor-pointer"
+                    />
+                  </label>
                 </div>
-                {revenuesOpen && (
+                {isOpen && (
                   <div className="border-b border-border">
-                    {REVENUE_OPTIONS.map((option) => (
-                      <label
-                        key={option.value}
-                        className="block px-4 py-2.5 pl-8 cursor-pointer border-b border-border/50 hover:bg-accent text-left"
-                      >
-                        <input
-                          type="checkbox"
-                          value={option.value}
-                          checked={selectedCategories.has(option.value)}
-                          onChange={(e) => handleCategoryChange(option.value, e.target.checked)}
-                          className="mr-2.5 accent-primary cursor-pointer"
-                        />
-                        {option.label}
-                      </label>
-                    ))}
+                    {categoriesInType.length > 0 ? (
+                      categoriesInType.map((categoryKey) => {
+                        const displayName = getCategoryDisplayName(categoryKey, categoriesConfig);
+                        return (
+                          <label
+                            key={categoryKey}
+                            className="block px-4 py-2.5 pl-8 cursor-pointer border-b border-border/50 hover:bg-accent text-left"
+                          >
+                            <input
+                              type="checkbox"
+                              value={categoryKey}
+                              checked={selectedCategories.has(categoryKey)}
+                              onChange={(e) => handleCategoryChange(categoryKey, e.target.checked)}
+                              className="mr-2.5 accent-primary cursor-pointer"
+                            />
+                            {displayName}
+                          </label>
+                        );
+                      })
+                    ) : (
+                      <div className="px-4 py-2.5 pl-8 text-muted-foreground text-sm">
+                        No categories
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
-            </div>
-
-            {/* Right Column: Costs */}
-            <div>
-              <label className="block px-4 py-2.5 cursor-pointer border-b border-border hover:bg-accent text-left">
-                <input
-                  type="checkbox"
-                  checked={allCostsSelected}
-                  onChange={(e) => handleAllCostsChange(e.target.checked)}
-                  className="mr-2.5 accent-primary cursor-pointer"
-                />
-                All Costs
-              </label>
-              <div>
-                <div
-                  onClick={() => setCostsOpen(!costsOpen)}
-                  className="flex justify-between items-center px-4 py-2.5 cursor-pointer border-b border-border hover:bg-accent"
-                >
-                  <span>Costs</span>
-                  {costsOpen ? (
-                    <ChevronDown className="h-4 w-4" />
-                  ) : (
-                    <ChevronRight className="h-4 w-4" />
-                  )}
-                </div>
-                {costsOpen && (
-                  <div className="border-b border-border">
-                    {COST_OPTIONS.map((option) => (
-                      <label
-                        key={option.value}
-                        className="block px-4 py-2.5 pl-8 cursor-pointer border-b border-border/50 hover:bg-accent text-left"
-                      >
-                        <input
-                          type="checkbox"
-                          value={option.value}
-                          checked={selectedCategories.has(option.value)}
-                          onChange={(e) => handleCategoryChange(option.value, e.target.checked)}
-                          className="mr-2.5 accent-primary cursor-pointer"
-                        />
-                        {option.label}
-                      </label>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
+            );
+          })}
         </div>
       )}
     </div>
   );
 }
-

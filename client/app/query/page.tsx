@@ -7,6 +7,7 @@ import { CategoryDropdown } from '@/components/query-dropdowns/category-dropdown
 import { TimePeriodDropdown, TimePeriodValue } from '@/components/query-dropdowns/time-period-dropdown';
 import { SingleDateTimeDropdown } from '@/components/query-dropdowns/single-date-time-dropdown';
 import { MultiDateTimeDropdown } from '@/components/query-dropdowns/multi-date-time-dropdown';
+import { TimeIntervalDropdown, TimeInterval } from '@/components/query-dropdowns/time-interval-dropdown';
 import { PayButton } from '@/components/query-dropdowns/pay-button';
 import { WidgetSelectorDropdown } from '@/components/query-dropdowns/widget-selector-dropdown';
 import { PortfolioTransactionsToggle } from '@/components/query-dropdowns/portfolio-transactions-toggle';
@@ -25,6 +26,7 @@ import { PortfolioDownload } from '@/types/portfolio-download';
 import { Transaction } from '@/types/transaction';
 import Link from 'next/link';
 import {  useX402 } from "@coinbase/cdp-hooks";
+import { usePaymentRequirement } from '@/hooks/use-payment-requirement';
 
 type Mode = 'portfolio' | 'transactions';
 
@@ -40,6 +42,7 @@ interface StoredWidgetParams {
   dates: string[];
   chains?: string[];
   categories?: string[];
+  timeInterval?: TimeInterval;
 }
 
 interface StoredTableParams {
@@ -59,6 +62,8 @@ interface StoredDataParams {
 
 export default function QueryPage() {
   const { currentUser } = useCurrentUser();
+  const { requirePayments } = usePaymentRequirement();
+  const { fetchWithPayment } = useX402();
   const [mode, setMode] = useState<Mode>('portfolio');
   const [selectedCategories, setSelectedCategories] = useState<Set<string>>(new Set());
   const [selectedChains, setSelectedChains] = useState<Set<string>>(new Set());
@@ -83,6 +88,7 @@ export default function QueryPage() {
     mode: 'list',
     dates: [],
   });
+  const [timeInterval, setTimeInterval] = useState<TimeInterval | null>(null);
 
   // State to track rendered widget (single widget, replaces on each render)
   const [renderedWidget, setRenderedWidget] = useState<RenderedWidget | null>(null);
@@ -124,12 +130,18 @@ export default function QueryPage() {
             }
           }
           
+          // Restore timeInterval if it was stored
+          if (params.timeInterval) {
+            setTimeInterval(params.timeInterval);
+          }
+          
           const widgetParams: WidgetRenderParams = {
             widgetKey: params.widgetKey,
             addresses: params.addresses,
             dates: params.dates,
             chains: params.chains || [],
             categories: params.categories || [],
+            timeInterval: params.timeInterval || undefined,
           };
           
           // Debug: Log the dates being used
@@ -161,6 +173,7 @@ export default function QueryPage() {
               dates: params.dates,
               chains: params.chains || [],
               categories: params.categories || [],
+              timeInterval: params.widgetKey === 'bar-stacked-transactions-by-category' ? (params.timeInterval || undefined) : undefined,
             };
             const tableResult = renderTable(tableParams);
             // Wrap in a div with a key to ensure React recognizes it as a new component
@@ -277,7 +290,6 @@ export default function QueryPage() {
         return false;
       }
 
-      const { fetchWithPayment } = useX402();
       // Call the x402-gated endpoint
       // The x402-express middleware will handle payment verification
       const response = await fetchWithPayment('http://localhost:3001/octav/paid', {
@@ -304,10 +316,12 @@ export default function QueryPage() {
 
   // Handle Pay button click - render the widget
   const handlePay = async () => {
-    // Execute payment first
-    const paymentSuccess = await executePayment('0.025');
-    if (!paymentSuccess) {
-      return; // Stop if payment failed
+    // Execute payment first (only if payments are required)
+    if (requirePayments) {
+      const paymentSuccess = await executePayment('0.025');
+      if (!paymentSuccess) {
+        return; // Stop if payment failed
+      }
     }
     if (!selectedWidget) {
       alert('Please select a widget first');
@@ -351,7 +365,8 @@ export default function QueryPage() {
       }
     } else if (widgetTimeType === 'multi') {
       // For transactions widgets, use timePeriod (date range)
-      if (mode === 'transactions' && timePeriod.startDate && timePeriod.endDate) {
+      // Also handle bar-stacked-transactions-by-category which uses timePeriod regardless of mode
+      if ((mode === 'transactions' || selectedWidget === 'bar-stacked-transactions-by-category') && timePeriod.startDate && timePeriod.endDate) {
         const start = new Date(timePeriod.startDate);
         const end = new Date(timePeriod.endDate);
         
@@ -417,8 +432,15 @@ export default function QueryPage() {
     }
     
     // For transactions widgets with date range, ensure we have both start and end dates
-    if (widgetTimeType === 'multi' && mode === 'transactions' && dates.length < 2) {
+    // Also check for bar-stacked-transactions-by-category which uses date range
+    if (widgetTimeType === 'multi' && (mode === 'transactions' || selectedWidget === 'bar-stacked-transactions-by-category') && dates.length < 2) {
       alert('Please select both start and end dates');
+      return;
+    }
+    
+    // For bar-stacked-transactions-by-category, ensure time interval is selected
+    if (selectedWidget === 'bar-stacked-transactions-by-category' && !timeInterval) {
+      alert('Please select a time interval');
       return;
     }
 
@@ -433,6 +455,7 @@ export default function QueryPage() {
       dates: dates,
       chains: chains,
       categories: categories,
+      timeInterval: selectedWidget === 'bar-stacked-transactions-by-category' ? (timeInterval || undefined) : undefined,
     };
     
     // Debug: Log dates for historical widgets
@@ -465,6 +488,7 @@ export default function QueryPage() {
         dates: dates,
         chains: chains,
         categories: categories,
+        timeInterval: selectedWidget === 'bar-stacked-transactions-by-category' ? (timeInterval || undefined) : undefined,
       };
       const tableResult = renderTable(tableParams);
       
@@ -507,7 +531,8 @@ export default function QueryPage() {
       addresses: addrs, 
       dates: dts, 
       chains: chns, 
-      categories: cats
+      categories: cats,
+      timeInterval: tInterval
     }: { 
       children: React.ReactNode; 
       widgetKey: string;
@@ -515,6 +540,7 @@ export default function QueryPage() {
       dates: string[];
       chains: string[];
       categories: string[];
+      timeInterval?: TimeInterval | null;
     }) => {
       const containerRef = useRef<HTMLDivElement>(null);
       const hasStoredRef = useRef(false);
@@ -531,12 +557,18 @@ export default function QueryPage() {
             // Only store if there's no error
             if (!hasError) {
               try {
+                // Get current timeInterval if this is the bar-stacked-transactions-by-category widget
+                const currentTimeInterval = widgetKey === 'bar-stacked-transactions-by-category' 
+                  ? tInterval 
+                  : undefined;
+                
                 const paramsToStore: StoredWidgetParams = {
                   widgetKey: widgetKey,
                   addresses: addrs,
                   dates: dts,
                   chains: chns.length > 0 ? chns : undefined,
                   categories: cats.length > 0 ? cats : undefined,
+                  timeInterval: currentTimeInterval || undefined,
                 };
                 localStorage.setItem('lastRenderedWidget', JSON.stringify(paramsToStore));
                 hasStoredRef.current = true;
@@ -567,7 +599,7 @@ export default function QueryPage() {
         }, 500); // Wait 500ms for widget to render
 
         return () => clearTimeout(timeoutId);
-      }, [children, widgetKey, addrs, dts, chns, cats]);
+      }, [children, widgetKey, addrs, dts, chns, cats, tInterval]);
 
       return <div ref={containerRef}>{children}</div>;
     };
@@ -583,6 +615,7 @@ export default function QueryPage() {
           dates={dates}
           chains={chains}
           categories={categories}
+          timeInterval={selectedWidget === 'bar-stacked-transactions-by-category' ? timeInterval : undefined}
         >
           {widgetComponent}
         </WidgetWrapper>
@@ -680,10 +713,12 @@ export default function QueryPage() {
 
   // Handle data rendering (for Data tab)
   const handleDataRender = async () => {
-    // Execute payment first
-    const paymentSuccess = await executePayment('0.025');
-    if (!paymentSuccess) {
-      return; // Stop if payment failed
+    // Execute payment first (only if payments are required)
+    if (requirePayments) {
+      const paymentSuccess = await executePayment('0.025');
+      if (!paymentSuccess) {
+        return; // Stop if payment failed
+      }
     }
     const addresses = Array.from(selectedAddresses);
     if (addresses.length === 0) {
@@ -739,10 +774,12 @@ export default function QueryPage() {
 
   // Handle table rendering (similar to handlePay but for tables)
   const handleTableRender = async () => {
-    // Execute payment first
-    const paymentSuccess = await executePayment('0.025');
-    if (!paymentSuccess) {
-      return; // Stop if payment failed
+    // Execute payment first (only if payments are required)
+    if (requirePayments) {
+      const paymentSuccess = await executePayment('0.025');
+      if (!paymentSuccess) {
+        return; // Stop if payment failed
+      }
     }
     if (!selectedTable) {
       alert('Please select a table first');
@@ -1130,6 +1167,13 @@ export default function QueryPage() {
                   </div>
                 )}
                 
+                {/* Time interval dropdown for bar-stacked-transactions-by-category */}
+                {selectedWidget === 'bar-stacked-transactions-by-category' && (
+                  <div className="w-full max-w-md">
+                    <TimeIntervalDropdown value={timeInterval} onChange={setTimeInterval} />
+                  </div>
+                )}
+                
                 {/* For portfolio multi-date widgets, use MultiDateTimeDropdown */}
                 {selectedWidget && widgetTimeType === 'multi' && mode === 'portfolio' && (
                   <div className="w-full max-w-md">
@@ -1143,21 +1187,15 @@ export default function QueryPage() {
                   </div>
                 )}
                 
-                {!selectedWidget && (
-                  <div className="w-full max-w-md">
-                    <TimePeriodDropdown value={timePeriod} onChange={setTimePeriod} />
-                  </div>
-                )}
-                
                 {/* Show address selection for widgets - show for both portfolio and transactions mode */}
-                {(mode === 'portfolio' || (mode === 'transactions' && showAddresses)) && (
+                {selectedWidget && (mode === 'portfolio' || (mode === 'transactions' && showAddresses)) && (
                   <div className="w-full max-w-md">
                     <AddressDropdown value={selectedAddresses} onChange={setSelectedAddresses} />
                   </div>
                 )}
                 
                 {/* Categories only shown if widget supports it OR if in transactions mode */}
-                {showCategories && (
+                {selectedWidget && showCategories && (
                   <div className="w-full max-w-md">
                     <CategoryDropdown value={selectedCategories} onChange={setSelectedCategories} />
                   </div>

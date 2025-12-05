@@ -6,8 +6,8 @@
 import React from 'react';
 
 // Import all widget components
-import Portfolio from '@/components/widgets/portfolio';
-import Historical from '@/components/widgets/historic';
+import Portfolio from '@/components/widgets/counter/portfolio';
+import Historical from '@/components/widgets/counter/historic';
 import PieCurrentPortfolioByAsset from '@/components/widgets/pie/pie-current-portfolio-by-asset';
 import PieCurrentPortfolioByProtocol from '@/components/widgets/pie/pie-current-portfolio-by-protocol';
 import PieHistoricalPortfolioByAsset from '@/components/widgets/pie/pie-historical-portfolio-by-asset';
@@ -23,6 +23,8 @@ import BarTransactionsByDay from '@/components/widgets/bar/bar-transactions-by-d
 import BarStackedPortfolioByAsset from '@/components/widgets/bar-stacked/bar-stacked-portfolio-by-asset';
 import BarStackedPortfolioByProtocol from '@/components/widgets/bar-stacked/bar-stacked-portfolio-by-protocol';
 import BarStackedNetworthByChain from '@/components/widgets/bar-stacked/bar-stacked-networth-by-chain';
+import BarStackedTransactionsByCategory from '@/components/widgets/bar-stacked/bar-stacked-transactions-by-category';
+import { TimeInterval } from '@/components/query-dropdowns/time-interval-dropdown';
 
 export interface WidgetRenderParams {
   widgetKey: string;
@@ -30,6 +32,7 @@ export interface WidgetRenderParams {
   dates: string[];
   chains?: string[];
   categories?: string[];
+  timeInterval?: TimeInterval;
 }
 
 /**
@@ -54,7 +57,7 @@ function formatDatesToISO(dates: Date[]): string[] {
  * Render a widget component based on the widget key and parameters
  */
 export function renderWidget(params: WidgetRenderParams): React.ReactNode {
-  const { widgetKey, addresses, dates, chains, categories } = params;
+  const { widgetKey, addresses, dates, chains, categories, timeInterval } = params;
 
   // Get the first address (for now, widgets only support single address)
   const address = addresses[0] || '';
@@ -258,6 +261,53 @@ export function renderWidget(params: WidgetRenderParams): React.ReactNode {
         );
       }
       return <BarStackedNetworthByChain addresses={addresses} dates={dates} />;
+
+    case 'bar-stacked-transactions-by-category':
+      if (dates.length < 2) {
+        return (
+          <div className="p-4 border border-yellow-300 bg-yellow-50 rounded-md">
+            <p className="font-semibold text-yellow-800">Error</p>
+            <p className="text-yellow-600">Please select a date range (start and end date)</p>
+          </div>
+        );
+      }
+      if (addresses.length === 0) {
+        return (
+          <div className="p-4 border border-yellow-300 bg-yellow-50 rounded-md">
+            <p className="font-semibold text-yellow-800">Error</p>
+            <p className="text-yellow-600">Please select at least one address</p>
+          </div>
+        );
+      }
+      if (!categories || categories.length === 0) {
+        return (
+          <div className="p-4 border border-yellow-300 bg-yellow-50 rounded-md">
+            <p className="font-semibold text-yellow-800">Error</p>
+            <p className="text-yellow-600">Please select at least one category</p>
+          </div>
+        );
+      }
+      if (!timeInterval) {
+        return (
+          <div className="p-4 border border-yellow-300 bg-yellow-50 rounded-md">
+            <p className="font-semibold text-yellow-800">Error</p>
+            <p className="text-yellow-600">Please select a time interval</p>
+          </div>
+        );
+      }
+      // Sort dates and use first as startDate, last as endDate
+      const sortedDatesForCategory = [...dates].sort((a, b) => a.localeCompare(b));
+      const startDateForCategory = sortedDatesForCategory[0];
+      const endDateForCategory = sortedDatesForCategory[sortedDatesForCategory.length - 1];
+      return (
+        <BarStackedTransactionsByCategory
+          addresses={addresses}
+          startDate={startDateForCategory}
+          endDate={endDateForCategory}
+          timeInterval={timeInterval}
+          selectedCategories={new Set(categories)}
+        />
+      );
 
     default:
       return (

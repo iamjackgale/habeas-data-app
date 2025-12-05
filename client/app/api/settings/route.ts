@@ -40,28 +40,31 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     
     // Validate the structure
-    if (!body.settings || !body.settings.visuals || !body.settings.visuals.widgetColors) {
+    if (!body.settings) {
       return NextResponse.json(
         { error: 'Invalid config structure' },
         { status: 400 }
       );
     }
 
-    // Ensure we have exactly 10 colors
-    if (body.settings.visuals.widgetColors.length !== 10) {
-      return NextResponse.json(
-        { error: 'Must have exactly 10 widget colors' },
-        { status: 400 }
-      );
-    }
+    // Validate widget colors if provided
+    if (body.settings.visuals?.widgetColors) {
+      // Ensure we have exactly 10 colors
+      if (body.settings.visuals.widgetColors.length !== 10) {
+        return NextResponse.json(
+          { error: 'Must have exactly 10 widget colors' },
+          { status: 400 }
+        );
+      }
 
-    // Validate hex colors
-    const hexPattern = /^#[0-9A-Fa-f]{6}$/;
-    if (!body.settings.visuals.widgetColors.every((color: string) => hexPattern.test(color))) {
-      return NextResponse.json(
-        { error: 'All colors must be valid hex codes' },
-        { status: 400 }
-      );
+      // Validate hex colors
+      const hexPattern = /^#[0-9A-Fa-f]{6}$/;
+      if (!body.settings.visuals.widgetColors.every((color: string) => hexPattern.test(color))) {
+        return NextResponse.json(
+          { error: 'All colors must be valid hex codes' },
+          { status: 400 }
+        );
+      }
     }
 
     // Read existing config to preserve other settings
@@ -83,6 +86,10 @@ export async function POST(request: NextRequest) {
         // Preserve addresses and widgetDefaults if they exist and weren't sent
         addresses: body.settings.addresses !== undefined ? body.settings.addresses : (existingConfig.settings?.addresses || {}),
         widgetDefaults: body.settings.widgetDefaults !== undefined ? body.settings.widgetDefaults : (existingConfig.settings?.widgetDefaults || {}),
+        // Preserve categories if they exist and weren't sent
+        categories: body.settings.categories !== undefined ? body.settings.categories : (existingConfig.settings?.categories || {}),
+        // Preserve requireX402Payments if it exists and wasn't sent
+        requireX402Payments: body.settings.requireX402Payments !== undefined ? body.settings.requireX402Payments : (existingConfig.settings?.requireX402Payments ?? false),
       },
     };
 

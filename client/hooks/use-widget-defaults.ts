@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { TimeInterval } from '@/components/query-dropdowns/time-interval-dropdown';
 
 interface WidgetDefaults {
   portfolio?: {
@@ -36,6 +37,13 @@ interface WidgetDefaults {
     address: string;
     startDate: string;
     endDate: string;
+  };
+  'bar-stacked-transactions-by-category'?: {
+    address: string;
+    startDate: string;
+    endDate: string;
+    timeInterval: TimeInterval;
+    categories: string[];
   };
 }
 

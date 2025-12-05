@@ -224,12 +224,46 @@ export function WalletControls() {
       // Provide user-friendly error message
       const errorMessage = err?.message || err?.toString() || 'Network error occurred';
       
-      let userMessage = `Failed to sign in with ${provider}.\n\nError: ${errorMessage}\n\nTroubleshooting steps:\n`;
-      userMessage += `1. Verify NEXT_PUBLIC_CDP_PROJECT_ID is set in .env.local (current: ${process.env.NEXT_PUBLIC_CDP_PROJECT_ID ? '✅ Set' : '❌ Missing'})\n`;
-      userMessage += `2. Restart your dev server after adding the Project ID\n`;
-      userMessage += `3. Check that ${provider} OAuth is enabled in your CDP project dashboard\n`;
-      userMessage += `4. Ensure redirect URIs are configured (e.g., http://localhost:3000)\n`;
-      userMessage += `5. Check your network connection and CDP service status\n`;
+      // Check for CORS errors specifically
+      const isCorsError = errorMessage.toLowerCase().includes('cors') || 
+                         errorMessage.toLowerCase().includes('network') ||
+                         errorMessage.toLowerCase().includes('failed');
+      
+      let userMessage = `Failed to sign in with ${provider}.\n\nError: ${errorMessage}\n\n`;
+      
+      if (isCorsError) {
+        userMessage += `⚠️ CORS/Network Error Detected\n\n`;
+        userMessage += `This usually means your domain is not allowed in your CDP project.\n\n`;
+        userMessage += `🔧 Fix Steps:\n`;
+        userMessage += `1. Go to https://portal.cdp.coinbase.com/\n`;
+        userMessage += `2. Select your project\n`;
+        userMessage += `3. Go to Settings → Domains\n`;
+        userMessage += `4. Click "Add domain" and add:\n`;
+        userMessage += `   - http://localhost:3000\n`;
+        if (typeof window !== 'undefined' && window.location.origin !== 'http://localhost:3000') {
+          userMessage += `   - ${window.location.origin}\n`;
+        }
+        userMessage += `5. Go to Settings → OAuth Settings\n`;
+        userMessage += `6. Add these Redirect URIs:\n`;
+        userMessage += `   - http://localhost:3000\n`;
+        userMessage += `   - http://localhost:3000/\n`;
+        if (typeof window !== 'undefined' && window.location.origin !== 'http://localhost:3000') {
+          userMessage += `   - ${window.location.origin}\n`;
+          userMessage += `   - ${window.location.origin}/\n`;
+        }
+        userMessage += `7. Ensure "${provider}" OAuth provider is enabled\n`;
+        userMessage += `8. Save all changes and wait 1-2 minutes for propagation\n`;
+        userMessage += `9. Refresh this page and try again\n\n`;
+        userMessage += `Note: "Domains" and "Redirect URIs" are different settings - both must be configured!\n\n`;
+      } else {
+        userMessage += `Troubleshooting steps:\n`;
+        userMessage += `1. Verify NEXT_PUBLIC_CDP_PROJECT_ID is set in .env.local (current: ${process.env.NEXT_PUBLIC_CDP_PROJECT_ID ? '✅ Set' : '❌ Missing'})\n`;
+        userMessage += `2. Restart your dev server after adding the Project ID\n`;
+        userMessage += `3. Check that ${provider} OAuth is enabled in your CDP project dashboard\n`;
+        userMessage += `4. Ensure redirect URIs are configured (e.g., http://localhost:3000)\n`;
+        userMessage += `5. Check your network connection and CDP service status\n`;
+      }
+      
       userMessage += `\nCheck the browser console for more details.`;
       
       alert(userMessage);

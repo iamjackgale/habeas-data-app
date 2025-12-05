@@ -31,8 +31,11 @@ const PORTFOLIO_WIDGET_CATEGORIES = {
 };
 
 const TRANSACTIONS_WIDGET_CATEGORIES = {
-  'bar': [
+  'Bar': [
     { key: 'bar-transactions-by-day', label: 'Transactions by Day' },
+  ],
+  'Stacked Bar': [
+    { key: 'bar-stacked-transactions-by-category', label: 'Transactions Comparison by Category' },
   ],
 };
 
