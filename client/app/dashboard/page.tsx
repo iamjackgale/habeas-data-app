@@ -7,16 +7,27 @@ import HistoricalSnapshot from '@/components/widgets-snapshots/counter/historic-
 import TransactionCountSnapshot from '@/components/widgets-snapshots/counter/transaction-snapshot';
 import TransactionValueSnapshot from '@/components/widgets-snapshots/counter/transaction-value';
 import BarTransactionsByDaySnapshot from '@/components/widgets-snapshots/bar/bar-transactions-by-day-snapshot';
-import BarStackedTransactionsByCategorySnapshot from '@/components/widgets-snapshots/bar-stacked/bar-stacked-transactions-by-category-snapshot';
 import PiesPortfolioByAssetSnapshot from '@/components/widgets-snapshots/pies/pies-portfolio-by-asset-snapshot';
 import BarStackedNetworthByChainSnapshot from '@/components/widgets-snapshots/bar-stacked/bar-stacked-networth-by-chain-snapshot';
 import PieCurrentPortfolioByAssetSnapshot from '@/components/widgets-snapshots/pie/pie-current-portfolio-by-asset-snapshot';
+import BarStackedTransactionsByCategory from '@/components/widgets/bar-stacked/bar-stacked-transactions-by-category';
+import { TimeInterval } from '@/components/query-dropdowns/time-interval-dropdown';
+
+interface StoredWidgetParams {
+  widgetKey: string;
+  addresses: string[];
+  dates: string[];
+  chains?: string[];
+  categories?: string[];
+  timeInterval?: TimeInterval;
+}
 
 export default function DashboardPage() {
   const [organizationName, setOrganizationName] = useState<string>('');
   const [organizationDescription, setOrganizationDescription] = useState<string>('');
   const [logo, setLogo] = useState<string | null>(null);
   const [isDark, setIsDark] = useState(false);
+  const [storedWidget, setStoredWidget] = useState<React.ReactNode | null>(null);
 
   // Detect theme
   useEffect(() => {
@@ -68,6 +79,95 @@ export default function DashboardPage() {
     loadData();
   }, [isDark]);
 
+  // Load stored widget from localStorage
+  const loadStoredWidget = () => {
+    try {
+      const stored = localStorage.getItem('lastRenderedWidget');
+      if (stored) {
+        const params: StoredWidgetParams = JSON.parse(stored);
+        
+        // Only load if it's the bar-stacked-transactions-by-category widget
+        if (params.widgetKey === 'bar-stacked-transactions-by-category') {
+          if (params.addresses && params.addresses.length > 0 && 
+              params.dates && params.dates.length >= 2 &&
+              params.categories && params.categories.length > 0 &&
+              params.timeInterval) {
+            const sortedDates = [...params.dates].sort((a, b) => a.localeCompare(b));
+            const startDate = sortedDates[0];
+            const endDate = sortedDates[sortedDates.length - 1];
+            
+            setStoredWidget(
+              <BarStackedTransactionsByCategory
+                key={`${startDate}-${endDate}-${params.timeInterval}-${params.addresses.join(',')}-${params.categories.join(',')}`}
+                addresses={params.addresses}
+                startDate={startDate}
+                endDate={endDate}
+                timeInterval={params.timeInterval}
+                selectedCategories={new Set(params.categories)}
+              />
+            );
+          } else {
+            // Clear widget if params are invalid
+            setStoredWidget(null);
+          }
+        } else {
+          // Clear widget if it's not the right type
+          setStoredWidget(null);
+        }
+      } else {
+        // Clear widget if nothing is stored
+        setStoredWidget(null);
+      }
+    } catch (error) {
+      console.error('Error loading stored widget:', error);
+      setStoredWidget(null);
+    }
+  };
+
+  useEffect(() => {
+    // Load on mount
+    loadStoredWidget();
+
+    // Listen for storage changes (when query page updates the widget)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'lastRenderedWidget') {
+        loadStoredWidget();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    // Also listen for custom storage events (for same-tab updates)
+    const handleCustomStorageChange = () => {
+      loadStoredWidget();
+    };
+
+    // Listen for custom event that query page might dispatch
+    window.addEventListener('widgetUpdated', handleCustomStorageChange);
+
+    // Also reload when page becomes visible (user navigates back from query page)
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        loadStoredWidget();
+      }
+    };
+
+    // Reload when window gains focus (user switches back to this tab)
+    const handleFocus = () => {
+      loadStoredWidget();
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('widgetUpdated', handleCustomStorageChange);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, []);
+
   return (
     <div className="flex flex-col gap-6 p-4">
       <div className="flex flex-col items-center gap-4">
@@ -104,11 +204,11 @@ export default function DashboardPage() {
           <div className="w-full flex flex-col gap-4">
             <BarStackedNetworthByChainSnapshot />
             <PieCurrentPortfolioByAssetSnapshot />
+            {storedWidget}
           </div>
           <div className="w-full">
             <PiesPortfolioByAssetSnapshot />
             <BarTransactionsByDaySnapshot />
-            <BarStackedTransactionsByCategorySnapshot />
           </div>
         </div>
       </div>

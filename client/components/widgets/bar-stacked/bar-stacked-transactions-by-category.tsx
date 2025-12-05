@@ -134,16 +134,19 @@ export default function BarStackedTransactionsByCategory({
   // Sort intervals chronologically
   const sortedIntervals = Object.keys(intervalCategoryData).sort();
 
-  // Format date as MM/DD/YYYY
+  // Format date as YYYY-MM-DD
   const formatDate = (date: Date) => {
+    const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
-    return `${month}/${day}/${date.getFullYear()}`;
+    return `${year}-${month}-${day}`;
   };
 
   // Build chart data: each interval is a bar, categories are stacks
   const chartData: BarStackedChartDataEntry[] = sortedIntervals.map(intervalKey => {
-    const intervalStart = new Date(intervalKey);
+    // Parse YYYY-MM-DD string directly to avoid timezone issues
+    const [year, month, day] = intervalKey.split('-').map(Number);
+    const intervalStart = new Date(year, month - 1, day);
     
     // Use only the start date for the label
     const label = formatDate(intervalStart);

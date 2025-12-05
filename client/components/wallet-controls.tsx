@@ -11,6 +11,7 @@ import {
   useVerifySmsOTP,
   useSignInWithOAuth
 } from "@coinbase/cdp-hooks";
+import { Droplet, Coins, LogOut, Clipboard, Check } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
@@ -451,32 +452,35 @@ export function WalletControls() {
 
   return (
     <div className="flex flex-col gap-2 w-full">
+      <div className="flex items-center gap-3 w-full h-8 px-2 rounded-md bg-transparent hover:bg-sidebar-accent text-sidebar-foreground hover:text-sidebar-accent-foreground transition-colors">
+        <button
+          onClick={handleCopyAddress}
+          className="p-0 bg-transparent border-0 text-foreground hover:text-foreground/80 transition-colors"
+        >
+          {copied ? <Check className="w-4 h-4" /> : <Clipboard className="w-4 h-4" />}
+        </button>
+        <span className="text-sm">
+          {address.slice(0, 6)}...{address.slice(-4)}
+        </span>
+      </div>
+      <div className="flex items-center gap-3 w-full h-8 px-2 rounded-md bg-transparent text-sidebar-foreground text-sm">
+        <Coins className="w-4 h-4" />
+        <span>{balance} USDC</span>
+      </div>
       <button 
-        className="flex items-center justify-center w-full h-8 px-2 text-sm rounded-md bg-sidebar-accent hover:bg-sidebar-accent/80 text-sidebar-accent-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        className="flex items-center gap-3 w-full h-8 px-2 text-sm rounded-md bg-transparent hover:bg-sidebar-accent text-sidebar-foreground hover:text-sidebar-accent-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         onClick={handleFaucet} 
         disabled={loading || authLoading}
       >
-        faucet
+        <Droplet className="w-4 h-4" />
+        <span>Faucet</span>
       </button>
-      <div className="flex items-center justify-between w-full h-8 px-2 rounded-md bg-sidebar-accent/50 text-sidebar-accent-foreground text-xs">
-        <span>
-          {address.slice(0, 6)}...{address.slice(-4)}
-        </span>
-        <button
-          onClick={handleCopyAddress}
-          className="text-sidebar-accent-foreground hover:text-sidebar-accent-foreground/80 transition-colors"
-        >
-          {copied ? '✓' : '📋'}
-        </button>
-      </div>
-      <div className="flex items-center justify-center w-full h-8 px-2 rounded-md bg-sidebar-accent/50 text-sidebar-accent-foreground text-xs">
-        {balance} USDC
-      </div>
       <button 
-        className="flex items-center justify-center w-full h-8 px-2 text-sm rounded-md bg-sidebar-accent hover:bg-sidebar-accent/80 text-sidebar-accent-foreground transition-colors"
+        className="flex items-center gap-3 w-full h-8 px-2 text-sm rounded-md bg-transparent hover:bg-sidebar-accent text-sidebar-foreground hover:text-sidebar-accent-foreground transition-colors"
         onClick={() => signOut()}
       >
-        sign out
+        <LogOut className="w-4 h-4" />
+        <span>Sign Out</span>
       </button>
     </div>
   );

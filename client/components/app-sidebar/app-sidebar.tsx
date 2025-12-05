@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useEffect, useState } from 'react';
-import { Library, Gauge, Search, Settings } from 'lucide-react';
+import { Library, Gauge, Search, Settings, FileText } from 'lucide-react';
 import { useIsSignedIn } from '@coinbase/cdp-hooks';
 
 import { NavItem, NavItems } from '@/components/app-sidebar/nav-items';
@@ -70,6 +70,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       icon: <Search width={20} height={20} className="stroke-[1.5]" />,
     },
     {
+      name: 'Reports',
+      url: '/reports',
+      pathname: '/reports',
+      icon: <FileText width={20} height={20} className="stroke-[1.5]" />,
+    },
+    {
       name: 'Widgets',
       url: '/widget',
       pathname: '/widget',
@@ -121,10 +127,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarFooter>
         <div className={cn('flex flex-col gap-2 px-2 py-2')}>
           <WalletControls />
-          <div className={cn('flex items-center', isExpanded ? 'justify-start' : 'justify-center')}>
-            <ThemeToggle />
-            {isExpanded && <span className="ml-3 text-sm text-muted-foreground">Theme</span>}
-          </div>
+          <ThemeToggle />
         </div>
       </SidebarFooter>
 

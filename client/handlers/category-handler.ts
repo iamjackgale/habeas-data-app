@@ -426,7 +426,8 @@ export function aggregateTransactionsByIntervalAndCategory(
     
     // Get the interval start for this transaction
     const intervalStart = getIntervalStart(txDate, interval);
-    const intervalKey = intervalStart.toISOString().split('T')[0];
+    // Format date as YYYY-MM-DD without timezone conversion to avoid day shifts
+    const intervalKey = `${intervalStart.getFullYear()}-${String(intervalStart.getMonth() + 1).padStart(2, '0')}-${String(intervalStart.getDate()).padStart(2, '0')}`;
 
     // Initialize interval entry if it doesn't exist
     if (!intervalCategoryTotals[intervalKey]) {

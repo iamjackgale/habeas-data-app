@@ -2,7 +2,6 @@
 
 import { Moon, Sun } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
 
 export function ThemeToggle() {
   const [isDark, setIsDark] = useState(false);
@@ -10,6 +9,18 @@ export function ThemeToggle() {
   useEffect(() => {
     // Check initial theme
     setIsDark(document.documentElement.classList.contains('dark'));
+    
+    // Watch for theme changes
+    const observer = new MutationObserver(() => {
+      setIsDark(document.documentElement.classList.contains('dark'));
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+
+    return () => observer.disconnect();
   }, []);
 
   const toggleTheme = () => {
@@ -26,18 +37,17 @@ export function ThemeToggle() {
   };
 
   return (
-    <Button
-      variant="ghost"
-      size="icon"
+    <button
+      className="flex items-center gap-3 w-full h-8 px-2 text-sm rounded-md bg-transparent hover:bg-sidebar-accent text-sidebar-foreground hover:text-sidebar-accent-foreground transition-colors"
       onClick={toggleTheme}
-      className="h-9 w-9 cursor-pointer"
       aria-label="Toggle theme"
     >
       {isDark ? (
-        <Sun className="h-4 w-4" />
+        <Sun className="w-4 h-4" />
       ) : (
-        <Moon className="h-4 w-4" />
+        <Moon className="w-4 h-4" />
       )}
-    </Button>
+      <span>Theme</span>
+    </button>
   );
 }
