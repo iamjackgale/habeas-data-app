@@ -53,7 +53,7 @@ export const getPortfolio = async (params: GetPortfolioParams): Promise<Record<s
 
   try {
     const response = await axios.get<CombinedPortfolioResponse>(
-      `http://localhost:3001/api/octav/portfolio?${queryParams.toString()}`,
+      `${process.env.NEXT_PUBLIC_API_URL}/api/octav/portfolio?${queryParams.toString()}`,
       {
         withCredentials: false,
       }

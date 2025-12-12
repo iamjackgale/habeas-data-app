@@ -93,7 +93,7 @@ export const getTransactions = async (params: GetTransactionsParams): Promise<Co
 
   try {
     const response = await axios.get<CombinedTransactionsResponse>(
-      `http://localhost:3001/api/octav/transactions?${queryParams.toString()}`,
+      `${process.env.NEXT_PUBLIC_API_URL}/api/octav/transactions?${queryParams.toString()}`,
       {
         withCredentials: false,
       }

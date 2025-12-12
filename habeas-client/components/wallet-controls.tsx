@@ -11,7 +11,7 @@ import {
   useVerifySmsOTP,
   useSignInWithOAuth
 } from "@coinbase/cdp-hooks";
-import { Droplet, Coins, LogOut, Clipboard, Check } from 'lucide-react';
+import { Droplet, Coins, LogOut, LogIn, Clipboard, Check } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
@@ -316,10 +316,11 @@ export function WalletControls() {
     return (
       <>
         <button 
-          className="flex items-center justify-center w-full h-8 px-2 text-sm rounded-md bg-sidebar-accent hover:bg-sidebar-accent/80 text-sidebar-accent-foreground transition-colors"
+          className="flex items-center gap-3 w-full h-8 px-2 text-sm rounded-md bg-transparent hover:bg-sidebar-accent text-sidebar-foreground hover:text-sidebar-accent-foreground transition-colors"
           onClick={() => setShowAuthMethods(true)}
         >
-          sign in
+          <LogIn className="w-4 h-4" />
+          <span>Sign In</span>
         </button>
         
         {/* Auth Modal */}

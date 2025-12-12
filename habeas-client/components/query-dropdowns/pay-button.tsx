@@ -35,7 +35,7 @@ export function PayButton({ fee = '0.025', className = '', onClick }: PayButtonP
       setBalanceLoading(true);
       try {
         const address = currentUser.evmAccounts[0];
-        const response = await fetch(`http://localhost:3001/api/cdp/balance/${address}`);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/cdp/balance/${address}`);
         if (response.ok) {
           const data = await response.json();
           setBalance(parseFloat(data.balance || '0'));

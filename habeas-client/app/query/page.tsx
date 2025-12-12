@@ -292,7 +292,7 @@ export default function QueryPage() {
 
       // Call the x402-gated endpoint
       // The x402-express middleware will handle payment verification
-      const response = await fetchWithPayment('http://localhost:3001/octav/paid', {
+      const response = await fetchWithPayment(`${process.env.NEXT_PUBLIC_API_URL}/octav/paid`, {
         method: 'GET'
       })
 

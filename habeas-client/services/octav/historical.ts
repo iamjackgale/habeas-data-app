@@ -54,7 +54,7 @@ export const getHistorical = async (params: GetHistoricalParams): Promise<Record
 
   try {
     const response = await axios.get<CombinedHistoricalResponse>(
-      `http://localhost:3001/api/octav/historical?${queryParams.toString()}`,
+      `${process.env.NEXT_PUBLIC_API_URL}/api/octav/historical?${queryParams.toString()}`,
       {
         withCredentials: false,
       }
@@ -103,7 +103,7 @@ export const getHistoricalRange = async (params: GetHistoricalRangeParams): Prom
 
   try {
     const response = await axios.get<CombinedHistoricalRangeResponse>(
-      `http://localhost:3001/api/octav/historical/range?${queryParams.toString()}`,
+      `${process.env.NEXT_PUBLIC_API_URL}/api/octav/historical/range?${queryParams.toString()}`,
       {
         withCredentials: false,
       }

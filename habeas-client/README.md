@@ -83,7 +83,7 @@ cp .env.local.example .env.local
 Edit your `.env.local`:
 ```env
 NEXT_PUBLIC_CDP_PROJECT_ID=your-project-id-here
-NEXT_PUBLIC_API_URL=http://localhost:3001
+NEXT_PUBLIC_API_URL=http://habeas-server.vercel.app
 
 # Octav API Key (REQUIRED for Octav Portfolio API)
 # Get your API key at https://data.octav.fi
